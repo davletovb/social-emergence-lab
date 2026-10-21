@@ -25,7 +25,14 @@
 | Simpson, Montgomery & Melamed (2023), *Reputations for Treatment of Outgroup Members Can Prevent the Emergence of Political Segregation in Cooperative Networks* (Nature Communications), https://doi.org/10.1038/s41467-023-43486-7 | Lab-network experiment with 1,073 people; disaggregated reputational information mitigated segregation in a politically divided setting | Very close intersection of information disclosure and evolving graph | Need direct comparison to differentiated information / tie restoration; our mechanism may overlap substantially |
 | Kas (2022), *The Effect of Online Reputation Systems on Intergroup Inequality*, https://doi.org/10.1016/j.socec.2021.101800 | Experimental reputation systems failed to eliminate intergroup inequality; early disparities mattered later | “Better reputation systems fix inequality” is not guaranteed | Intergroup inequity and our randomly assigned false priors are not equivalent |
 
-The scope and “not studied here” descriptions above reflect **what we verified in these sources**, not a claim that no other publication performed the same test.
+The scope and “not studied here” descriptions above reflect **what we verified in these sources**, not a claim that no other publication performed the same test. The 2021 network-cooperation paper is cited as Tsvetkova (2021) in the design review; confirm its authorship when it is next reviewed.
+
+### Leads from the earlier concept note, not yet reviewed
+
+The first version of this experiment's research question listed two further sources. They have **not** been reviewed here, and each must be reviewed or excluded with a recorded reason before the novelty audit is complete:
+
+- *Agent-based computational models of reputation and status* (Oxford Handbook chapter): https://doi.org/10.1093/oxfordhb/9780190494087.013.13
+- *Co-evolution of social classes, mobility, wealth, and learning*: https://www.sciencedirect.com/science/article/pii/S016726812300210X
 
 ### What the literature forces us to change
 
@@ -51,7 +58,7 @@ The scope and “not studied here” descriptions above reflect **what we verifi
 
 ## Scope of this review and next scholarly work
 
-This was a targeted search of representative primary research from 2006–2023, not a PRISMA review, a citation graph, or a systematic forward-citation search through October 2026. In particular, we have **not** ruled out post-2023 studies on correction of misinformation combined with network access. Before positioning a paper as novel: run backward/forward citation tracing from Salganik & Watts (2008), van de Rijt (2019), Chu et al. (2020), and Simpson et al. (2023); search adjacent algorithmic fairness, network formation, recommender systems, labor-market signaling, and belief updating literatures; record exclusion criteria and update this matrix.
+This was a targeted search of representative primary research from 2006–2023, not a PRISMA review, a citation graph, or a systematic forward-citation search through October 2026. In particular, we have **not** ruled out post-2023 studies on correction of misinformation combined with network access. Before positioning a paper as novel: run backward/forward citation tracing from Salganik & Watts (2008), van de Rijt (2019), Chu et al. (2020), Tsvetkova (2021) and Simpson et al. (2023); search adjacent algorithmic fairness, network formation, recommender systems, labor-market signaling, and belief updating literatures; record exclusion criteria and update this matrix.
 
 ## Potential empirical alignment
 

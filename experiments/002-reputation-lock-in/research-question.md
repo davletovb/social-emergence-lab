@@ -19,7 +19,7 @@ All agents have **identical true quality**. Randomly give half artificially high
 | Network-only | No | Yes |
 | Both | Yes | Yes |
 
-For each fork measure `D`, the share of **post-τ** opportunity tokens reaching the randomly boosted half minus the share reaching the other half. A **candidate primary contrast** is the mean paired difference `D_information-only − D_both` across independently seeded preintervention societies. Do not count actors or fork branches as independent samples.
+For each fork measure `D`, the share of **post-τ** opportunity tokens reaching the randomly boosted half minus the share reaching the other half. A **candidate primary contrast** is the mean paired difference `D_information-only − D_both` across independently seeded preintervention societies. As drafted, `E[D_both]=0` exactly by label symmetry, so this contrast equals `E[D_information-only]`; the choice of primary estimand is [open decision D2](design-review-and-tests.md#open-design-decisions). Do not count actors or fork branches as independent samples.
 
 **Falsification is essential:** if correction alone removes the future opportunity gap, or structural repair does not help, the proposed mechanism is not supported for the tested parameter range. Negative controls must distinguish graph-induced exclusion from noisy belief updating and arbitrary allocation. Every parameter/outcome and inference rule remains a draft.
 
