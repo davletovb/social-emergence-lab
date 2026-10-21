@@ -36,6 +36,9 @@ pub struct Config {
     /// permuted-circulant graph before each opportunity; never retain ties.
     #[serde(default, skip_serializing_if = "is_false")]
     pub annealed: bool,
+    /// Reproduce legacy journals exactly: old V0 manifests lacked this flag.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub survival_accounting: bool,
 }
 fn is_false(v: &bool) -> bool {
     !*v
@@ -56,6 +59,7 @@ impl Config {
             removal: Removal::LowestBelief,
             graph_attempts: MAX_GRAPH_ATTEMPTS,
             annealed: false,
+            survival_accounting: true,
         }
     }
     pub fn validate(&self) -> Result<(), String> {
@@ -542,10 +546,13 @@ impl HiyalWorld for ReputationWorld {
             }
         }
         w.step = step;
-        let surviving_count = w
-            .surviving_edges
-            .as_ref()
-            .map(|rows| rows.iter().map(Vec::len).sum());
+        let surviving_count = if w.config.survival_accounting {
+            w.surviving_edges
+                .as_ref()
+                .map(|rows| rows.iter().map(Vec::len).sum())
+        } else {
+            None
+        };
         w.trace.push(StepTrace {
             step,
             allocator: j,

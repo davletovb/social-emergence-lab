@@ -370,3 +370,41 @@ async fn v1_annealed_four_fork_stand_in_replays() {
     );
     std::fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn v1_legacy_v0_trace_hash_semantics_remain_unchanged() {
+    // A historical V0 Config did not contain the opt-in V1 accounting flag.
+    // The deserializer must leave it false, and the reducer must not invent
+    // formerly absent per-event trace fields on fork replay.
+    let mut stored = serde_json::to_value(Config::default_for(6, 2)).unwrap();
+    let object = stored.as_object_mut().unwrap();
+    object.remove("survival_accounting");
+    object.remove("annealed");
+    let cfg: Config = serde_json::from_value(stored).unwrap();
+    assert!(!cfg.survival_accounting);
+    let mut rng = Streams::new("legacy-fork-v0".into(), 98231);
+    let mut w = setup(&cfg, &mut rng).unwrap();
+    w.config.removal = Removal::None;
+    w.intervene(Arm::Information).unwrap();
+    let mut policy_rng = Streams::new("legacy-policy-v0".into(), 98232);
+    let action = ReputationPolicy
+        .decide_with_streams(AgentId(0), &w, &[], &mut policy_rng)
+        .unwrap();
+    w.apply(AgentId(0), action).unwrap();
+    assert!(w.trace.last().unwrap().surviving_count.is_none());
+    let serialized = serde_json::to_value(&w).unwrap();
+    assert!(
+        serialized
+            .get("config")
+            .unwrap()
+            .get("survival_accounting")
+            .is_none()
+    );
+    assert!(
+        serialized.get("trace").unwrap()[0]
+            .get("surviving_count")
+            .is_none()
+    );
+    let v1 = Config::default_for(6, 2);
+    assert!(v1.survival_accounting);
+}

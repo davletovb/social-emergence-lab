@@ -1,0 +1,11 @@
+# Experiment 002 V1 — graph sampling and large-batch resource limit
+
+**No confirmatory result.** The exact, source-pinned [GitHub Actions run 39619698742](https://github.com/davletovb/social-emergence-lab/actions/runs/39619698742) passed the Rust correctness tests, independent reference/annealed controls and four-seed N20,d4 graph benchmark, then its **15-parent 20-agent 200/600 exploratory suite was canceled** at the 30-minute workflow limit. All original Hiyal worlds for that incomplete suite were lost when its temporary runner ended, and the evidence-upload step never ran. **No complete 15-parent summary exists.** Do not infer results or substitute the missing cases.
+
+The graph benchmark's complete [machine-readable result](graph-benchmark-n20-d4.json) records 8 successes out of 8 attempted graphs, from four fixed seeds 94000–94003 (each initial and repair) under a **200,000 attempt cap**. Accepted attempt counts: **2,955; 8,983; 708; 14,454; 15,979; 7,299; 383; 2,845** (maximum 15,979). This tiny fixed-seed run is **not a confidence bound** on the generator's population failure probability or a controlled CPU performance measurement.
+
+The resource-bounded fallback script uses three default parent seeds and two no-false-prior parent seeds at the same N20,d4,200/600 specification. This is an engineering feasibility probe, not an independent confirmatory sample or a substitute for all the planned network controls. Other V1 controls remain defined and unit/smoke tested; future sufficiently sized studies must run those conditions independently.
+
+**Performance limitation:** The stored world retains a growing step-level trace. Hiyal hashes and replays full world state, which may create substantial simulation overhead as the event horizon grows. Before scaling, benchmark and consider reconstructing analysis trajectories from actions/event logs instead of embedding a growing trace in every world state. Do not optimize by discarding provenance or changing source mid-study.
+
+**Historical replay:** this aborted 15-parent attempt ran at source commit `60a3ccd4f48cab611f96325ee84045f88c2e9bbe` before the later explicit V1 serialization version gate. Do not pretend that newer code verified its unpreserved evidence.
