@@ -57,12 +57,6 @@ jobs:
           cargo run --locked --bin hiyal-grid -- smoke /tmp/hiyal-grid-smoke 1 62000
           cat /tmp/hiyal-grid-smoke/hiyal-summary.csv
           cat /tmp/hiyal-grid-smoke/hiyal-benchmarks.csv
-      - name: One-seed Hiyal 18-cell exploratory scaling profile
-        run: |
-          cargo run --locked --release --bin hiyal-grid -- grid /tmp/hiyal-grid-profile 1 64000
-          cat /tmp/hiyal-grid-profile/hiyal-summary.csv
-          cat /tmp/hiyal-grid-profile/hiyal-benchmarks.csv
-          cat /tmp/hiyal-grid-profile/hiyal-trajectories.csv
       - name: Optional Hiyal 18-cell exploratory grid
         if: github.event_name == 'workflow_dispatch' && inputs.hiyal_grid
         run: |
