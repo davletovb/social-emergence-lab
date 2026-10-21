@@ -10,12 +10,13 @@ H1 (confirmatory candidate): with positive reinforcement, the mean **terminal Gi
 
 H0: no difference between arms in the model-defined terminal Gini estimand.
 
-Secondary predictions (exploratory until frozen): reinforcement increases rank persistence and decreases mobility; increasing feedback produces nonlinear changes; reducing reputation memory weakens lock-in.
+Secondary predictions (exploratory until frozen): reinforcement increases rank persistence and decreases mobility; increasing feedback produces nonlinear changes. The prediction that reducing reputation memory weakens lock-in requires a reputation/memory variant and is out of scope for V0.
 
 ## Model skeleton (to implement)
 - N = 20 agents, each initialized with the same positive integer wealth W0; intrinsic abilities fixed and equal.
 - At each discrete step one opportunity token enters the society. Draw a recipient by weighted choice. Every draw increases that actor's wealth by one integer token. Therefore total wealth rises by exactly one per accepted opportunity.
-- Control: all eligible agents have equal recipient probabilities regardless of history.
+- Every agent is eligible at every step and every draw is accepted, so in V0 attempts equal accepted opportunities.
+- Control: all agents have equal recipient probabilities regardless of history.
 - Treatment: weight for actor i equals (wealth_i + offset)^alpha, where offset > 0 and alpha > 0. Alpha = 0 recovers the uniform model. Explicit finite-integer or otherwise numerically stable normalization is required.
 - No endogenous production, debt, redistribution, mutation or agent entry/exit in V0. This simplified mechanism is **not** a realistic wealth economy.
 - Use dedicated, named RNG streams for opportunities; determine whether draw coupling remains comparable across arms. Treatment draws may diverge after initial opportunities.
@@ -28,7 +29,7 @@ Secondary predictions (exploratory until frozen): reinforcement increases rank p
 - Reserve independent seeds for subsequent confirmatory runs. Do not select only favorable horizons or feedback parameters after looking at outcomes.
 
 ## Outcome measures
-**Primary:** per-society terminal Gini of wealth at a prespecified horizon; contrast mean treatment minus mean control across independent societies.
+**Primary:** per-society terminal Gini of wealth at a prespecified horizon; contrast mean treatment minus mean control across independent societies. Choose and freeze the estimator (paired by base seed or two-sample) and its interval method before confirmatory runs.
 
 **Secondary:** rank persistence (Spearman correlation between a prespecified early ranking and final ranking, accounting for ties); top-quintile wealth share; mean absolute rank change; full inequality trajectories.
 

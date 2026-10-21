@@ -1,6 +1,5 @@
-/target/
+target/
 .DS_Store
-*.log
 # Ignore large generated experiment outputs; store checksums and manifests instead.
 experiments/**/results/raw/
 experiments/**/results/generated/

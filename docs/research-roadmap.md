@@ -15,7 +15,7 @@ Sequence after 001 depends on evidence and feasibility, not a fixed delivery pro
 
 ## Stage gates
 - G0: theory, estimand, interventions, parameter space and primary metric specified before confirmatory runs.
-- G1: executable model passes conservation, symmetry, boundary, replay and restart tests.
+- G1: executable model passes conservation (closed models) or accounting-identity (open models), symmetry, boundary, replay and restart tests.
 - G2: pilot determines time/memory, numerical integrity and plausible effect variability.
 - G3: protocol and code/config hashes frozen; confirmatory seeds held apart from exploratory seeds.
 - G4: sensitivity checks, negative controls, full outcome reporting and replication package.

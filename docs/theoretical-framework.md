@@ -6,7 +6,7 @@ Under which explicitly specified interaction mechanisms can initially symmetric 
 A simulated regularity is **not** automatically evidence that real societies follow the same mechanism. Mechanism isolation, robustness, and comparison with empirical patterns are separate obligations.
 
 ## Mechanisms to contrast
-- **Noise without reinforcement**: zero-mean shocks that do not change subsequent access to opportunities (baseline).
+- **Noise without reinforcement**: random opportunities whose allocation does not depend on prior outcomes, so chance differences do not change subsequent access to opportunities (baseline).
 - **Cumulative advantage**: higher current rank or resources increase the chance of receiving later opportunities.
 - **Reputation/memory**: past observed success affects peers' choices even where intrinsic ability is identical.
 - **Network mediation (later extension)**: opportunity exposure depends on links, not only own history.

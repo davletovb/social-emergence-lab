@@ -6,7 +6,7 @@
 - [ ] Choose W0, weight offset, numeric normalization and observation checkpoints.
 - [ ] Specify treatment versions, feedback range and primary analysis horizon.
 - [ ] Define terminal-Gini implementation and tie policy; independently verify against hand-computed cases.
-- [ ] Define whether an opportunity counts as an attempt or accepted event (use accepted opportunities for analysis).
+- [ ] Confirm the V0 rule that every opportunity is accepted (attempts = accepted opportunities); define any rejection rule before adding one in later variants.
 - [ ] Document identification, unit of analysis, confirmatory estimand and excluded-run rule.
 - [ ] Predefine seeds for development, exploratory pilot and held-out confirmation (non-overlapping sets).
 
@@ -27,6 +27,6 @@
 - [ ] Publish run-level estimates, uncertainty, robustness checks and limitations.
 
 ## Artifact schema (planned)
-Each run should be identifiable by study ID, protocol version, lab commit SHA, Hiyal commit SHA, toolchain, configuration hash, seed, arm, status, attempts, accepted steps, event-log digest, checkpoint digest, metric digest and output path.
+Each run manifest contains every field required by the [reproducibility manifest](../../docs/methodology.md#reproducibility-manifest), plus study ID, arm, configuration hash, metric digest and output path.
 
 Raw data: append-only actor wealth observations keyed by trial, accepted step and actor ID. Derived data: one row per society with terminal Gini and secondary metrics. Keep raw and derived separated.
