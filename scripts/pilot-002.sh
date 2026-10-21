@@ -10,6 +10,9 @@ repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo"
 [[ -z "$(git status --porcelain)" ]] || { echo "Source must be clean before evidence run" >&2; exit 2; }
 source_sha="$(git rev-parse HEAD)"
+if [[ "${GITHUB_EVENT_NAME:-}" == pull_request ]]; then
+  source_sha="$(git rev-parse --verify HEAD^2)" || { echo "PR checkout must have fetch-depth >=2" >&2; exit 2; }
+fi
 mkdir -p "$root"
 cargo build --quiet --locked --bin reputation-pilot
 target="$(cargo metadata --locked --format-version 1 --no-deps | jq -r .target_directory)"
@@ -38,7 +41,7 @@ jq -n --arg source "$source_sha" --arg hiyal "4bb53aca5cffa6bc01b7558efbd690af7d
 jq -s '
   def avg(xs): (xs | add/length);
   {scientific_status:"exploratory_only_no_inferential_claim",
-   groups:(group_by(.config.actors,.config.degree,.config.delta,.config.beta,.config.removal,.config.kappa)
+   groups:(group_by([.config.actors,.config.degree,.config.delta,.config.beta,.config.removal,.config.kappa])
    | map({actors:.[0].config.actors,degree:.[0].config.degree,
      removal:.[0].config.removal,delta:.[0].config.delta,beta:.[0].config.beta,
      kappa:.[0].config.kappa,parents:length,seeds:map(.seed),
