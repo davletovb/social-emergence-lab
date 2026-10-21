@@ -1,0 +1,20 @@
+# Experiment 002 — V0 development batch evidence
+
+**Status:** 12 predeclared, synthetic, exploratory parent societies; no preregistration, no inference or human data. Run **[39602086513](https://github.com/davletovb/social-emergence-lab/actions/runs/39602086513)** on October 21, 2026. Model source revision `bc870fe5ca75ad627421838b24fb1375eceaffdb` and Hiyal revision `4bb53aca5cffa6bc01b7558efbd690af7dbed79f`.
+
+The sealed Hiyal raw-bundle artifact `experiment-002-v0-dev-batch` is GitHub Actions artifact **12347080662**. Outer artifact digest (reported by GitHub): SHA-256 `ec8b1b15cbfaec6f3263025421f31ca3de423c533da36392f37aa20323912fab`, ZIP compressed size **862,502 bytes**. GitHub's temporary artifact **expires 2026-11-04 12:46:41 UTC**. It has *not* been archived permanently. The raw bundle contains independent parent journals, 4 forks per parent, event histories, snapshots, fork ancestry, per-arm reports, `batch-plan.json`, `batch-summary.json`, and internal `SHA256SUMS`.
+
+The archived `SHA256SUMS` file's SHA-256 digest is `80666d6f9329b9e332078d57cdd7fddfea5619948a759e9f5d16c5a6fe12d8ec`. Writer-lock markers were excluded from the seal because they are not experimental data. All 12 parent reports include complete Hiyal fork and parent inspection/replay; the batch log recorded the seal check before upload. To check a preserved copy, extract it into a new directory and run `bash scripts/verify-002.sh <dir> 80666d6f9329b9e332078d57cdd7fddfea5619948a759e9f5d16c5a6fe12d8ec` from a checkout of this repository. It checks the seal and that it covers exactly the files present, re-derives every run's `report.json` from its Hiyal evidence alone (parent setup and replay, each fork's ancestry, attribution, declared intervention and replay), and recomputes `batch-summary.json`. The archive is also exactly regenerable: running `bash scripts/pilot-002.sh <new-absolute-dir>` at commit `bc870fe` on Linux x86-64 with the pinned Rust 1.89.0 reproduced this `SHA256SUMS` digest, and so every one of its 398 files, on 2026-10-21. These derived files alone do **not** preserve the event-level evidence.
+
+[arm-summary.json](arm-summary.json) gives each configuration's per-arm mean full- and late-window gaps and late-window exposure decomposition. It was computed afterwards from the archive's twelve `report.json` files with `scripts/arm-summary-002.jq` and is not part of the archive. Because every parent runs all four arms, any linear arm contrast (`D_U−D_I`, `D_I−D_IS`, the interaction) is the same contrast of these means, and H2 compares the absolute sham and structure full-window means.
+
+## Design and interpretation
+
+- Four independent parent seeds (81000–81003) at 6 actors, 2 graph links; four (82000–82003) at 10 actors, 3 links. Checkpoint 20 events, total 60 events each; all four counterfactual arms per parent. These are two *different configurations*, not one 8-parent inferential sample.
+- Four further one-seed, 6-actor controls: no-false-prior 83000, no-selection-bias 83001, fixed-graph 83002, random-churn 83003.
+- Full signed gap `D` = share of new opportunities received by randomized boost labels minus share received by nonboost labels, in [-1,1]. The reported repair-after-truth difference is `D_I-D_IS`, paired within the same parent. No p-values, significance claims or power estimates are justified here.
+- Control branches have **one parent seed each**; departures from zero do not falsify a symmetric expected-value null.
+- With a short 40-event postintervention window, the `late` statistic uses **all 40 events**, not the 100-event late window of the canonical plan. This batch checks engineering and direction only, **not the study's H1 recovery-time hypothesis**.
+- Results must be followed by independent reference analysis, graph acceptance benchmarks, multiple society-scale/turnover sensitivity experiments, and genuinely held-out preregistration only if scientifically justified.
+
+See [model source](../../../../src/reputation.rs), [pilot runner](../../../../src/reputation_pilot.rs), [protocol](../../formal-model.md), and [scientific limitations](../../implementation-v0.md).

@@ -1,0 +1,395 @@
+{
+  "scientific_status": "exploratory_only_no_inferential_claim",
+  "groups": [
+    {
+      "actors": 6,
+      "degree": 2,
+      "removal": "lowest_belief",
+      "delta": 0.0,
+      "beta": 4.0,
+      "kappa": 6.0,
+      "checkpoint": 20,
+      "total_steps": 60,
+      "full_window": [
+        21,
+        60
+      ],
+      "late_window": [
+        21,
+        60
+      ],
+      "parents": 1,
+      "seeds": [
+        83000
+      ],
+      "arms": {
+        "sham": {
+          "full_gap": -0.3,
+          "late_gap": -0.3,
+          "late_degree": -0.0833333333333333,
+          "late_inherited": -0.08333333333333338,
+          "late_added": -1.457167719820518e-17,
+          "late_selection": -0.027847185112348898,
+          "late_innovation": -0.18881948155431777,
+          "full_rewire_events": 4
+        },
+        "information": {
+          "full_gap": -0.3,
+          "late_gap": -0.3,
+          "late_degree": -0.0833333333333333,
+          "late_inherited": -0.08333333333333338,
+          "late_added": -1.457167719820518e-17,
+          "late_selection": -0.04029801403114538,
+          "late_innovation": -0.1763686526355213,
+          "full_rewire_events": 4
+        },
+        "structure": {
+          "full_gap": 0.05,
+          "late_gap": 0.05,
+          "late_degree": 0.08333333333333331,
+          "late_inherited": -0.35416666666666685,
+          "late_added": 0.4374999999999999,
+          "late_selection": -0.051343210002834094,
+          "late_innovation": 0.018009876669500782,
+          "full_rewire_events": 4
+        },
+        "both": {
+          "full_gap": 0,
+          "late_gap": 0,
+          "late_degree": 0.08333333333333331,
+          "late_inherited": -0.35416666666666685,
+          "late_added": 0.4374999999999999,
+          "late_selection": -0.004632937531045878,
+          "late_innovation": -0.07870039580228744,
+          "full_rewire_events": 4
+        }
+      }
+    },
+    {
+      "actors": 6,
+      "degree": 2,
+      "removal": "lowest_belief",
+      "delta": 0.2,
+      "beta": 0.0,
+      "kappa": 6.0,
+      "checkpoint": 20,
+      "total_steps": 60,
+      "full_window": [
+        21,
+        60
+      ],
+      "late_window": [
+        21,
+        60
+      ],
+      "parents": 1,
+      "seeds": [
+        83001
+      ],
+      "arms": {
+        "sham": {
+          "full_gap": 0.55,
+          "late_gap": 0.55,
+          "late_degree": 0.3333333333333333,
+          "late_inherited": 0.3750000000000001,
+          "late_added": -0.04166666666666665,
+          "late_selection": 0,
+          "late_innovation": 0.21666666666666673,
+          "full_rewire_events": 4
+        },
+        "information": {
+          "full_gap": 0.5,
+          "late_gap": 0.5,
+          "late_degree": 0.3333333333333333,
+          "late_inherited": 0.3750000000000001,
+          "late_added": -0.04166666666666665,
+          "late_selection": 0,
+          "late_innovation": 0.16666666666666669,
+          "full_rewire_events": 4
+        },
+        "structure": {
+          "full_gap": 0.05,
+          "late_gap": 0.05,
+          "late_degree": 0.08333333333333334,
+          "late_inherited": 0.16666666666666674,
+          "late_added": -0.0833333333333333,
+          "late_selection": 0,
+          "late_innovation": -0.03333333333333334,
+          "full_rewire_events": 4
+        },
+        "both": {
+          "full_gap": 0,
+          "late_gap": 0,
+          "late_degree": 0.0416666666666667,
+          "late_inherited": 0.14583333333333326,
+          "late_added": -0.10416666666666666,
+          "late_selection": 0,
+          "late_innovation": -0.0416666666666667,
+          "full_rewire_events": 4
+        }
+      }
+    },
+    {
+      "actors": 6,
+      "degree": 2,
+      "removal": "lowest_belief",
+      "delta": 0.2,
+      "beta": 4.0,
+      "kappa": 6.0,
+      "checkpoint": 20,
+      "total_steps": 60,
+      "full_window": [
+        21,
+        60
+      ],
+      "late_window": [
+        21,
+        60
+      ],
+      "parents": 4,
+      "seeds": [
+        81000,
+        81001,
+        81002,
+        81003
+      ],
+      "arms": {
+        "sham": {
+          "full_gap": 0.5125,
+          "late_gap": 0.5125,
+          "late_degree": 0.26041666666666674,
+          "late_inherited": 0.2760416666666667,
+          "late_added": -0.015624999999999995,
+          "late_selection": 0.23121852563142226,
+          "late_innovation": 0.020864807701910994,
+          "full_rewire_events": 4
+        },
+        "information": {
+          "full_gap": 0.10000000000000002,
+          "late_gap": 0.10000000000000002,
+          "late_degree": 0.17708333333333331,
+          "late_inherited": 0.20833333333333337,
+          "late_added": -0.031249999999999997,
+          "late_selection": 0.004293880789487581,
+          "late_innovation": -0.08137721412282087,
+          "full_rewire_events": 4
+        },
+        "structure": {
+          "full_gap": 0.35,
+          "late_gap": 0.35,
+          "late_degree": -0.01041666666666669,
+          "late_inherited": 0.17708333333333343,
+          "late_added": -0.18750000000000006,
+          "late_selection": 0.33235454081010135,
+          "late_innovation": 0.028062125856565368,
+          "full_rewire_events": 4
+        },
+        "both": {
+          "full_gap": -0.22499999999999998,
+          "late_gap": -0.22499999999999998,
+          "late_degree": -0.11458333333333336,
+          "late_inherited": 0.1666666666666667,
+          "late_added": -0.2812500000000001,
+          "late_selection": -0.0012597388658702417,
+          "late_innovation": -0.10915692780079639,
+          "full_rewire_events": 4
+        }
+      }
+    },
+    {
+      "actors": 6,
+      "degree": 2,
+      "removal": "none",
+      "delta": 0.2,
+      "beta": 4.0,
+      "kappa": 6.0,
+      "checkpoint": 20,
+      "total_steps": 60,
+      "full_window": [
+        21,
+        60
+      ],
+      "late_window": [
+        21,
+        60
+      ],
+      "parents": 1,
+      "seeds": [
+        83002
+      ],
+      "arms": {
+        "sham": {
+          "full_gap": 0.2,
+          "late_gap": 0.2,
+          "late_degree": 0,
+          "late_inherited": 0,
+          "late_added": 0,
+          "late_selection": 0.2287997749470126,
+          "late_innovation": -0.02879977494701258,
+          "full_rewire_events": 0
+        },
+        "information": {
+          "full_gap": -0.15,
+          "late_gap": -0.15,
+          "late_degree": 0,
+          "late_inherited": 0,
+          "late_added": 0,
+          "late_selection": -0.0531780785027212,
+          "late_innovation": -0.09682192149727879,
+          "full_rewire_events": 0
+        },
+        "structure": {
+          "full_gap": 0.5,
+          "late_gap": 0.5,
+          "late_degree": 0,
+          "late_inherited": 0,
+          "late_added": 0,
+          "late_selection": 0.4164401165092488,
+          "late_innovation": 0.08355988349075122,
+          "full_rewire_events": 0
+        },
+        "both": {
+          "full_gap": -0.1,
+          "late_gap": -0.1,
+          "late_degree": 0,
+          "late_inherited": 0,
+          "late_added": 0,
+          "late_selection": -0.09375142084993356,
+          "late_innovation": -0.0062485791500664495,
+          "full_rewire_events": 0
+        }
+      }
+    },
+    {
+      "actors": 6,
+      "degree": 2,
+      "removal": "uniform",
+      "delta": 0.2,
+      "beta": 4.0,
+      "kappa": 0.0,
+      "checkpoint": 20,
+      "total_steps": 60,
+      "full_window": [
+        21,
+        60
+      ],
+      "late_window": [
+        21,
+        60
+      ],
+      "parents": 1,
+      "seeds": [
+        83003
+      ],
+      "arms": {
+        "sham": {
+          "full_gap": 0.4,
+          "late_gap": 0.4,
+          "late_degree": 0.16666666666666655,
+          "late_inherited": 0.04166666666666663,
+          "late_added": 0.125,
+          "late_selection": 0.17026207450507252,
+          "late_innovation": 0.06307125882826095,
+          "full_rewire_events": 4
+        },
+        "information": {
+          "full_gap": 0.25,
+          "late_gap": 0.25,
+          "late_degree": 0.16666666666666655,
+          "late_inherited": 0.04166666666666663,
+          "late_added": 0.125,
+          "late_selection": 0.024074891421555274,
+          "late_innovation": 0.059258441911778176,
+          "full_rewire_events": 4
+        },
+        "structure": {
+          "full_gap": 0.4,
+          "late_gap": 0.4,
+          "late_degree": -0.08333333333333333,
+          "late_inherited": 0.0625,
+          "late_added": -0.14583333333333343,
+          "late_selection": 0.3928119489570445,
+          "late_innovation": 0.09052138437628882,
+          "full_rewire_events": 4
+        },
+        "both": {
+          "full_gap": 0,
+          "late_gap": 0,
+          "late_degree": -0.08333333333333333,
+          "late_inherited": 0.0625,
+          "late_added": -0.14583333333333343,
+          "late_selection": 0.008278991616149225,
+          "late_innovation": 0.0750543417171841,
+          "full_rewire_events": 4
+        }
+      }
+    },
+    {
+      "actors": 10,
+      "degree": 3,
+      "removal": "lowest_belief",
+      "delta": 0.2,
+      "beta": 4.0,
+      "kappa": 6.0,
+      "checkpoint": 20,
+      "total_steps": 60,
+      "full_window": [
+        21,
+        60
+      ],
+      "late_window": [
+        21,
+        60
+      ],
+      "parents": 4,
+      "seeds": [
+        82000,
+        82001,
+        82002,
+        82003
+      ],
+      "arms": {
+        "sham": {
+          "full_gap": 0.55,
+          "late_gap": 0.55,
+          "late_degree": 0.2,
+          "late_inherited": 0.17083333333333336,
+          "late_added": 0.029166666666666674,
+          "late_selection": 0.34429204534436353,
+          "late_innovation": 0.005707954655636449,
+          "full_rewire_events": 4
+        },
+        "information": {
+          "full_gap": 0.0625,
+          "late_gap": 0.0625,
+          "late_degree": 0.13333333333333336,
+          "late_inherited": 0.1291666666666667,
+          "late_added": 0.004166666666666666,
+          "late_selection": 0.001136314834930114,
+          "late_innovation": -0.07196964816826346,
+          "full_rewire_events": 4
+        },
+        "structure": {
+          "full_gap": 0.575,
+          "late_gap": 0.575,
+          "late_degree": 0.08333333333333334,
+          "late_inherited": 0.08750000000000006,
+          "late_added": -0.004166666666666617,
+          "late_selection": 0.4603046832609703,
+          "late_innovation": 0.03136198340569639,
+          "full_rewire_events": 4
+        },
+        "both": {
+          "full_gap": 0.05,
+          "late_gap": 0.05,
+          "late_degree": 0.004166666666666667,
+          "late_inherited": 0.0708333333333334,
+          "late_added": -0.06666666666666662,
+          "late_selection": 0.006200755637661401,
+          "late_innovation": 0.03963257769567194,
+          "full_rewire_events": 4
+        }
+      }
+    }
+  ]
+}

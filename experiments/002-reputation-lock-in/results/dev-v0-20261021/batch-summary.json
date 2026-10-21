@@ -1,0 +1,101 @@
+{
+  "scientific_status": "exploratory_only_no_inferential_claim",
+  "groups": [
+    {
+      "actors": 6,
+      "degree": 2,
+      "removal": "lowest_belief",
+      "delta": 0.0,
+      "beta": 4.0,
+      "kappa": 6.0,
+      "parents": 1,
+      "seeds": [
+        83000
+      ],
+      "mean_information_late_gap": -0.3,
+      "mean_repair_after_truth_late": -0.3,
+      "mean_repair_without_truth_full": -0.35
+    },
+    {
+      "actors": 6,
+      "degree": 2,
+      "removal": "lowest_belief",
+      "delta": 0.2,
+      "beta": 0.0,
+      "kappa": 6.0,
+      "parents": 1,
+      "seeds": [
+        83001
+      ],
+      "mean_information_late_gap": 0.5,
+      "mean_repair_after_truth_late": 0.5,
+      "mean_repair_without_truth_full": 0.5
+    },
+    {
+      "actors": 6,
+      "degree": 2,
+      "removal": "lowest_belief",
+      "delta": 0.2,
+      "beta": 4.0,
+      "kappa": 6.0,
+      "parents": 4,
+      "seeds": [
+        81000,
+        81001,
+        81002,
+        81003
+      ],
+      "mean_information_late_gap": 0.10000000000000002,
+      "mean_repair_after_truth_late": 0.325,
+      "mean_repair_without_truth_full": 0.16249999999999998
+    },
+    {
+      "actors": 6,
+      "degree": 2,
+      "removal": "none",
+      "delta": 0.2,
+      "beta": 4.0,
+      "kappa": 6.0,
+      "parents": 1,
+      "seeds": [
+        83002
+      ],
+      "mean_information_late_gap": -0.15,
+      "mean_repair_after_truth_late": -0.04999999999999999,
+      "mean_repair_without_truth_full": -0.3
+    },
+    {
+      "actors": 6,
+      "degree": 2,
+      "removal": "uniform",
+      "delta": 0.2,
+      "beta": 4.0,
+      "kappa": 0.0,
+      "parents": 1,
+      "seeds": [
+        83003
+      ],
+      "mean_information_late_gap": 0.25,
+      "mean_repair_after_truth_late": 0.25,
+      "mean_repair_without_truth_full": 0
+    },
+    {
+      "actors": 10,
+      "degree": 3,
+      "removal": "lowest_belief",
+      "delta": 0.2,
+      "beta": 4.0,
+      "kappa": 6.0,
+      "parents": 4,
+      "seeds": [
+        82000,
+        82001,
+        82002,
+        82003
+      ],
+      "mean_information_late_gap": 0.0625,
+      "mean_repair_after_truth_late": 0.0125,
+      "mean_repair_without_truth_full": -0.024999999999999994
+    }
+  ]
+}

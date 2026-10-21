@@ -15,6 +15,8 @@ pub mod design;
 pub mod hiyal_study;
 pub mod mobility;
 pub mod reference;
+pub mod reputation;
+pub mod reputation_pilot;
 pub mod runner;
 pub mod stats;
 

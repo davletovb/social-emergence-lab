@@ -1,0 +1,272 @@
+//! Experiment 002: mechanism, conservation, and genuine Hiyal fork integration.
+use hiyal::{
+    core::{AgentId, World},
+    experiment::EffectPolicy,
+    rng::Streams,
+    storage::Store,
+};
+use social_emergence_lab::reputation::{
+    Action, Arm, Config, Removal, ReputationPolicy, ReputationWorld, Rewire, flow, regular_graph,
+    setup, validate_graph, window,
+};
+use social_emergence_lab::reputation_pilot::{control_config, run, verify};
+use std::{
+    path::PathBuf,
+    sync::atomic::{AtomicUsize, Ordering},
+};
+
+fn temp() -> PathBuf {
+    static N: AtomicUsize = AtomicUsize::new(0);
+    std::env::temp_dir().join(format!(
+        "social-reputation-test-{}-{}",
+        std::process::id(),
+        N.fetch_add(1, Ordering::Relaxed)
+    ))
+}
+fn built(n: usize, d: usize, seed: u64) -> ReputationWorld {
+    let cfg = Config::default_for(n, d);
+    let mut rng = Streams::new("reputation-test".into(), seed);
+    setup(&cfg, &mut rng).unwrap()
+}
+
+#[test]
+fn graph_sampling_is_bounded_and_has_exact_degrees() {
+    let w = built(6, 2, 11);
+    for a in [&w.graph, &w.repair_graph] {
+        validate_graph(a, 6, 2).unwrap();
+    }
+    assert_eq!(w.boost.iter().filter(|&&x| x).count(), 3);
+    assert!(
+        w.boost
+            .iter()
+            .zip(&w.public)
+            .all(|(b, p)| (*p - (if *b { 0.7 } else { 0.3 })).abs() < 1e-12)
+    );
+    let mut rng = Streams::new("reputation-test".into(), 11);
+    assert_eq!(setup(&w.config, &mut rng).unwrap(), w);
+    assert_eq!(rng.positions.len(), 3);
+    // A zero budget is a configuration error; a budget of one is exhausted by
+    // any rejected pairing, which most N=6, d=2 pairings are.
+    let mut budget = w.config.clone();
+    budget.graph_attempts = 0;
+    assert!(budget.validate().is_err());
+    budget.graph_attempts = 1;
+    let error = (0..64)
+        .find_map(|seed| {
+            let mut rng = Streams::new("reputation-budget".into(), seed);
+            regular_graph(&budget, &mut rng, "setup/initial_graph").err()
+        })
+        .unwrap();
+    assert!(error.contains("not found after 1 bounded draws"), "{error}");
+}
+#[test]
+fn exact_exposure_identity_and_zero_beta_selection() {
+    let mut w = built(10, 2, 13);
+    let result = flow(&w).unwrap();
+    assert!((result.degree + result.selection - result.total).abs() < 1e-12);
+    assert!((result.inherited + result.added - result.degree).abs() < 1e-12);
+    w.config.beta = 0.0;
+    let result = flow(&w).unwrap();
+    assert!(result.selection.abs() < 1e-12);
+    assert!((result.degree - result.total).abs() < 1e-12);
+    // One rewiring makes the in-degrees irregular; the degree-only
+    // expectation must still agree with a direct in-degree calculation.
+    w.config.removal = Removal::Uniform;
+    w.config.rewire_every = 1;
+    let removed = w.graph[0][0];
+    let added = (1..10).find(|i| !w.graph[0].contains(i)).unwrap();
+    let action = Action {
+        recipient: w.graph[0][1],
+        success: true,
+        pre_flow: flow(&w).unwrap(),
+        rewire: Some(Rewire {
+            allocator: 0,
+            removed,
+            added,
+        }),
+    };
+    w.apply(AgentId(0), action).unwrap();
+    assert!(validate_graph(&w.graph, 10, 2).is_err());
+    let result = flow(&w).unwrap();
+    assert!(result.selection.abs() < 1e-12);
+    let direct = w
+        .graph
+        .iter()
+        .flat_map(|row| row.iter())
+        .map(|&i| if w.boost[i] { 1.0 } else { -1.0 })
+        .sum::<f64>()
+        / (w.config.actors * w.config.degree) as f64;
+    assert!((result.degree - direct).abs() < 1e-12);
+}
+#[test]
+fn valid_policy_actions_preserve_conservation_and_invalid_actions_do_not_mutate() {
+    let mut w = built(6, 2, 51);
+    let prior = w.clone();
+    let bad = Action {
+        recipient: 6,
+        success: true,
+        rewire: None,
+        pre_flow: flow(&w).unwrap(),
+    };
+    assert!(w.apply(AgentId(0), bad).is_err());
+    assert_eq!(w, prior);
+    let mut rng = Streams::new("actor-validation".into(), 23);
+    for t in 1..=50 {
+        let actor = AgentId((t % 6) as u64);
+        let a = ReputationPolicy
+            .decide_with_streams(actor, &w, &[], &mut rng)
+            .unwrap();
+        assert!(w.graph[actor.0 as usize].contains(&a.recipient));
+        w.apply(actor, a).unwrap();
+        w.verify().unwrap();
+    }
+    assert_eq!(w.wealth.iter().sum::<u64>(), 110);
+    assert_eq!(w.trace.len(), 50);
+    let measured = window(&w, 1, 50).unwrap();
+    assert!(
+        (measured.degree + measured.selection + measured.innovation - measured.opportunity_gap)
+            .abs()
+            < 1e-10
+    );
+    let mut corrected = w.clone();
+    corrected.intervene(Arm::Both).unwrap();
+    assert_eq!(corrected.graph, corrected.repair_graph);
+    assert!(
+        corrected
+            .beliefs
+            .iter()
+            .all(|v| v.iter().all(|&x| x == 0.5))
+    );
+    assert!(corrected.public.iter().all(|&x| x == 0.5));
+    assert!(corrected.intervene(Arm::Both).is_err());
+}
+#[test]
+fn negative_control_variants_are_explicit() {
+    let null = control_config(10, 2, "no-false-prior").unwrap();
+    assert_eq!(null.delta, 0.0);
+    let flat = control_config(10, 2, "no-selection-bias").unwrap();
+    assert_eq!(flat.beta, 0.0);
+    let fixed = control_config(10, 2, "fixed-graph").unwrap();
+    assert_eq!(fixed.removal, Removal::None);
+    let churn = control_config(10, 2, "random-churn").unwrap();
+    assert_eq!(churn.removal, Removal::Uniform);
+    assert_eq!(churn.kappa, 0.0);
+    assert!(control_config(20, 19, "default").is_err());
+    let mut rng = Streams::new("reputation-test".into(), 5);
+    let symmetric = setup(&null, &mut rng).unwrap();
+    assert!(symmetric.public.iter().all(|&p| p == 0.5));
+    assert!(symmetric.beliefs.iter().flatten().all(|&p| p == 0.5));
+}
+
+#[tokio::test]
+async fn fixed_graph_control_never_rewires_in_any_arm() {
+    let root = temp();
+    let cfg = control_config(6, 2, "fixed-graph").unwrap();
+    run(&root, 81403, cfg, 20, 60).await.unwrap();
+    let parent = Store::<ReputationWorld, Action>::inspect_read_only(root.join("parent")).unwrap();
+    let initial = &parent.genesis.initial_world;
+    assert_eq!(parent.world.graph, initial.graph);
+    for arm in Arm::ALL {
+        let ro =
+            Store::<ReputationWorld, Action>::inspect_read_only(root.join(arm.name())).unwrap();
+        let expected = match arm {
+            Arm::Structure | Arm::Both => &initial.repair_graph,
+            Arm::Sham | Arm::Information => &initial.graph,
+        };
+        assert_eq!(&ro.world.graph, expected, "{}", arm.name());
+        assert!(ro.world.trace.iter().all(|t| t.rewire.is_none()));
+    }
+    verify(&root).unwrap();
+    std::fs::remove_dir_all(root).unwrap();
+}
+#[tokio::test]
+async fn four_arm_hiyal_exploration_is_replayable() {
+    let root = temp();
+    let cfg = control_config(6, 2, "default").unwrap();
+    let report = run(&root, 81402, cfg, 20, 60).await.unwrap();
+    assert_eq!(report.per_arm.len(), 4);
+    for arm in &report.per_arm {
+        assert_eq!(arm.all_events, 60);
+        assert_eq!(arm.final_tokens.iter().sum::<u64>(), 120);
+        assert_eq!(arm.full.from, 21);
+        assert_eq!(arm.full.through, 60);
+        assert_eq!(arm.late.from, 21); // no artificial 100-event window with only 40 events
+        assert_eq!(arm.late.through, 60);
+        assert!(
+            (arm.full.degree + arm.full.selection + arm.full.innovation - arm.full.opportunity_gap)
+                .abs()
+                < 1e-9
+        );
+    }
+    assert!(root.join("parent/manifest.json").is_file());
+    assert!(root.join("both/fork.json").is_file());
+    assert!(root.join("report.json").is_file());
+    // The report is re-derivable from the journals alone, and only from them.
+    let verified = verify(&root).unwrap();
+    assert_eq!(
+        serde_json::to_value(&verified).unwrap(),
+        serde_json::to_value(&report).unwrap()
+    );
+    let path = root.join("report.json");
+    let original = std::fs::read_to_string(&path).unwrap();
+    std::fs::write(
+        &path,
+        original.replacen("\"seed\": 81402", "\"seed\": 81403", 1),
+    )
+    .unwrap();
+    assert!(verify(&root).unwrap_err().contains("not derivable"));
+    assert!(
+        run(
+            &root,
+            81402,
+            control_config(6, 2, "default").unwrap(),
+            20,
+            60
+        )
+        .await
+        .is_err()
+    );
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn removed_then_readded_checkpoint_edge_is_not_counted_as_inherited() {
+    let mut w = built(6, 2, 777);
+    w.config.removal = Removal::Uniform;
+    w.config.rewire_every = 1;
+    w.intervene(Arm::Sham).unwrap();
+    let before = w.graph[0].clone();
+    let old = before[0];
+    let added = (0..6).find(|&i| i != 0 && !before.contains(&i)).unwrap();
+    for (remove, insert) in [(old, added), (added, old)] {
+        let action = Action {
+            recipient: w.graph[0][1],
+            success: true,
+            pre_flow: flow(&w).unwrap(),
+            rewire: Some(Rewire {
+                allocator: 0,
+                removed: remove,
+                added: insert,
+            }),
+        };
+        w.apply(AgentId(0), action).unwrap();
+    }
+    assert!(w.graph[0].contains(&old), "the original edge was re-added");
+    assert!(
+        !w.surviving_edges.as_ref().unwrap()[0].contains(&old),
+        "re-added edges must never be called uninterrupted inheritance"
+    );
+    w.verify().unwrap();
+    let measurement = flow(&w).unwrap();
+    let reference_inherited = w
+        .surviving_edges
+        .as_ref()
+        .unwrap()
+        .iter()
+        .flat_map(|row| row.iter())
+        .map(|&i| if w.boost[i] { 1.0 } else { -1.0 })
+        .sum::<f64>()
+        / 12.0;
+    assert!((measurement.inherited - reference_inherited).abs() < 1e-12);
+    assert!((measurement.inherited + measurement.added - measurement.degree).abs() < 1e-12);
+}
