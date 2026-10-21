@@ -5,13 +5,20 @@
 # full-window means. Exploratory description only, no inference.
 def avg(xs): (xs | add / length);
 def mean($runs; $arm; f): avg($runs | map(.per_arm[] | select(.arm == $arm) | f));
+# Null when any run lacks the value (V0 runs record no edge survival).
+def mean_if_all($runs; $arm; f):
+  ($runs | map(.per_arm[] | select(.arm == $arm) | f)) as $xs
+  | if all($xs[]; . != null) then avg($xs) else null end;
 {scientific_status: "exploratory_only_no_inferential_claim",
  groups: (group_by([.config.actors, .config.degree, .config.delta, .config.beta,
-                    .config.removal, .config.kappa, .checkpoint, .total_steps])
+                    .config.removal, .config.kappa, .config.rewire_every,
+                    (.config.annealed // false), .checkpoint, .total_steps])
   | map(. as $runs | .[0] as $first | {
       actors: $first.config.actors, degree: $first.config.degree,
       removal: $first.config.removal, delta: $first.config.delta,
       beta: $first.config.beta, kappa: $first.config.kappa,
+      rewire_every: $first.config.rewire_every,
+      annealed: ($first.config.annealed // false),
       checkpoint: $first.checkpoint, total_steps: $first.total_steps,
       full_window: [$first.per_arm[0].full.from, $first.per_arm[0].full.through],
       late_window: [$first.per_arm[0].late.from, $first.per_arm[0].late.through],
@@ -24,4 +31,6 @@ def mean($runs; $arm; f): avg($runs | map(.per_arm[] | select(.arm == $arm) | f)
         late_added: mean($runs; $arm; .late.added),
         late_selection: mean($runs; $arm; .late.selection),
         late_innovation: mean($runs; $arm; .late.innovation),
-        full_rewire_events: mean($runs; $arm; .full.rewire_events)}}) | from_entries)}))}
+        full_rewire_events: mean($runs; $arm; .full.rewire_events),
+        late_surviving_edge_fraction:
+          mean_if_all($runs; $arm; .late.mean_surviving_edge_fraction)}}) | from_entries)}))}

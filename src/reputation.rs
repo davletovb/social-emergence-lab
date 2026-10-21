@@ -433,6 +433,26 @@ impl ReputationWorld {
         }
         Ok(())
     }
+    /// The state an action is decided and checked against: this world or,
+    /// under the annealed control, this world with the action's fresh graph.
+    pub fn pre_event_state(&self, a: &Action) -> Result<Self, String> {
+        let mut pre = self.clone();
+        if let Some(ref new_graph) = a.annealed_graph {
+            if !pre.config.annealed {
+                return Err("unexpected annealed graph".into());
+            }
+            validate_graph(new_graph, pre.config.actors, pre.config.degree)?;
+            pre.graph = new_graph.clone();
+            if let Some(ref mut surviving) = pre.surviving_edges {
+                for (row, links) in surviving.iter_mut().zip(&pre.graph) {
+                    row.retain(|i| links.contains(i));
+                }
+            }
+        } else if self.config.annealed {
+            return Err("annealed policy must provide a fresh graph".into());
+        }
+        Ok(pre)
+    }
     pub fn intervene(&mut self, arm: Arm) -> Result<(), String> {
         if self.preintervention_graph.is_some() {
             return Err("intervention already applied".into());
@@ -471,21 +491,7 @@ impl HiyalWorld for ReputationWorld {
         if j >= n {
             return Err("allocator out of range".into());
         }
-        let mut pre = self.clone();
-        if let Some(ref new_graph) = a.annealed_graph {
-            if !pre.config.annealed {
-                return Err("unexpected annealed graph".into());
-            }
-            validate_graph(new_graph, n, pre.config.degree)?;
-            pre.graph = new_graph.clone();
-            if let Some(ref mut surviving) = pre.surviving_edges {
-                for (row, links) in surviving.iter_mut().zip(&pre.graph) {
-                    row.retain(|i| links.contains(i));
-                }
-            }
-        } else if self.config.annealed {
-            return Err("annealed policy must provide a fresh graph".into());
-        }
+        let pre = self.pre_event_state(&a)?;
         if !pre.graph[j].contains(&a.recipient) {
             return Err("recipient not eligible".into());
         }

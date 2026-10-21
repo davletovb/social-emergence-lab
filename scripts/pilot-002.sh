@@ -14,9 +14,9 @@ if [[ "${GITHUB_EVENT_NAME:-}" == pull_request ]]; then
   source_sha="$(git rev-parse --verify HEAD^2)" || { echo "PR checkout must have fetch-depth >=2" >&2; exit 2; }
 fi
 mkdir -p "$root"
-cargo build --quiet --locked --bin reputation-pilot
+cargo build --quiet --locked --release --bin reputation-pilot
 target="$(cargo metadata --locked --format-version 1 --no-deps | jq -r .target_directory)"
-pilot="$target/debug/reputation-pilot"
+pilot="$target/release/reputation-pilot"
 
 # Explicit public exploratory seeds. No adaptive selection; each parent seed is
 # unique across groups/controls. Model after a fixed, completed prior review.

@@ -408,3 +408,59 @@ fn v1_legacy_v0_trace_hash_semantics_remain_unchanged() {
     let v1 = Config::default_for(6, 2);
     assert!(v1.survival_accounting);
 }
+
+#[test]
+fn archived_v0_run_still_verifies() {
+    // One run of the archived V0 batch (see tests/fixtures/README.md).
+    let root = temp();
+    std::fs::create_dir_all(&root).unwrap();
+    let fixture = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/fixtures/reputation-v0-bc870fe-n6-default-81000.tar.gz"
+    );
+    let status = std::process::Command::new("tar")
+        .arg("-xzf")
+        .arg(fixture)
+        .arg("-C")
+        .arg(&root)
+        .status()
+        .unwrap();
+    assert!(status.success());
+    let report = verify(&root.join("n6-default-81000")).unwrap();
+    assert_eq!(report.seed, 81000);
+    assert_eq!(
+        report.hiyal_revision,
+        "4bb53aca5cffa6bc01b7558efbd690af7dbed79f"
+    );
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[tokio::test]
+async fn reference_replay_follows_the_journal_and_rejects_a_wrong_start() {
+    use social_emergence_lab::reputation_reference::replay_journal;
+    let root = temp();
+    run(
+        &root,
+        81404,
+        control_config(6, 2, "default").unwrap(),
+        20,
+        60,
+    )
+    .await
+    .unwrap();
+    let arm = root.join("sham");
+    let ro = Store::<ReputationWorld, Action>::inspect_read_only(&arm).unwrap();
+    let journal = arm.join("events.jsonl");
+    let initial = &ro.genesis.initial_world;
+    let replayed = replay_journal(&journal, ro.log_bytes, initial, 1e-9).unwrap();
+    assert_eq!(replayed, ro.world);
+    // Swapping one boosted and one unboosted label keeps the world valid but
+    // contradicts every recorded expectation.
+    let mut wrong = initial.clone();
+    let on = wrong.boost.iter().position(|&b| b).unwrap();
+    let off = wrong.boost.iter().position(|&b| !b).unwrap();
+    wrong.boost.swap(on, off);
+    let error = replay_journal(&journal, ro.log_bytes, &wrong, 1e-9).unwrap_err();
+    assert!(error.contains("differs from the reference"), "{error}");
+    std::fs::remove_dir_all(root).unwrap();
+}

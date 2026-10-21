@@ -22,13 +22,20 @@ struct Results<'a> {
     attempted_graphs: usize,
     accepted_graphs: usize,
     failed_graphs: usize,
+    /// Pairings tried over all graphs; a failed graph used the whole cap.
+    total_attempts: u64,
+    acceptance_per_attempt: f64,
+    /// One-sided 95% lower bound on the per-attempt acceptance probability.
+    acceptance_per_attempt_lower_95: f64,
+    /// Implied 95% upper bound on one graph exhausting `attempt_cap`.
+    cap_failure_probability_upper_95: f64,
     samples: Vec<Sample>,
     caution: &'a str,
 }
 fn run() -> Result<(), String> {
     let a = env::args().skip(1).collect::<Vec<_>>();
     if a.len() != 5 {
-        return Err("usage: reputation-graph-benchmark <new-output.json> <actors> <degree> <first-seed> <count-1..12>".into());
+        return Err("usage: reputation-graph-benchmark <new-output.json> <actors> <degree> <first-seed> <count-1..500>".into());
     }
     let out = Path::new(&a[0]);
     if out.exists() {
@@ -42,8 +49,8 @@ fn run() -> Result<(), String> {
     let d = usize::try_from(parse(2)?).map_err(|e| e.to_string())?;
     let start = parse(3)?;
     let count = usize::try_from(parse(4)?).map_err(|e| e.to_string())?;
-    if !(1..=12).contains(&count) {
-        return Err("benchmark count must be 1..12".into());
+    if !(1..=500).contains(&count) {
+        return Err("benchmark count must be 1..500".into());
     }
     let cfg = Config::default_for(n, d);
     cfg.validate()?;
@@ -76,6 +83,12 @@ fn run() -> Result<(), String> {
         }
     }
     let failed = samples.iter().filter(|x| x.error.is_some()).count();
+    let accepted = samples.len() - failed;
+    let total_attempts: u64 = samples
+        .iter()
+        .map(|x| x.attempts.unwrap_or(cfg.graph_attempts) as u64)
+        .sum();
+    let lower = poisson_lower_95(accepted as u64) / total_attempts as f64;
     let report = Results {
         status: "EXPLORATORY_GRAPH_SAMPLER_BENCHMARK",
         actors: n,
@@ -83,10 +96,14 @@ fn run() -> Result<(), String> {
         seeds,
         attempt_cap: cfg.graph_attempts,
         attempted_graphs: samples.len(),
-        accepted_graphs: samples.len() - failed,
+        accepted_graphs: accepted,
         failed_graphs: failed,
+        total_attempts,
+        acceptance_per_attempt: accepted as f64 / total_attempts as f64,
+        acceptance_per_attempt_lower_95: lower,
+        cap_failure_probability_upper_95: (cfg.graph_attempts as f64 * (-lower).ln_1p()).exp(),
         samples,
-        caution: "Non-random hardware/runtime and fixed diagnostic seeds. No upper bound on true tail failure probability. Report failed seeds without substitution.",
+        caution: "Each attempt is an independent uniform stub pairing, so attempts are Bernoulli trials; the bounds use a Poisson approximation. Timings are not a controlled hardware benchmark. Report failed seeds without substitution.",
     };
     fs::write(
         out,
@@ -104,6 +121,49 @@ fn run() -> Result<(), String> {
     }
     Ok(())
 }
+/// One-sided 95% lower confidence bound on a Poisson mean after `k` events:
+/// the λ with P(X >= k | λ) = 0.05, by bisection on the exact CDF.
+fn poisson_lower_95(k: u64) -> f64 {
+    if k == 0 {
+        return 0.0;
+    }
+    let below_k = |lambda: f64| {
+        let mut log_factorial = 0.0;
+        let logs: Vec<f64> = (0..k)
+            .map(|i| {
+                if i > 0 {
+                    log_factorial += (i as f64).ln();
+                }
+                -lambda + i as f64 * lambda.ln() - log_factorial
+            })
+            .collect();
+        let top = logs.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        top.exp() * logs.iter().map(|x| (x - top).exp()).sum::<f64>()
+    };
+    let (mut low, mut high) = (0.0, k as f64);
+    for _ in 0..200 {
+        let mid = 0.5 * (low + high);
+        if below_k(mid) > 0.95 {
+            low = mid;
+        } else {
+            high = mid;
+        }
+    }
+    0.5 * (low + high)
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn poisson_lower_bound_matches_chi_square_tables() {
+        // chi2(0.05; 2k) / 2 for k = 1, 8, 80.
+        for (k, expected) in [(1, 0.051293), (8, 3.981), (80, 65.29)] {
+            let got = super::poisson_lower_95(k);
+            assert!((got - expected).abs() < 1e-2 * expected, "{k}: {got}");
+        }
+    }
+}
+
 fn main() {
     if let Err(e) = run() {
         eprintln!("graph benchmark: {e}");

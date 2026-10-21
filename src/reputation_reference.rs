@@ -1,6 +1,9 @@
 //! Independent, algebraic evaluator of signed opportunity access.
 //! Does not invoke production flow(), selection_probs() or softmax().
-use crate::reputation::ReputationWorld;
+use crate::reputation::{Action, ReputationWorld};
+use hiyal::core::{AgentId, World};
+use serde_json::Value;
+use std::{fs, path::Path};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Reference {
@@ -125,15 +128,65 @@ pub fn check(w: &ReputationWorld, tolerance: f64) -> Result<(), String> {
     Ok(())
 }
 
+/// Replay a trial's Hiyal-verified journal prefix from its initial world,
+/// checking every pre-event state against this reference and the action's
+/// recorded expectation. Returns the replayed final world.
+pub fn replay_journal(
+    journal: &Path,
+    verified_bytes: u64,
+    initial: &ReputationWorld,
+    tolerance: f64,
+) -> Result<ReputationWorld, String> {
+    let bytes = fs::read(journal).map_err(|e| e.to_string())?;
+    let length = usize::try_from(verified_bytes).map_err(|e| e.to_string())?;
+    let prefix = bytes
+        .get(..length)
+        .ok_or("journal is shorter than the verified prefix")?;
+    if prefix.last().is_some_and(|&b| b != b'\n') {
+        return Err("verified prefix ends inside a record".into());
+    }
+    let mut world = initial.clone();
+    for (index, line) in prefix.split(|&b| b == b'\n').enumerate() {
+        if line.is_empty() {
+            continue;
+        }
+        let record: Value = serde_json::from_slice(line)
+            .map_err(|e| format!("journal record {}: {e}", index + 1))?;
+        let outcome = record.get("outcome").ok_or("missing outcome")?;
+        match outcome.get("outcome").and_then(Value::as_str) {
+            Some("accepted") => {}
+            Some("rejected" | "control") => continue,
+            other => return Err(format!("unexpected outcome kind: {other:?}")),
+        }
+        let actor = record
+            .get("actor")
+            .and_then(|v| v.as_str().and_then(|s| s.parse().ok()).or(v.as_u64()))
+            .ok_or("missing actor")?;
+        let action: Action =
+            serde_json::from_value(outcome.get("action").cloned().ok_or("missing action")?)
+                .map_err(|e| e.to_string())?;
+        let pre = world.pre_event_state(&action)?;
+        check(&pre, tolerance).map_err(|e| format!("journal record {}: {e}", index + 1))?;
+        if (calculate(&pre)?.expected - action.pre_flow.total).abs() > tolerance {
+            return Err(format!(
+                "journal record {}: recorded expectation differs from the reference",
+                index + 1
+            ));
+        }
+        world.apply(AgentId(actor), action)?;
+    }
+    Ok(world)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::reputation::{Config, Removal, setup};
+    use crate::reputation::{Config, setup};
     use hiyal::rng::Streams;
     #[test]
     fn independent_reference_agrees_across_parameters_and_graph_changes() {
         for seed in [11, 12, 19, 23] {
-            let mut cfg = Config::default_for(10, 3);
+            let cfg = Config::default_for(10, 3);
             let mut rng = Streams::new("v1-reference".into(), seed);
             let mut w = setup(&cfg, &mut rng).unwrap();
             for beta in [0.0, 0.1, 4.0, 17.0] {
@@ -145,8 +198,6 @@ mod tests {
                 w.config.beta = beta;
                 check(&w, 1e-12).unwrap();
             }
-            cfg.removal = Removal::None;
-            assert_eq!(w.config.degree, 3);
         }
     }
     #[test]

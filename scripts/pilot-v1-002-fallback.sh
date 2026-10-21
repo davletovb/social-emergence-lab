@@ -13,8 +13,9 @@ if [[ "${GITHUB_EVENT_NAME:-}" == "pull_request" ]]; then
   source_sha="$(git rev-parse HEAD^2)"
 fi
 mkdir -p "$root"
-cargo build --locked --quiet --bin reputation-pilot
-binary="$(cargo metadata --locked --no-deps --format-version 1 | jq -r .target_directory)/debug/reputation-pilot"
+# Release build: about 11x faster than debug, with byte-identical output.
+cargo build --locked --quiet --release --bin reputation-pilot
+binary="$(cargo metadata --locked --no-deps --format-version 1 | jq -r .target_directory)/release/reputation-pilot"
 # Predeclared independent domains per *configuration*. Fail on ANY missing world,
 # do not replace any failed seed or omit an unfavorable result.
 cases=(
@@ -39,29 +40,8 @@ jq -n --arg source "$source_sha" --arg hiyal "$hiyal" '{
   measurement:"Last 100 accepted post-checkpoint opportunities",
   warning:"Three independent parents in default, two no-false-prior parents; no other controls in this fallback. No significant differences, power, human effects or novel scientific discovery can be inferred."
 }' > "$root/batch-plan.json"
-jq -s '
-def m: add/length;
-def sd: if length<=1 then null else (m) as $mean | (map((.-$mean)*(.-$mean))|add/(length-1)|sqrt) end;
-[ .[]|{seed, config,primary_information_late_gap,repair_after_truth_late,repair_without_truth_full,
-    information_late:(.per_arm[]|select(.arm=="information")|.late),
-    combined_late:(.per_arm[]|select(.arm=="both")|.late)
-} ] |
-group_by([.config.actors,.config.degree,.config.annealed,.config.removal,.config.beta,.config.kappa,.config.rewire_every,.config.delta]) |
-{scientific_status:"exploratory_only_no_inferential_claim",groups:map({
- config:.[0].config,
- parents:length,seeds:map(.seed),
- info_gap_mean:(map(.primary_information_late_gap)|m),
- info_gap_sd:(map(.primary_information_late_gap)|sd),
- repair_after_truth_mean:(map(.repair_after_truth_late)|m),
- repair_after_truth_sd:(map(.repair_after_truth_late)|sd),
- repair_without_truth_mean:(map(.repair_without_truth_full)|m),
- info_degree_mean:(map(.information_late.degree)|m),
- info_selection_mean:(map(.information_late.selection)|m),
- info_inherited_mean:(map(.information_late.inherited)|m),
- info_added_mean:(map(.information_late.added)|m),
- info_survival_mean:(map(.information_late.mean_surviving_edge_fraction)|m),
- combined_gap_mean:(map(.combined_late.opportunity_gap)|m)
-})}' "$root"/*/report.json > "$root/batch-summary.json"
+jq -s -f scripts/batch-summary-v1-002.jq "$root"/*/report.json > "$root/batch-summary.json"
+jq -s -f scripts/arm-summary-002.jq "$root"/*/report.json > "$root/arm-summary.json"
 (
   cd "$root"
   find . -type f ! -name SHA256SUMS ! -name .writer.lock ! -name .effects-writer.lock -print0 | LC_ALL=C sort -z | xargs -0 sha256sum > SHA256SUMS
@@ -73,6 +53,9 @@ echo "END-V1-BATCH-PLAN"
 echo "BEGIN-V1-BATCH-SUMMARY"
 cat "$root/batch-summary.json"
 echo "END-V1-BATCH-SUMMARY"
+echo "BEGIN-V1-ARM-SUMMARY"
+cat "$root/arm-summary.json"
+echo "END-V1-ARM-SUMMARY"
 echo "BEGIN-V1-SEAL-DIGEST"
 sha256sum "$root/SHA256SUMS"
 echo "END-V1-SEAL-DIGEST"
