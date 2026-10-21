@@ -16,9 +16,10 @@
 ~~~sh
 cargo test --locked --test reputation_v0
 cargo run --locked --bin reputation-pilot -- /tmp/reputation-v0-62000 62000 6 2 20 60 default
+cargo run --locked --bin reputation-pilot -- verify /tmp/reputation-v0-62000
 ~~~
 
-Replace the final word with no-false-prior, no-selection-bias, fixed-graph, or random-churn for distinct mechanistic controls. The output directory must be new and retains replayable parent and four fork journals plus report.json. A single exploratory parent seed cannot yield confidence intervals, statistical significance or replication claims.
+Replace the final word with no-false-prior, no-selection-bias, fixed-graph, or random-churn for distinct mechanistic controls. The output directory must be new and retains replayable parent and four fork journals plus report.json; `verify` re-derives that report from the journals alone. `scripts/verify-002.sh` checks a whole batch written by `scripts/pilot-002.sh`. A single exploratory parent seed cannot yield confidence intervals, statistical significance or replication claims.
 
 For more informative *manual* exploratory pilots, explore N=6,d=2; N=10,d=3; N=20,d=4 with the declared 200/600-event schedule and independent exploratory parent seeds. Benchmark setup-sampler acceptance before using N=20,d=4. Keep broad grids out of automatic PR CI and publish all negative/null cases.
 
@@ -27,10 +28,12 @@ For more informative *manual* exploratory pilots, explore N=6,d=2; N=10,d=3; N=2
 
 The initial 12-parent development batch passed. Its [complete derived summary](results/dev-v0-20261021/batch-summary.json), [study plan](results/dev-v0-20261021/batch-plan.json) and [archive details](results/dev-v0-20261021/README.md) are retained in Git. The full parent/child Hiyal evidence bundle is a **temporary** GitHub Actions artifact; archive it permanently before expiry if needed for future study provenance.
 
-| Development configuration | Independent parents | Information-only signed late opportunity gap | Truth + repair difference in late gap |
-| --- | ---: | ---: | ---: |
-| N=6,d=2, default reputation mechanism | 4 | +0.1000 | +0.3250 |
-| N=10,d=3, default reputation mechanism | 4 | +0.0625 | +0.0125 |
+| Development configuration | Independent parents | Information-only signed late opportunity gap | Truth + repair difference in late gap | Sham full gap | Repair-only full gap |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| N=6,d=2, default reputation mechanism | 4 | +0.1000 | +0.3250 | +0.5125 | +0.3500 |
+| N=10,d=3, default reputation mechanism | 4 | +0.0625 | +0.0125 | +0.5500 | +0.5750 |
+
+The last two columns are H2's inputs (`abs(E[D_S]) < abs(E[D_U])`), from the per-arm [arm-summary.json](results/dev-v0-20261021/arm-summary.json).
 
 The four negative-control configurations were each run for **one seed only**; they cannot estimate a null distribution or establish significance. With just 40 postintervention events per branch, large random signed gaps are possible even under null mechanisms. These numbers are descriptive within-model outputs and do not support a scientific discovery or causal claim about humans. They are not from the canonical 20-actor, 200/600-step design.
 
