@@ -19,7 +19,7 @@ fn root() -> PathBuf {
 #[test]
 fn compact_policy_observation_excludes_growing_trace_and_preserves_input() {
     let mut rng = Streams::new("v2-observe".into(), 8101);
-    let mut w = setup(&Config::default_for(6, 2), &mut rng).unwrap();
+    let w = setup(&Config::default_for(6, 2), &mut rng).unwrap();
     let original = serde_json::to_vec(&w).unwrap();
     let view = w.observe(AgentId(0)).unwrap();
     assert_eq!(view.step, w.step);
@@ -28,12 +28,10 @@ fn compact_policy_observation_excludes_growing_trace_and_preserves_input() {
     assert_eq!(view.boost, w.boost);
     assert_eq!(view.public, w.public);
     assert_eq!(original, serde_json::to_vec(&w).unwrap());
-    // A large recorded trace never travels through observe().
-    // The transient type contains no trace at all.
-    w.trace.reserve(1000);
-    let observed = w.observe(AgentId(1)).unwrap();
-    assert_eq!(observed.step, w.step);
-    assert_eq!(observed.surviving_edges, w.surviving_edges);
+    // The observation type has no trace field, so the growing trace cannot
+    // travel through observe(); the remaining policy inputs must match.
+    assert_eq!(view.surviving_edges, w.surviving_edges);
+    assert_eq!(view.config, w.config);
 }
 #[tokio::test]
 async fn same_seed_false_prior_and_zero_prior_share_genesis_but_not_history() {

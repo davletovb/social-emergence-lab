@@ -111,6 +111,6 @@ fn pair_report(with: &PilotReport, without: &PilotReport) -> PriorPairReport {
         paired_repair_difference: with.repair_after_truth_late - without.repair_after_truth_late,
         matched_setup: true,
         hiyal_revision: with.hiyal_revision.clone(),
-        limitations: "One matched seed is not inference. Matching genesis graphs/labels and RNG state does not force identical stochastic histories after selection changes. Distinct seeds, adequate precision and external validation are required.",
+        limitations: "One matched seed is not inference. With delta=0 the expected gap is exactly zero, so the false-prior gap alone estimates the delta effect; the matched difference adds variance unless the two sides correlate above about sd(no-prior)/(2 sd(prior)). Matching genesis graphs/labels and RNG state does not force identical stochastic histories after selection changes.",
     }
 }
