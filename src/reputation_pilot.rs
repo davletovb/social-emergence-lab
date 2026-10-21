@@ -265,8 +265,19 @@ pub fn control_config(n: usize, d: usize, case: &str) -> Result<Config, String> 
             c.removal = Removal::Uniform;
             c.kappa = 0.0;
         }
+        "annealed-mixing" => {
+            c.removal = Removal::None;
+            c.annealed = true;
+        }
+        "full-mixing" => {
+            c.removal = Removal::None;
+            c.degree = n - 1;
+        }
+        "rewire-every-2" => c.rewire_every = 2,
+        "rewire-every-20" => c.rewire_every = 20,
+        "rewire-every-50" => c.rewire_every = 50,
         _ => return Err(
-            "unknown control: default|no-false-prior|no-selection-bias|fixed-graph|random-churn"
+            "unknown control: default|no-false-prior|no-selection-bias|fixed-graph|random-churn|annealed-mixing|full-mixing|rewire-every-2|rewire-every-20|rewire-every-50"
                 .into(),
         ),
     }
