@@ -29,7 +29,9 @@ pub fn predict_moments(
     if !(2..=1000).contains(&actors) || initial == 0 || offset == 0 || opportunities == 0 {
         return Err("require >=2 agents, positive initial/offset and positive horizon".into());
     }
-    let concentration = initial.checked_add(offset).ok_or("initial concentration overflow")?;
+    let concentration = initial
+        .checked_add(offset)
+        .ok_or("initial concentration overflow")?;
     let total_concentration = concentration
         .checked_mul(u64::try_from(actors).map_err(|e| e.to_string())?)
         .ok_or("total concentration overflow")?;
@@ -64,20 +66,20 @@ mod tests {
     }
     #[test]
     fn reinforcement_has_no_variance_effect_after_one_draw() {
-        for offset in [1,10,100] {
-            let m=predict_moments(20,10,offset,1).unwrap();
-            assert_eq!(m.variance_ratio,1.0);
+        for offset in [1, 10, 100] {
+            let m = predict_moments(20, 10, offset, 1).unwrap();
+            assert_eq!(m.variance_ratio, 1.0);
         }
     }
     #[test]
     fn longer_horizon_and_smaller_offset_increase_variance_ratio() {
-        let short = predict_moments(20,10,1,100).unwrap();
-        let long = predict_moments(20,10,1,500).unwrap();
-        let diluted = predict_moments(20,10,100,500).unwrap();
+        let short = predict_moments(20, 10, 1, 100).unwrap();
+        let long = predict_moments(20, 10, 1, 500).unwrap();
+        let diluted = predict_moments(20, 10, 100, 500).unwrap();
         assert!(long.variance_ratio > short.variance_ratio);
         assert!(long.variance_ratio > diluted.variance_ratio);
-        assert!((long.variance_ratio - 720.0/221.0).abs()<1e-13);
-        assert!(predict_moments(1,10,1,500).is_err());
-        assert!(predict_moments(20,u64::MAX,1,500).is_err());
+        assert!((long.variance_ratio - 720.0 / 221.0).abs() < 1e-13);
+        assert!(predict_moments(1, 10, 1, 500).is_err());
+        assert!(predict_moments(20, u64::MAX, 1, 500).is_err());
     }
 }

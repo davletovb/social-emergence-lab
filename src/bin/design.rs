@@ -1,21 +1,26 @@
 //! Analysis-only instrument. Does not generate new society outcomes or unlock confirmation.
 use social_emergence_lab::{
     analytic::predict_moments,
-    design::{plan_precision,terminal_pairs_file},
+    design::{plan_precision, terminal_pairs_file},
 };
-use std::{env,path::Path};
+use std::{env, path::Path};
 
 fn main() {
-    let args:Vec<String>=env::args().skip(1).collect();
-    let result=(||->Result<(),String>{
-        if args.len()!=1 {return Err("usage: cargo run --locked --bin design -- <replicated-hiyal-trajectories.csv>".into());}
-        let input=Path::new(&args[0]);
+    let args: Vec<String> = env::args().skip(1).collect();
+    let result = (|| -> Result<(), String> {
+        if args.len() != 1 {
+            return Err(
+                "usage: cargo run --locked --bin design -- <replicated-hiyal-trajectories.csv>"
+                    .into(),
+            );
+        }
+        let input = Path::new(&args[0]);
         // Specification matches *observed* pilot data. Different horizons
         // require a different pilot; extrapolating to 1000 steps is unsound.
-        let pairs=terminal_pairs_file(input,20,10,1,500)?;
-        let proposed=plan_precision(&pairs,2.0,0.01,0.02,100)?;
-        let theory=predict_moments(20,10,1,500)?;
-        let output=serde_json::json!({
+        let pairs = terminal_pairs_file(input, 20, 10, 1, 500)?;
+        let proposed = plan_precision(&pairs, 2.0, 0.01, 0.02, 100)?;
+        let theory = predict_moments(20, 10, 1, 500)?;
+        let output = serde_json::json!({
             "source":input.to_string_lossy(),
             "experiment":"001-emergence-of-inequality",
             "scientific_status":"exploratory_planning_only",
@@ -31,10 +36,13 @@ fn main() {
             "planning":proposed,
             "pre_registration_status":"NOT LOCKED OR REGISTERED"
         });
-        println!("{}",serde_json::to_string_pretty(&output).map_err(|e|e.to_string())?);
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&output).map_err(|e| e.to_string())?
+        );
         Ok(())
     })();
-    if let Err(e)=result{
+    if let Err(e) = result {
         eprintln!("design failed: {e}");
         std::process::exit(2);
     }
