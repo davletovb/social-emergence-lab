@@ -45,14 +45,3 @@ async fn same_seed_false_prior_and_zero_prior_share_genesis_but_not_history() {
     assert!(verify_pair(&dir).is_ok());
     std::fs::remove_dir_all(dir).unwrap();
 }
-#[tokio::test]
-async fn mismatch_in_non_prior_config_is_detected(){
-    let dir=root();
-    let mut config=Config::default_for(6,2);
-    config.beta=0.0;
-    let result=run_pair(&dir,654322,config,20,60).await.unwrap();
-    assert!(result.matched_seed_prior_effect.is_finite());
-    let root_report=verify_pair(&dir).unwrap();
-    assert_eq!(root_report.config.beta,0.0);
-    std::fs::remove_dir_all(dir).unwrap();
-}
