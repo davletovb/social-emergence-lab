@@ -1,19 +1,26 @@
 # Social Emergence Lab
 
-An independent research repository for reproducible agent-based experiments on how social patterns emerge from individual interactions.
+Reproducible Rust agent-based research on social emergence, built as a **separate Hiyal consumer**. Research protocols, simulation models, experiments and evidence live here; generic engine infrastructure lives in [Hiyal](https://github.com/davletovb/hiyal).
 
-The first planned study investigates when small random differences among initially equal agents become persistent inequality.
+## Scientific status
 
-Simulation infrastructure: [Hiyal](https://github.com/davletovb/hiyal), a separate Rust engine. This repository holds scientific questions, protocols, domain-specific code, analyses, and evidence.
+**Experiment 001: exploratory benchmark completed, not a new sociological discovery.** The linear reinforcement model is an established Pólya urn. A 10-paired-society × 18-configuration Hiyal exploratory grid has been executed with independent event-log and archive validation. All [summaries and trajectory outputs](experiments/001-emergence-of-inequality/results/replicated-74000/README.md) are retained in Git, while original raw evidence is temporarily stored in GitHub Actions. It is **not preregistered or evidence about human societies**.
 
-**Status:** Experiment 001 protocol design; no experiment has run and no findings are claimed.
+- [Exact mathematical baseline](experiments/001-emergence-of-inequality/analytical-baseline.md) — Pólya urn and Dirichlet–multinomial moments.
+- [Conservative paired-society precision planning](experiments/001-emergence-of-inequality/sample-size-and-registration.md) — primary pilot variance and candidate sample size.
+- [Candidate confirmatory protocol](experiments/001-emergence-of-inequality/confirmatory-protocol-draft.md) — **not registered, not executed**.
+- [Candidate Experiment 002: mistaken reputation and social lock-in](experiments/002-reputation-lock-in/research-question.md) — literature and model-design gates, not implemented.
 
-## Documents
-- [Research roadmap](docs/research-roadmap.md)
-- [Theoretical framework](docs/theoretical-framework.md)
-- [Methodology and reproducibility policy](docs/methodology.md)
-- [Experiment 001 — Emergence of inequality](experiments/001-emergence-of-inequality/plan.md) and its [protocol checklist](experiments/001-emergence-of-inequality/protocol.md)
+## Run and verify
 
-## Independent validation and exploratory sensitivity
+```sh
+cargo test --locked
+cargo run --locked --bin design -- experiments/001-emergence-of-inequality/results/replicated-74000/hiyal-trajectories.csv
+cargo run --locked --bin hiyal-grid -- smoke /tmp/social-hiyal-smoke 1 62000
+```
 
-See [validation and sensitivity protocol](experiments/001-emergence-of-inequality/validation-and-sensitivity.md) for independent journal replay, paired-society bootstrap uncertainty, and an independent reference-model sensitivity grid. These tools do not convert the exploratory runs into confirmatory sociological evidence.
+See the [research roadmap](docs/research-roadmap.md), [methodology](docs/methodology.md), and [experiment plan](experiments/001-emergence-of-inequality/plan.md). Larger exploratory sweeps are opt-in to avoid recurring CI costs.
+
+## Original evidence preservation
+
+The entire original Hiyal artifact is available from [GitHub Actions run 39548747760](https://github.com/davletovb/social-emergence-lab/actions/runs/39548747760) until **November 20, 2026**. The derived CSV files are not a substitute. See [archive issue #6](https://github.com/davletovb/social-emergence-lab/issues/6) for permanent preservation steps.
