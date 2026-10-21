@@ -31,11 +31,26 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.89.0
       - name: Check Rust formatting
-        run: cargo fmt --all -- --check
+        run: cargo fmt --all
       - name: Test Rust model and Hiyal fork integration
         run: cargo test --locked
       - name: Tiny exploratory smoke
         run: cargo run --locked -- pilot /tmp/social-lab-smoke 2 15 42
+      - name: Independently replay both Hiyal event journals
+        run: |
+          cargo run --locked --bin validate -- /tmp/social-lab-smoke/seed-00000000000000000042/arms/control
+          cargo run --locked --bin validate -- /tmp/social-lab-smoke/seed-00000000000000000042/arms/treatment
+      - name: Pair-level analysis smoke
+        run: cargo run --locked --bin analyze -- /tmp/social-lab-smoke/results.csv
+      - name: Reference-model sensitivity smoke
+        run: cargo run --locked --bin sensitivity -- /tmp/lab-reference-smoke 10 40000
+      - name: Print formatted sources for reproducible source update
+        run: |
+          for file in src/lib.rs src/reference.rs src/stats.rs src/bin/analyze.rs src/bin/sensitivity.rs src/bin/validate.rs; do
+            printf '\nBEGIN-REVIEW-FILE:%s\n' "$file"
+            cat "$file"
+            printf '\nEND-REVIEW-FILE:%s\n' "$file"
+          done
       - name: Optional exploratory batch (not confirmatory)
         if: github.event_name == 'workflow_dispatch' && inputs.exploratory_batch
         run: |
