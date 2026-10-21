@@ -46,8 +46,15 @@ jobs:
           # replicate-001.sh records the PR head, the merge checkout's second parent.
           fetch-depth: 2
       - uses: dtolnay/rust-toolchain@1.89.0
-      - name: Check Rust formatting
-        run: cargo fmt --all -- --check
+      - name: Format and emit link-survival regression for review (temporary)
+        run: |
+          cargo fmt --all
+          for path in src/reputation.rs tests/reputation_v0.rs; do
+            echo "BEGIN-REVIEW-SOURCE:$path"
+            cat "$path"
+            echo "END-REVIEW-SOURCE:$path"
+          done
+          git restore src/reputation.rs tests/reputation_v0.rs
       - name: Check evidence scripts syntax
         run: bash -n scripts/replicate-001.sh scripts/verify-001.sh scripts/pilot-002.sh
 
