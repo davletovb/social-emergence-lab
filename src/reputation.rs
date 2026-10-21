@@ -45,7 +45,7 @@ impl Config {
     }
     pub fn validate(&self) -> Result<(), String> {
         if !(6..=40).contains(&self.actors) || self.actors % 2 != 0
-            || self.degree == 0 || self.degree + 2 > self.actors
+            || self.degree == 0 || self.degree >= self.actors.saturating_sub(1)
             || self.rewire_every == 0 || !(1..=MAX_GRAPH_ATTEMPTS).contains(&self.graph_attempts)
         { return Err("invalid population, degree, rewire period or bounded graph budget".into()); }
         for (x, low, high) in [
@@ -108,7 +108,7 @@ fn check_rows(edges:&[Vec<usize>],n:usize,d:usize)->Result<(),String>{
 pub fn setup(config:&Config, rng:&mut Streams)->Result<ReputationWorld,String>{
     config.validate()?;
     let n=config.actors;
-    let mut names:(Vec<usize>)=(0..n).collect();
+    let mut names:Vec<usize>=(0..n).collect();
     for i in (1..n).rev() {
         let j=rng.uniform_index("setup/labels",i+1)?;
         names.swap(i,j);
