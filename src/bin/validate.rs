@@ -1,6 +1,6 @@
 //! Independently re-execute accepted journal actions and compare to Hiyal's
 //! fully verified state. This deliberately does not reuse the engine reducer.
-use hiyal::storage::Store;
+use hiyal::{research::verify_fork, storage::Store};
 use social_emergence_lab::{
     Allocate, Society, gini,
     reference::{reference_gini, reference_top_share, replay},
@@ -9,6 +9,10 @@ use social_emergence_lab::{
 use std::{env, path::Path};
 fn validate(path: &Path) -> Result<String, String> {
     {
+        // Forked arms: check attribution and the copied parent ancestry bytes.
+        if path.join("fork.json").exists() {
+            verify_fork::<Society>(path)?;
+        }
         // First: independent Hiyal ledger/hash/ancestry check via public read-only API.
         let ro = Store::<Society, Allocate>::inspect_read_only(path)?;
         // Then: deliberately independent, plain-vector reference implementation,
@@ -43,15 +47,17 @@ fn validate(path: &Path) -> Result<String, String> {
 
 fn main() {
     let args: Vec<_> = env::args().skip(1).collect();
-    if args.len() != 1 {
-        eprintln!("usage: cargo run --locked --bin validate -- <arm-trial-directory>");
+    if args.is_empty() {
+        eprintln!("usage: cargo run --locked --bin validate -- <trial-directory>...");
         std::process::exit(2);
     }
-    match validate(Path::new(&args[0])) {
-        Ok(message) => println!("{message}"),
-        Err(e) => {
-            eprintln!("reference validation failed: {e}");
-            std::process::exit(2);
+    for arg in &args {
+        match validate(Path::new(arg)) {
+            Ok(message) => println!("{arg}: {message}"),
+            Err(e) => {
+                eprintln!("reference validation failed for {arg}: {e}");
+                std::process::exit(2);
+            }
         }
     }
 }

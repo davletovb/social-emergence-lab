@@ -1,0 +1,117 @@
+{
+  "schema": 2,
+  "purpose": "exploratory_hiyal_grid",
+  "hiyal_revision": "c6f3d5d650457077eaff4e26a0060bc6cee5dbdd",
+  "first_seed": 74000,
+  "pairs": 10,
+  "cells": [
+    {
+      "actors": 10,
+      "initial": 10,
+      "offset": 1,
+      "horizon": 100
+    },
+    {
+      "actors": 10,
+      "initial": 10,
+      "offset": 1,
+      "horizon": 500
+    },
+    {
+      "actors": 10,
+      "initial": 10,
+      "offset": 10,
+      "horizon": 100
+    },
+    {
+      "actors": 10,
+      "initial": 10,
+      "offset": 10,
+      "horizon": 500
+    },
+    {
+      "actors": 10,
+      "initial": 10,
+      "offset": 100,
+      "horizon": 100
+    },
+    {
+      "actors": 10,
+      "initial": 10,
+      "offset": 100,
+      "horizon": 500
+    },
+    {
+      "actors": 20,
+      "initial": 10,
+      "offset": 1,
+      "horizon": 100
+    },
+    {
+      "actors": 20,
+      "initial": 10,
+      "offset": 1,
+      "horizon": 500
+    },
+    {
+      "actors": 20,
+      "initial": 10,
+      "offset": 10,
+      "horizon": 100
+    },
+    {
+      "actors": 20,
+      "initial": 10,
+      "offset": 10,
+      "horizon": 500
+    },
+    {
+      "actors": 20,
+      "initial": 10,
+      "offset": 100,
+      "horizon": 100
+    },
+    {
+      "actors": 20,
+      "initial": 10,
+      "offset": 100,
+      "horizon": 500
+    },
+    {
+      "actors": 40,
+      "initial": 10,
+      "offset": 1,
+      "horizon": 100
+    },
+    {
+      "actors": 40,
+      "initial": 10,
+      "offset": 1,
+      "horizon": 500
+    },
+    {
+      "actors": 40,
+      "initial": 10,
+      "offset": 10,
+      "horizon": 100
+    },
+    {
+      "actors": 40,
+      "initial": 10,
+      "offset": 10,
+      "horizon": 500
+    },
+    {
+      "actors": 40,
+      "initial": 10,
+      "offset": 100,
+      "horizon": 100
+    },
+    {
+      "actors": 40,
+      "initial": 10,
+      "offset": 100,
+      "horizon": 500
+    }
+  ]
+}
