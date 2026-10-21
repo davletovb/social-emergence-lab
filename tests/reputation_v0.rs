@@ -116,7 +116,7 @@ fn valid_policy_actions_preserve_conservation_and_invalid_actions_do_not_mutate(
     for t in 1..=50 {
         let actor = AgentId((t % 6) as u64);
         let a = ReputationPolicy
-            .decide_with_streams(actor, &w, &[], &mut rng)
+            .decide_with_streams(actor, &w.observe(actor).unwrap(), &[], &mut rng)
             .unwrap();
         assert!(w.graph[actor.0 as usize].contains(&a.recipient));
         w.apply(actor, a).unwrap();
@@ -295,7 +295,7 @@ fn v1_independent_reference_agrees_before_and_after_real_rewires() {
         let j = step % 10;
         reputation_reference::check(&w, 1e-12).unwrap();
         let action = ReputationPolicy
-            .decide_with_streams(AgentId(j as u64), &w, &[], &mut rng)
+            .decide_with_streams(AgentId(j as u64), &w.observe(AgentId(j as u64)).unwrap(), &[], &mut rng)
             .unwrap();
         w.apply(AgentId(j as u64), action).unwrap();
     }
@@ -304,7 +304,7 @@ fn v1_independent_reference_agrees_before_and_after_real_rewires() {
         let j = step % 10;
         reputation_reference::check(&w, 1e-12).unwrap();
         let action = ReputationPolicy
-            .decide_with_streams(AgentId(j as u64), &w, &[], &mut rng)
+            .decide_with_streams(AgentId(j as u64), &w.observe(AgentId(j as u64)).unwrap(), &[], &mut rng)
             .unwrap();
         w.apply(AgentId(j as u64), action).unwrap();
     }
@@ -326,7 +326,7 @@ fn v1_annealed_degree_matched_control_replaces_eligibility_in_logged_action() {
     for step in 0..12 {
         let j = step % 10;
         let action = ReputationPolicy
-            .decide_with_streams(AgentId(j as u64), &w, &[], &mut rng)
+            .decide_with_streams(AgentId(j as u64), &w.observe(AgentId(j as u64)).unwrap(), &[], &mut rng)
             .unwrap();
         let sampled = action.annealed_graph.clone().expect("logged sampled graph");
         validate_graph(&sampled, 10, 3).unwrap();
@@ -388,7 +388,7 @@ fn v1_legacy_v0_trace_hash_semantics_remain_unchanged() {
     w.intervene(Arm::Information).unwrap();
     let mut policy_rng = Streams::new("legacy-policy-v0".into(), 98232);
     let action = ReputationPolicy
-        .decide_with_streams(AgentId(0), &w, &[], &mut policy_rng)
+        .decide_with_streams(AgentId(0), &w.observe(AgentId(0)).unwrap(), &[], &mut policy_rng)
         .unwrap();
     w.apply(AgentId(0), action).unwrap();
     assert!(w.trace.last().unwrap().surviving_count.is_none());
