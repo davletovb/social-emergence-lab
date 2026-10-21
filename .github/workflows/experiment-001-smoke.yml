@@ -1,0 +1,53 @@
+name: Experiment 001 smoke
+
+on:
+  pull_request:
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+      - 'src/**'
+      - '.github/workflows/experiment-001-smoke.yml'
+  workflow_dispatch:
+    inputs:
+      exploratory_batch:
+        description: 'Also run 20 paired societies with 200 steps per arm'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: experiment001-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.89.0
+      - name: Check Rust formatting
+        run: cargo fmt --all -- --check
+      - name: Test Rust model and Hiyal fork integration
+        run: cargo test --locked
+      - name: Tiny exploratory smoke
+        run: cargo run --locked -- pilot /tmp/social-lab-smoke 2 15 42
+      - name: Optional exploratory batch (not confirmatory)
+        if: github.event_name == 'workflow_dispatch' && inputs.exploratory_batch
+        run: |
+          cargo run --locked -- pilot /tmp/social-lab-pilot 20 200 2000
+          awk -F, 'NR>1 {if ($2=="control") {c+=$5;n++} else if ($2=="treatment") {t+=$5}} END {printf "Exploratory mean Gini control=%0.6f treatment=%0.6f delta=%0.6f across %d societies\n", c/n, t/n, (t-c)/n, n}' /tmp/social-lab-pilot/results.csv
+      - name: Preserve manual-pilot output
+        if: github.event_name == 'workflow_dispatch' && inputs.exploratory_batch
+        uses: actions/upload-artifact@v4
+        with:
+          name: experiment-001-exploratory-pilot
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            /tmp/social-lab-pilot/results.csv
+            /tmp/social-lab-pilot/pilot-summary.json
