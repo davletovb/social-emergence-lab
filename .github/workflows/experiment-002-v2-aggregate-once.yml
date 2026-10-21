@@ -1,0 +1,36 @@
+name: Experiment 002 V2 aggregate sealed shards (one-time)
+
+# Reuse the successful raw shards from the earlier one-time source-pinned run.
+# Does not launch or bill for any new simulation.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/experiment-002-v2-aggregate-once.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  aggregate-sealed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 39683450918
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pattern: experiment-002-v2-paired-shard-*
+          path: /tmp/reputation-v2-shards
+      - name: Validate every prior SHA seal and rederive all 36 observations
+        run: bash scripts/aggregate-paired-002.sh /tmp/reputation-v2-shards /tmp/reputation-v2-descriptive-results
+      - name: Preserve final independently-derived descriptive summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: experiment-002-v2-36-pairs-aggregate
+          retention-days: 90
+          if-no-files-found: error
+          path: /tmp/reputation-v2-descriptive-results/
