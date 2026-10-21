@@ -22,7 +22,7 @@ command -v git >/dev/null
   exit 2
 }
 revision="$(git rev-parse HEAD)"
-hiyal="$(sed -n '/^\[\[package\]\]/{N;/name = "hiyal"/{N;s/.*#\([0-9a-f]\{40\}\)".*/\1/p;}}' Cargo.lock | head -1)"
+hiyal="$(awk '/^\[\[package\]\]/{in_hiyal=0} /^name = "hiyal"$/{in_hiyal=1} in_hiyal && /^source =/{print;exit}' Cargo.lock | sed -E 's/.*#([0-9a-f]{40})".*/\1/')"
 [[ "$hiyal" =~ ^[0-9a-f]{40}$ ]] || {
   echo "Could not determine exact Hiyal SHA from Cargo.lock" >&2
   exit 2
