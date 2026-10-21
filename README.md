@@ -23,4 +23,4 @@ See the [research roadmap](docs/research-roadmap.md), [theoretical framework](do
 
 ## Original evidence preservation
 
-The entire original Hiyal artifact is available from [GitHub Actions run 39548747760](https://github.com/davletovb/social-emergence-lab/actions/runs/39548747760) until **November 20, 2026**. The derived CSV files are not a substitute. See [archive issue #6](https://github.com/davletovb/social-emergence-lab/issues/6) for permanent preservation steps.
+The entire original, SHA-256-sealed Hiyal archive is available from [GitHub Actions run 39553947265](https://github.com/davletovb/social-emergence-lab/actions/runs/39553947265) (artifact `12324369551`) until **January 19, 2027**; its `SHA256SUMS` is committed with the [derived results](experiments/001-emergence-of-inequality/results/replicated-74000/README.md), so a preserved copy can be checked against Git. The derived CSV files are not a substitute. See [archive issue #6](https://github.com/davletovb/social-emergence-lab/issues/6) for permanent preservation steps.
