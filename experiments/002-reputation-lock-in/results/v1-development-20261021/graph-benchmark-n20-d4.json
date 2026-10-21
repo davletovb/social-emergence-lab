@@ -1,0 +1,74 @@
+{
+  "status": "EXPLORATORY_GRAPH_SAMPLER_BENCHMARK",
+  "actors": 20,
+  "degree": 4,
+  "seeds": [
+    94000,
+    94001,
+    94002,
+    94003
+  ],
+  "attempt_cap": 200000,
+  "attempted_graphs": 8,
+  "accepted_graphs": 8,
+  "failed_graphs": 0,
+  "samples": [
+    {
+      "seed": 94000,
+      "graph": "setup/initial_graph",
+      "attempts": 2955,
+      "elapsed_micros": 86272,
+      "error": null
+    },
+    {
+      "seed": 94000,
+      "graph": "setup/repair_graph",
+      "attempts": 8983,
+      "elapsed_micros": 263251,
+      "error": null
+    },
+    {
+      "seed": 94001,
+      "graph": "setup/initial_graph",
+      "attempts": 708,
+      "elapsed_micros": 20647,
+      "error": null
+    },
+    {
+      "seed": 94001,
+      "graph": "setup/repair_graph",
+      "attempts": 14454,
+      "elapsed_micros": 425726,
+      "error": null
+    },
+    {
+      "seed": 94002,
+      "graph": "setup/initial_graph",
+      "attempts": 15979,
+      "elapsed_micros": 461913,
+      "error": null
+    },
+    {
+      "seed": 94002,
+      "graph": "setup/repair_graph",
+      "attempts": 7299,
+      "elapsed_micros": 214681,
+      "error": null
+    },
+    {
+      "seed": 94003,
+      "graph": "setup/initial_graph",
+      "attempts": 383,
+      "elapsed_micros": 10995,
+      "error": null
+    },
+    {
+      "seed": 94003,
+      "graph": "setup/repair_graph",
+      "attempts": 2845,
+      "elapsed_micros": 83980,
+      "error": null
+    }
+  ],
+  "caution": "Non-random hardware/runtime and fixed diagnostic seeds. No upper bound on true tail failure probability. Report failed seeds without substitution."
+}

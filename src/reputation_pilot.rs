@@ -2,6 +2,7 @@
 use crate::reputation::{
     Action, Arm, Config, KIND, Removal, ReputationPolicy, ReputationWorld, Window, setup, window,
 };
+use crate::reputation_reference;
 use hiyal::{
     core::AgentId,
     experiment::{Trial, verify_setup},
@@ -125,7 +126,8 @@ pub async fn run(
 
 /// Re-derive a finished run from its Hiyal evidence alone: the parent's
 /// setup and replay, each arm's ancestry, attribution, declared intervention
-/// and replay, and finally the exact bytes of `report.json`.
+/// and replay, every pre-event state against the independent reference, and
+/// finally the exact bytes of `report.json`.
 pub fn verify(root: &Path) -> Result<PilotReport, String> {
     let parent_dir = root.join("parent");
     let parent = Store::<ReputationWorld, Action>::inspect_read_only(&parent_dir)?;
@@ -135,6 +137,7 @@ pub fn verify(root: &Path) -> Result<PilotReport, String> {
     }
     verify_setup(&parent_dir, |rng| setup(&config, rng))?;
     parent.world.verify()?;
+    replay_reference(&parent_dir, &parent)?;
     let checkpoint = parent.logical_step;
     if parent.world.step != checkpoint {
         return Err("parent world and ledger disagree on the checkpoint".into());
@@ -162,6 +165,7 @@ pub fn verify(root: &Path) -> Result<PilotReport, String> {
             ));
         }
         ro.world.verify()?;
+        replay_reference(&path, &ro)?;
         let steps = *total.get_or_insert(ro.world.step);
         if ro.world.step != steps || ro.logical_step != steps - checkpoint {
             return Err("arms disagree on the run length".into());
@@ -180,6 +184,22 @@ pub fn verify(root: &Path) -> Result<PilotReport, String> {
         return Err("report.json is not derivable from the verified journals".into());
     }
     Ok(report)
+}
+
+fn replay_reference(dir: &Path, ro: &ReadOnly<ReputationWorld>) -> Result<(), String> {
+    let replayed = reputation_reference::replay_journal(
+        &dir.join("events.jsonl"),
+        ro.log_bytes,
+        &ro.genesis.initial_world,
+        1e-9,
+    )?;
+    if replayed != ro.world {
+        return Err(format!(
+            "{}: reference replay disagrees with the verified world",
+            dir.display()
+        ));
+    }
+    Ok(())
 }
 
 fn arm_report(
@@ -265,8 +285,19 @@ pub fn control_config(n: usize, d: usize, case: &str) -> Result<Config, String> 
             c.removal = Removal::Uniform;
             c.kappa = 0.0;
         }
+        "annealed-mixing" => {
+            c.removal = Removal::None;
+            c.annealed = true;
+        }
+        "full-mixing" => {
+            c.removal = Removal::None;
+            c.degree = n - 1;
+        }
+        "rewire-every-2" => c.rewire_every = 2,
+        "rewire-every-20" => c.rewire_every = 20,
+        "rewire-every-50" => c.rewire_every = 50,
         _ => return Err(
-            "unknown control: default|no-false-prior|no-selection-bias|fixed-graph|random-churn"
+            "unknown control: default|no-false-prior|no-selection-bias|fixed-graph|random-churn|annealed-mixing|full-mixing|rewire-every-2|rewire-every-20|rewire-every-50"
                 .into(),
         ),
     }

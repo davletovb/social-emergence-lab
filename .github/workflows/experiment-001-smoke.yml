@@ -49,7 +49,7 @@ jobs:
       - name: Check Rust formatting
         run: cargo fmt --all -- --check
       - name: Check evidence scripts syntax
-        run: bash -n scripts/replicate-001.sh scripts/verify-001.sh scripts/pilot-002.sh scripts/verify-002.sh
+        run: bash -n scripts/replicate-001.sh scripts/verify-001.sh scripts/pilot-002.sh scripts/verify-002.sh scripts/pilot-v1-002.sh scripts/pilot-v1-002-fallback.sh
 
       - name: Check analytic prediction and exploratory sample-size calculator
         run: |
@@ -65,6 +65,11 @@ jobs:
         run: |
           cargo run --locked --bin reputation-pilot -- /tmp/reputation-v0-pr-smoke 62000 6 2 20 60 default
           cargo run --locked --bin reputation-pilot -- verify /tmp/reputation-v0-pr-smoke > /dev/null
+      - name: Experiment 002 V1 graph-reference and mixing smoke
+        run: |
+          cargo run --locked --bin reputation-graph-benchmark -- /tmp/reputation-v1-small-graph.json 10 3 95000 2
+          cargo run --locked --bin reputation-pilot -- /tmp/reputation-v1-annealed 91000 6 2 20 60 annealed-mixing
+          cargo run --locked --bin reputation-pilot -- verify /tmp/reputation-v1-annealed > /dev/null
       - name: Tiny exploratory smoke
         run: cargo run --locked -- pilot /tmp/social-lab-smoke 2 15 42
       - name: Independently replay both Hiyal event journals

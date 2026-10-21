@@ -79,6 +79,7 @@ fn exact_exposure_identity_and_zero_beta_selection() {
         recipient: w.graph[0][1],
         success: true,
         pre_flow: flow(&w).unwrap(),
+        annealed_graph: None,
         rewire: Some(Rewire {
             allocator: 0,
             removed,
@@ -107,6 +108,7 @@ fn valid_policy_actions_preserve_conservation_and_invalid_actions_do_not_mutate(
         success: true,
         rewire: None,
         pre_flow: flow(&w).unwrap(),
+        annealed_graph: None,
     };
     assert!(w.apply(AgentId(0), bad).is_err());
     assert_eq!(w, prior);
@@ -151,6 +153,18 @@ fn negative_control_variants_are_explicit() {
     let churn = control_config(10, 2, "random-churn").unwrap();
     assert_eq!(churn.removal, Removal::Uniform);
     assert_eq!(churn.kappa, 0.0);
+    let annealed = control_config(20, 4, "annealed-mixing").unwrap();
+    assert!(annealed.annealed);
+    assert_eq!(annealed.removal, Removal::None);
+    let complete = control_config(20, 4, "full-mixing").unwrap();
+    assert_eq!(complete.degree, 19);
+    assert_eq!(complete.removal, Removal::None);
+    assert_eq!(
+        control_config(20, 4, "rewire-every-2")
+            .unwrap()
+            .rewire_every,
+        2
+    );
     assert!(control_config(20, 19, "default").is_err());
     let mut rng = Streams::new("reputation-test".into(), 5);
     let symmetric = setup(&null, &mut rng).unwrap();
@@ -243,6 +257,7 @@ fn removed_then_readded_checkpoint_edge_is_not_counted_as_inherited() {
             recipient: w.graph[0][1],
             success: true,
             pre_flow: flow(&w).unwrap(),
+            annealed_graph: None,
             rewire: Some(Rewire {
                 allocator: 0,
                 removed: remove,
@@ -269,4 +284,183 @@ fn removed_then_readded_checkpoint_edge_is_not_counted_as_inherited() {
         / 12.0;
     assert!((measurement.inherited - reference_inherited).abs() < 1e-12);
     assert!((measurement.inherited + measurement.added - measurement.degree).abs() < 1e-12);
+}
+
+#[test]
+fn v1_independent_reference_agrees_before_and_after_real_rewires() {
+    use social_emergence_lab::reputation_reference;
+    let mut w = built(10, 3, 601);
+    let mut rng = Streams::new("reference-policy-v1".into(), 81001);
+    for step in 0..40 {
+        let j = step % 10;
+        reputation_reference::check(&w, 1e-12).unwrap();
+        let action = ReputationPolicy
+            .decide_with_streams(AgentId(j as u64), &w, &[], &mut rng)
+            .unwrap();
+        w.apply(AgentId(j as u64), action).unwrap();
+    }
+    w.intervene(Arm::Information).unwrap();
+    for step in 40..80 {
+        let j = step % 10;
+        reputation_reference::check(&w, 1e-12).unwrap();
+        let action = ReputationPolicy
+            .decide_with_streams(AgentId(j as u64), &w, &[], &mut rng)
+            .unwrap();
+        w.apply(AgentId(j as u64), action).unwrap();
+    }
+    reputation_reference::check(&w, 1e-12).unwrap();
+    assert!(
+        window(&w, 41, 80)
+            .unwrap()
+            .mean_surviving_edge_fraction
+            .is_some()
+    );
+}
+#[test]
+fn v1_annealed_degree_matched_control_replaces_eligibility_in_logged_action() {
+    use social_emergence_lab::reputation_reference;
+    let mut w = built(10, 3, 602);
+    w.config.removal = Removal::None;
+    w.config.annealed = true;
+    let mut rng = Streams::new("annealed-policy-v1".into(), 82001);
+    for step in 0..12 {
+        let j = step % 10;
+        let action = ReputationPolicy
+            .decide_with_streams(AgentId(j as u64), &w, &[], &mut rng)
+            .unwrap();
+        let sampled = action.annealed_graph.clone().expect("logged sampled graph");
+        validate_graph(&sampled, 10, 3).unwrap();
+        assert!(sampled[j].contains(&action.recipient));
+        let mut reference = w.clone();
+        reference.graph = sampled;
+        if let Some(ref mut surviving) = reference.surviving_edges {
+            for (row, links) in surviving.iter_mut().zip(&reference.graph) {
+                row.retain(|i| links.contains(i));
+            }
+        }
+        reputation_reference::check(&reference, 1e-12).unwrap();
+        assert!((action.pre_flow.total - flow(&reference).unwrap().total).abs() < 1e-12);
+        w.apply(AgentId(j as u64), action).unwrap();
+    }
+    assert_eq!(w.step, 12);
+}
+#[test]
+fn v1_complete_network_control_is_regular_and_has_no_rewiring() {
+    use social_emergence_lab::reputation_reference;
+    let c = control_config(20, 4, "full-mixing").unwrap();
+    assert_eq!(c.degree, 19);
+    let mut rng = Streams::new("full-mixing-v1".into(), 83001);
+    let w = setup(&c, &mut rng).unwrap();
+    validate_graph(&w.graph, 20, 19).unwrap();
+    assert!(w.graph.iter().enumerate().all(|(j, row)| !row.contains(&j)));
+    reputation_reference::check(&w, 1e-12).unwrap();
+    assert_eq!(w.config.removal, Removal::None);
+}
+#[tokio::test]
+async fn v1_annealed_four_fork_stand_in_replays() {
+    let root = temp();
+    let c = control_config(6, 2, "annealed-mixing").unwrap();
+    let report = run(&root, 82995, c, 20, 60).await.unwrap();
+    assert_eq!(report.per_arm.len(), 4);
+    assert!(report.per_arm.iter().all(|a| a.full.rewire_events == 0));
+    let check = social_emergence_lab::reputation_pilot::verify(&root).unwrap();
+    assert_eq!(
+        serde_json::to_value(check).unwrap(),
+        serde_json::to_value(report).unwrap()
+    );
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn v1_legacy_v0_trace_hash_semantics_remain_unchanged() {
+    // A historical V0 Config did not contain the opt-in V1 accounting flag.
+    // The deserializer must leave it false, and the reducer must not invent
+    // formerly absent per-event trace fields on fork replay.
+    let mut stored = serde_json::to_value(Config::default_for(6, 2)).unwrap();
+    let object = stored.as_object_mut().unwrap();
+    object.remove("survival_accounting");
+    object.remove("annealed");
+    let cfg: Config = serde_json::from_value(stored).unwrap();
+    assert!(!cfg.survival_accounting);
+    let mut rng = Streams::new("legacy-fork-v0".into(), 98231);
+    let mut w = setup(&cfg, &mut rng).unwrap();
+    w.config.removal = Removal::None;
+    w.intervene(Arm::Information).unwrap();
+    let mut policy_rng = Streams::new("legacy-policy-v0".into(), 98232);
+    let action = ReputationPolicy
+        .decide_with_streams(AgentId(0), &w, &[], &mut policy_rng)
+        .unwrap();
+    w.apply(AgentId(0), action).unwrap();
+    assert!(w.trace.last().unwrap().surviving_count.is_none());
+    let serialized = serde_json::to_value(&w).unwrap();
+    assert!(
+        serialized
+            .get("config")
+            .unwrap()
+            .get("survival_accounting")
+            .is_none()
+    );
+    assert!(
+        serialized.get("trace").unwrap()[0]
+            .get("surviving_count")
+            .is_none()
+    );
+    let v1 = Config::default_for(6, 2);
+    assert!(v1.survival_accounting);
+}
+
+#[test]
+fn archived_v0_run_still_verifies() {
+    // One run of the archived V0 batch (see tests/fixtures/README.md).
+    let root = temp();
+    std::fs::create_dir_all(&root).unwrap();
+    let fixture = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/fixtures/reputation-v0-bc870fe-n6-default-81000.tar.gz"
+    );
+    let status = std::process::Command::new("tar")
+        .arg("-xzf")
+        .arg(fixture)
+        .arg("-C")
+        .arg(&root)
+        .status()
+        .unwrap();
+    assert!(status.success());
+    let report = verify(&root.join("n6-default-81000")).unwrap();
+    assert_eq!(report.seed, 81000);
+    assert_eq!(
+        report.hiyal_revision,
+        "4bb53aca5cffa6bc01b7558efbd690af7dbed79f"
+    );
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[tokio::test]
+async fn reference_replay_follows_the_journal_and_rejects_a_wrong_start() {
+    use social_emergence_lab::reputation_reference::replay_journal;
+    let root = temp();
+    run(
+        &root,
+        81404,
+        control_config(6, 2, "default").unwrap(),
+        20,
+        60,
+    )
+    .await
+    .unwrap();
+    let arm = root.join("sham");
+    let ro = Store::<ReputationWorld, Action>::inspect_read_only(&arm).unwrap();
+    let journal = arm.join("events.jsonl");
+    let initial = &ro.genesis.initial_world;
+    let replayed = replay_journal(&journal, ro.log_bytes, initial, 1e-9).unwrap();
+    assert_eq!(replayed, ro.world);
+    // Swapping one boosted and one unboosted label keeps the world valid but
+    // contradicts every recorded expectation.
+    let mut wrong = initial.clone();
+    let on = wrong.boost.iter().position(|&b| b).unwrap();
+    let off = wrong.boost.iter().position(|&b| !b).unwrap();
+    wrong.boost.swap(on, off);
+    let error = replay_journal(&journal, ro.log_bytes, &wrong, 1e-9).unwrap_err();
+    assert!(error.contains("differs from the reference"), "{error}");
+    std::fs::remove_dir_all(root).unwrap();
 }
