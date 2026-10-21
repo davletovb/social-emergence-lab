@@ -78,6 +78,8 @@ The first draft left five choices open. Each was resolved as below and the [form
 
 ### Additional review-derived invariants (before implementation)
 
+- [ ] **Slow rewiring null:** at m=10, τ=200 and T=600 there are only 20 pre-τ and 40 post-τ rewiring events (about 1 and 2 per allocator respectively). Log realized per-allocator replacements, original-edge survival and bias/exposure recovery per rewire; vary m and compare unbiased random churn before attributing persistence to reputation.
+
 - [ ] **Genetic construction equivalent?** No: the V0 initial/repair graphs are independently permuted directed circulant graphs, *not* uniform over all simple d-regular graphs. Validate in/outdegree, reproducibility, permutation invariance, and sample diversity. Document topology-family sensitivity before confirmatory claims.
 - [ ] **Recorded setup RNG:** because `Trial::create` creates new streams after receiving a constructed world, pregenesis setup must use a custom Hiyal `Genesis` and persist consumed setup positions through `Trial::create_from_genesis`. Verify fork/resume preservation and forbid world reducer RNG use.
 - [ ] **Exact selection/exposure decomposition:** at every accepted event, independently recompute `g_deg` and `g_sel` from the *pre-event* adjacency/belief state; test `β=0 → g_sel=0` within floating-point tolerance, and `E[b_recipient−g]=0` across independent societies.
