@@ -306,9 +306,6 @@ fn softmax(values: &[f64], temperature: f64) -> Result<Vec<f64>, String> {
     }
     Ok(weights.iter().map(|x| x / total).collect())
 }
-fn selection_probs(w: &ReputationWorld, j: usize) -> Result<Vec<f64>, String> {
-    selection_probs_fields(&w.config, &w.graph, &w.beliefs, j)
-}
 fn selection_probs_fields(config: &Config, graph: &[Vec<usize>], beliefs: &[Vec<f64>], j: usize) -> Result<Vec<f64>, String> {
     let values = graph.get(j).ok_or("invalid allocator")?.iter()
         .map(|&i| beliefs[j][i]).collect::<Vec<_>>();
