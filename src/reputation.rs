@@ -174,6 +174,7 @@ pub fn setup(config: &Config, rng: &mut Streams) -> Result<ReputationWorld, Stri
         step: 0,
         trace: vec![],
         preintervention_graph: None,
+        surviving_edges: None,
         preintervention_wealth: None,
     })
 }
@@ -201,7 +202,7 @@ pub fn flow(world: &ReputationWorld) -> Result<Flow, String> {
             let sign = if world.boost[i] { 1.0 } else { -1.0 };
             deg += sign / (n * d) as f64;
             if world
-                .preintervention_graph
+                .surviving_edges
                 .as_ref()
                 .is_none_or(|base| base[j].contains(&i))
             {
@@ -298,6 +299,9 @@ pub struct ReputationWorld {
     pub step: u64,
     pub trace: Vec<StepTrace>,
     pub preintervention_graph: Option<Vec<Vec<usize>>>,
+    /// Directed checkpoint edges that have survived **continuously** since τ.
+    /// Once deleted, an edge is never returned to this set even if re-added.
+    pub surviving_edges: Option<Vec<Vec<usize>>>,
     pub preintervention_wealth: Option<Vec<u64>>,
 }
 impl ReputationWorld {
@@ -324,11 +328,22 @@ impl ReputationWorld {
         }
         check_rows(&self.graph, n, self.config.degree)?;
         validate_graph(&self.repair_graph, n, self.config.degree)?;
-        if self.preintervention_graph.is_some() != self.preintervention_wealth.is_some() {
+        if self.preintervention_graph.is_some() != self.preintervention_wealth.is_some()
+            || self.preintervention_graph.is_some() != self.surviving_edges.is_some()
+        {
             return Err("partial fork boundary".into());
         }
         if let Some(ref base) = self.preintervention_graph {
             check_rows(base, n, self.config.degree)?;
+            let surviving = self.surviving_edges.as_ref().ok_or("missing link survival audit")?;
+            if surviving.len() != n {
+                return Err("wrong link survival row count".into());
+            }
+            for (j, row) in surviving.iter().enumerate() {
+                if row.iter().any(|i| !base[j].contains(i) || !self.graph[j].contains(i)) {
+                    return Err("invalid uninterrupted-link survival attribution".into());
+                }
+            }
         }
         let sum: u128 = self.wealth.iter().map(|x| *x as u128).sum();
         if sum != 10u128 * n as u128 + self.step as u128 {
@@ -344,6 +359,7 @@ impl ReputationWorld {
             return Err("intervention already applied".into());
         }
         self.preintervention_graph = Some(self.graph.clone());
+        self.surviving_edges = Some(self.graph.clone());
         self.preintervention_wealth = Some(self.wealth.clone());
         if matches!(arm, Arm::Information | Arm::Both) {
             for b in &mut self.beliefs {
@@ -353,6 +369,13 @@ impl ReputationWorld {
         }
         if matches!(arm, Arm::Structure | Arm::Both) {
             self.graph = self.repair_graph.clone();
+            // Edges not retained across this intervention have already ceased
+            // to be uninterrupted checkpoint edges.
+            if let Some(ref mut surviving) = self.surviving_edges {
+                for (j, row) in surviving.iter_mut().enumerate() {
+                    row.retain(|i| self.graph[j].contains(i));
+                }
+            }
         }
         self.verify()
     }
@@ -424,6 +447,9 @@ impl HiyalWorld for ReputationWorld {
                 .position(|&x| x == change.removed)
                 .ok_or("missing edge")?;
             w.graph[change.allocator][idx] = change.added;
+            if let Some(ref mut surviving) = w.surviving_edges {
+                surviving[change.allocator].retain(|&i| i != change.removed);
+            }
         }
         w.step = step;
         w.trace.push(StepTrace {

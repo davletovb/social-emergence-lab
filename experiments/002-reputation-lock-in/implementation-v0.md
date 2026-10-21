@@ -9,7 +9,7 @@
 - Hiyal schedules the opportunity allocator; each selects from its d directed links with a softmax-plus-uniform decision rule; recipient gains one token; an unbiased performance signal updates private/public beliefs; scheduled rewirings replace one directed edge using private removal beliefs and public addition reputation.
 - All randomness uses trial-owned setup and acting-agent policy streams. Reducers and interventions are deterministic. Every action records the performance signal, link replacement, and exact pre-event signed expectation; conservation, eligible recipients and graph constraints are validated.
 - Four intervention forks at one parent checkpoint: sham, truthful information, independent graph repair, and both. Repair forks use the same graph drawn independently at genesis. Hiyal original trial, ancestry, event replay and fork attribution are independently checked.
-- Report records full-window and late-window signed group opportunity differences; conditional expected flow split into inherited graph exposure, post-checkpoint graph exposure and belief-mediated selection; sampling noise and realized rewiring count. Independent inference units are parent societies, **not** actors or four forks.
+- Report records full-window and late-window signed group opportunity differences; conditional expected flow split into **continuously surviving** checkpoint graph exposure (removed-then-readded edges count as new), post-checkpoint graph exposure and belief-mediated selection; sampling noise and realized rewiring count. Independent inference units are parent societies, **not** actors or four forks.
 
 ## Bounded developer smoke
 

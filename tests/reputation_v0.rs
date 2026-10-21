@@ -5,7 +5,7 @@ use hiyal::{
     rng::Streams,
 };
 use social_emergence_lab::reputation::{
-    Action, Arm, Config, Removal, ReputationPolicy, ReputationWorld, flow, regular_graph, setup,
+    Action, Arm, Config, Removal, Rewire, ReputationPolicy, ReputationWorld, flow, regular_graph, setup,
     validate_graph, window,
 };
 use social_emergence_lab::reputation_pilot::{control_config, run};
@@ -158,4 +158,33 @@ async fn four_arm_hiyal_exploration_is_replayable() {
         .is_err()
     );
     std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn removed_then_readded_checkpoint_edge_is_not_counted_as_inherited() {
+    let mut w = built(6, 2, 777);
+    w.config.removal = Removal::Uniform;
+    w.config.rewire_every = 1;
+    w.intervene(Arm::Sham).unwrap();
+    let before = w.graph[0].clone();
+    let old = before[0];
+    let added = (0..6).find(|&i| i != 0 && !before.contains(&i)).unwrap();
+    for (remove, insert) in [(old, added), (added, old)] {
+        let action = Action {
+            recipient: w.graph[0][1],
+            success: true,
+            pre_flow: flow(&w).unwrap(),
+            rewire: Some(Rewire { allocator: 0, removed: remove, added: insert }),
+        };
+        w.apply(AgentId(0), action).unwrap();
+    }
+    assert!(w.graph[0].contains(&old), "the original edge was re-added");
+    assert!(!w.surviving_edges.as_ref().unwrap()[0].contains(&old),
+        "re-added edges must never be called uninterrupted inheritance");
+    w.verify().unwrap();
+    let measurement = flow(&w).unwrap();
+    let reference_inherited = w.surviving_edges.as_ref().unwrap().iter().flat_map(|row|row.iter())
+        .map(|&i| if w.boost[i] { 1.0 } else { -1.0 }).sum::<f64>() / 12.0;
+    assert!((measurement.inherited - reference_inherited).abs() < 1e-12);
+    assert!((measurement.inherited + measurement.added - measurement.degree).abs() < 1e-12);
 }
