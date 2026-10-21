@@ -73,7 +73,7 @@ The first draft left five choices open. Each was resolved as below and the [form
 - **D2 — primary estimand `E[D_I]`, with IS as an exact-zero control.** `E[D_IS]=0` by label symmetry, so `E[D_I − D_IS]` would just restate `E[D_I]` at about twice the variance. The non-degenerate repair contrast is `E[D_U − D_S]` (repair without belief correction). Persistence is judged by late-window and degree-residual measures, since part of a full-window gap is inherited mechanically.
 - **D3 — a public reputation drives link additions.** With private beliefs only, beliefs about non-neighbors never updated, so additions preferred boosted actors about 11:1 regardless of evidence. Every observed signal now updates a shared public reputation `P_i`, which weights additions; private beliefs still drive selection and removal.
 - **D4 — a separate removal rule.** `removal∈{lowest_belief, uniform, none}` is independent of κ, which weights only additions, so the removal and addition channels can be varied separately; `removal=none` is the no-rewiring baseline.
-- **D5 — a d-matched no-network baseline.** The primary no-network baseline resamples a uniform d-regular eligible set every step (same d and ε floor, no persistent structure); the complete graph is kept as a secondary baseline with its three-factor confound stated.
+- **D5 — a d-matched no-network baseline.** The primary no-network baseline resamples d distinct non-self eligible candidates uniformly each step (same choice-set size d and ε floor, no persistent edges; this is not a globally d-regular graph); the complete graph is kept as a secondary baseline with its three-factor confound stated.
 
 ## Decision before code implementation
 
