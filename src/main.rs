@@ -1,22 +1,21 @@
 //! Small exploratory paired-fork runner. No LLM calls or cloud services.
 use hiyal::{
-    core::{AgentId, TrialId},
+    core::TrialId,
     experiment::Trial,
     research::{paired_forks, resume_fork},
     runtime::ScriptedBackend,
-    scheduler::Scheduling,
     storage::Store,
 };
 use serde::Serialize;
 use social_emergence_lab::{
     ACTORS, Allocate, Feedback, INITIAL_WEALTH, KIND, OFFSET, OpportunityPolicy, Society, gini,
+    runner::{create_parent_staged, discard_lone_arm, hiyal_revision, write_atomic},
     top_quintile_share,
 };
 use std::{
     env,
     fmt::Write as _,
-    fs::{self, File},
-    io::Write as _,
+    fs,
     path::{Path, PathBuf},
     sync::Arc,
 };
@@ -26,22 +25,6 @@ type ResearchTrial = Trial<Society, OpportunityPolicy>;
 /// Upper bound on pairs * accepted steps. Each journal entry is roughly 2.2 KB
 /// at 20 actors, so this caps journals at about 4.4 GB per pilot invocation.
 const MAX_PAIR_STEPS: u64 = 1_000_000;
-
-/// Hiyal revision actually compiled in, read from the committed lockfile so the
-/// exported provenance cannot drift from the pinned dependency.
-fn hiyal_revision() -> Result<&'static str, String> {
-    let lock = include_str!("../Cargo.lock");
-    lock.split("[[package]]")
-        .find(|block| block.lines().any(|line| line.trim() == "name = \"hiyal\""))
-        .and_then(|block| {
-            block
-                .lines()
-                .find_map(|line| line.trim().strip_prefix("source = \""))
-        })
-        .and_then(|source| source.trim_end_matches('"').rsplit_once('#'))
-        .map(|(_, rev)| rev)
-        .ok_or_else(|| "Cargo.lock does not pin a hiyal git revision".into())
-}
 
 #[derive(Serialize)]
 struct ResultRow {
@@ -54,50 +37,9 @@ struct ResultRow {
     chain_head: String,
 }
 
-fn sync_dir(dir: &Path) -> Result<(), String> {
-    #[cfg(unix)]
-    File::open(dir)
-        .and_then(|f| f.sync_all())
-        .map_err(|e| e.to_string())?;
-    #[cfg(not(unix))]
-    let _ = dir;
-    Ok(())
-}
-
-fn write_atomic(path: &Path, content: &[u8]) -> Result<(), String> {
-    let tmp = path.with_extension("tmp");
-    let mut file = File::create(&tmp).map_err(|e| e.to_string())?;
-    file.write_all(content).map_err(|e| e.to_string())?;
-    file.sync_all().map_err(|e| e.to_string())?;
-    drop(file);
-    fs::rename(&tmp, path).map_err(|e| e.to_string())?;
-    sync_dir(path.parent().ok_or("output path has no parent")?)
-}
-
-/// Build the parent in a staging directory and publish it by rename, so a
-/// crash never leaves a half-built `parent` that blocks every later run.
 fn create_parent(dir: &Path, seed: u64) -> Result<(), String> {
-    let root = dir.parent().ok_or("parent path has no directory")?;
-    let stage = root.join(format!(".parent.pending-{}", std::process::id()));
-    if stage.exists() {
-        fs::remove_dir_all(&stage).map_err(|e| e.to_string())?;
-    }
     let initial = Society::new(ACTORS, INITIAL_WEALTH, OFFSET, Feedback::Uniform)?;
-    let trial = Trial::create(
-        &stage,
-        &format!("inequality-001-{seed}"),
-        seed,
-        KIND,
-        initial,
-        OpportunityPolicy,
-        Arc::new(ScriptedBackend),
-        (0..ACTORS).map(|i| AgentId(i as u64)).collect(),
-        Scheduling::RoundRobin,
-    )?;
-    trial.checkpoint()?;
-    drop(trial);
-    fs::rename(&stage, dir).map_err(|e| e.to_string())?;
-    sync_dir(root)
+    create_parent_staged(dir, &format!("inequality-001-{seed}"), seed, initial)
 }
 
 fn check_parent(dir: &Path, seed: u64) -> Result<(), String> {
@@ -151,17 +93,6 @@ fn row(trial: &ResearchTrial, outputs: &Path, seed: u64, arm: &str) -> Result<Re
         top_quintile_share: top_quintile_share(&world.wealth)?,
         chain_head: trial.store.chain_head().to_owned(),
     })
-}
-
-/// `fork_at_head` publishes each arm atomically, so a lone arm means the run
-/// stopped between the two forks. Discard it only while it is still at the
-/// fork boundary; an arm with committed events is never deleted.
-fn discard_lone_arm(dir: &Path) -> Result<(), String> {
-    let arm = Store::<Society, Allocate>::inspect_read_only(dir)?;
-    if arm.logical_step != 0 {
-        return Err("only one arm exists and it has committed events; refusing to replace".into());
-    }
-    fs::remove_dir_all(dir).map_err(|e| e.to_string())
 }
 
 async fn one(root: &Path, seed: u64, target: u64) -> Result<Vec<ResultRow>, String> {
@@ -413,13 +344,6 @@ mod tests {
         let error = pilot(&a, 1, 3, 11).await.unwrap_err();
         assert!(error.contains("committed events"), "{error}");
         fs::remove_dir_all(a).unwrap();
-    }
-
-    #[test]
-    fn summary_revision_matches_cargo_toml_pin() {
-        let manifest = include_str!("../Cargo.toml");
-        let rev = hiyal_revision().unwrap();
-        assert!(manifest.contains(&format!("rev = \"{rev}\"")));
     }
 
     #[tokio::test]

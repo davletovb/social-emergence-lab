@@ -1,0 +1,13 @@
+{
+  "benchmark_scope": "append-only log, one row per run segment: wall-clock for newly accepted steps + checkpoint, then full ledger and reference verification; on shared machine; no measured peak process RSS",
+  "cells": 18,
+  "control_sharing": "one uniform control per (actors, initial wealth, horizon, seed), shared by every offset cell in that group; offset rows within a group are not independent",
+  "hiyal_git_revision": "c6f3d5d650457077eaff4e26a0060bc6cee5dbdd",
+  "model": "10/20/40-agent integer wealth allocation; Hiyal-ChaCha20",
+  "pairs_per_cell": 1,
+  "reporting": "all configured cells, null and negative effects retained",
+  "scientific_unit": "one independently seeded society pair",
+  "status": "exploratory-only",
+  "study_plan_digest": "bed890d5e97a4b5013ae772e4e2967f8a2f4815146591a6bb131a2c13b173ace",
+  "uncertainty": "paired percentile bootstrap 95%, 2000 draws, omitted for n<10"
+}

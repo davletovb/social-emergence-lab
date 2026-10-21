@@ -24,6 +24,17 @@ pub fn replay(
     initial: &[u64],
     verified_bytes: u64,
 ) -> Result<ReferenceOutcome, String> {
+    replay_with(journal, initial, verified_bytes, |_, _| Ok(()))
+}
+
+/// [`replay`], calling `on_accept(accepted_so_far, wealth)` after each
+/// accepted event so callers can derive trajectories from the same pass.
+pub fn replay_with(
+    journal: &Path,
+    initial: &[u64],
+    verified_bytes: u64,
+    mut on_accept: impl FnMut(u64, &[u64]) -> Result<(), String>,
+) -> Result<ReferenceOutcome, String> {
     if initial.len() < 2 || initial.iter().any(|w| *w == 0) {
         return Err("reference requires >=2 positive initial endowments".into());
     }
@@ -73,6 +84,7 @@ pub fn replay(
                 opportunities = opportunities
                     .checked_add(1)
                     .ok_or("reference: accepted event overflow")?;
+                on_accept(opportunities, &wealth)?;
             }
             "rejected" | "control" => {} // Engine verifies cause/hash; this model counts only accepted opportunity events.
             other => return Err(format!("unexpected outcome kind: {other}")),

@@ -10,7 +10,10 @@ use hiyal::{
 };
 use serde::{Deserialize, Serialize};
 
+pub mod hiyal_study;
+pub mod mobility;
 pub mod reference;
+pub mod runner;
 pub mod stats;
 
 pub const KIND: &str = "social-emergence-lab.inequality.v1";
