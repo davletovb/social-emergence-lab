@@ -37,23 +37,40 @@ pub struct Config {
 impl Config {
     pub fn default_for(actors: usize, degree: usize) -> Self {
         Self {
-            actors, degree, beta: 4.0, epsilon: 0.1, delta: 0.2,
-            learning: 0.1, public_learning: 0.1, kappa: 6.0,
-            rewire_every: 10, removal: Removal::LowestBelief,
+            actors,
+            degree,
+            beta: 4.0,
+            epsilon: 0.1,
+            delta: 0.2,
+            learning: 0.1,
+            public_learning: 0.1,
+            kappa: 6.0,
+            rewire_every: 10,
+            removal: Removal::LowestBelief,
             graph_attempts: MAX_GRAPH_ATTEMPTS,
         }
     }
     pub fn validate(&self) -> Result<(), String> {
-        if !(6..=40).contains(&self.actors) || self.actors % 2 != 0
-            || self.degree == 0 || self.degree >= self.actors.saturating_sub(1)
-            || self.rewire_every == 0 || !(1..=MAX_GRAPH_ATTEMPTS).contains(&self.graph_attempts)
-        { return Err("invalid population, degree, rewire period or bounded graph budget".into()); }
+        if !(6..=40).contains(&self.actors)
+            || self.actors % 2 != 0
+            || self.degree == 0
+            || self.degree >= self.actors.saturating_sub(1)
+            || self.rewire_every == 0
+            || !(1..=MAX_GRAPH_ATTEMPTS).contains(&self.graph_attempts)
+        {
+            return Err("invalid population, degree, rewire period or bounded graph budget".into());
+        }
         for (x, low, high) in [
-            (self.beta, 0.0, 20.0), (self.epsilon, 0.0, 1.0),
-            (self.delta, 0.0, 0.5), (self.learning, 0.0, 1.0),
-            (self.public_learning, 0.0, 1.0), (self.kappa, 0.0, 20.0),
+            (self.beta, 0.0, 20.0),
+            (self.epsilon, 0.0, 1.0),
+            (self.delta, 0.0, 0.5),
+            (self.learning, 0.0, 1.0),
+            (self.public_learning, 0.0, 1.0),
+            (self.kappa, 0.0, 20.0),
         ] {
-            if !x.is_finite() || x < low || x > high {return Err("invalid model parameter".into());}
+            if !x.is_finite() || x < low || x > high {
+                return Err("invalid model parameter".into());
+            }
         }
         Ok(())
     }
@@ -61,72 +78,103 @@ impl Config {
 
 /// Exact uniform sampling over simple directed d-in/d-out-regular graphs,
 /// conditioned on configuration-model rejection. Stop rather than loop forever.
-pub fn regular_graph(config: &Config, streams: &mut Streams, name: &str)
-    -> Result<Vec<Vec<usize>>, String>
-{
+pub fn regular_graph(
+    config: &Config,
+    streams: &mut Streams,
+    name: &str,
+) -> Result<Vec<Vec<usize>>, String> {
     config.validate()?;
-    let n=config.actors; let d=config.degree;
+    let n = config.actors;
+    let d = config.degree;
     for _ in 0..config.graph_attempts {
-        let mut targets: Vec<usize> = (0..n).flat_map(|i| std::iter::repeat_n(i,d)).collect();
+        let mut targets: Vec<usize> = (0..n).flat_map(|i| std::iter::repeat_n(i, d)).collect();
         for k in (1..targets.len()).rev() {
-            let index=streams.uniform_index(name,k+1)?;
-            targets.swap(k,index);
+            let index = streams.uniform_index(name, k + 1)?;
+            targets.swap(k, index);
         }
-        let edges:Vec<Vec<usize>> = targets.chunks(d).map(<[usize]>::to_vec).collect();
-        if validate_graph(&edges,n,d).is_ok() {return Ok(edges);}
+        let edges: Vec<Vec<usize>> = targets.chunks(d).map(<[usize]>::to_vec).collect();
+        if validate_graph(&edges, n, d).is_ok() {
+            return Ok(edges);
+        }
     }
-    Err(format!("simple {d}-regular directed graph not found after {} bounded draws on {name}",config.graph_attempts))
+    Err(format!(
+        "simple {d}-regular directed graph not found after {} bounded draws on {name}",
+        config.graph_attempts
+    ))
 }
 
-pub fn validate_graph(edges:&[Vec<usize>],n:usize,d:usize)->Result<(),String>{
-    if edges.len()!=n {return Err("wrong number of graph rows".into());}
-    let mut incoming=vec![0usize;n];
-    for (j,row) in edges.iter().enumerate(){
-        if row.len()!=d {return Err("outdegree invariant failed".into());}
-        let mut seen=vec![false;n];
+pub fn validate_graph(edges: &[Vec<usize>], n: usize, d: usize) -> Result<(), String> {
+    if edges.len() != n {
+        return Err("wrong number of graph rows".into());
+    }
+    let mut incoming = vec![0usize; n];
+    for (j, row) in edges.iter().enumerate() {
+        if row.len() != d {
+            return Err("outdegree invariant failed".into());
+        }
+        let mut seen = vec![false; n];
         for &i in row {
-            if i>=n || i==j || seen[i] {return Err("self, duplicate or invalid edge".into());}
-            seen[i]=true;incoming[i]+=1;
+            if i >= n || i == j || seen[i] {
+                return Err("self, duplicate or invalid edge".into());
+            }
+            seen[i] = true;
+            incoming[i] += 1;
         }
     }
-    if incoming.iter().any(|&v|v!=d){return Err("indegree invariant failed".into());}
+    if incoming.iter().any(|&v| v != d) {
+        return Err("indegree invariant failed".into());
+    }
     Ok(())
 }
-fn check_rows(edges:&[Vec<usize>],n:usize,d:usize)->Result<(),String>{
-    if edges.len()!=n{return Err("bad row count".into());}
-    for (j,row) in edges.iter().enumerate(){
-        if row.len()!=d{return Err("outdegree changed".into());}
-        let mut seen=vec![false;n];
-        for &i in row{
-            if i>=n||i==j||seen[i]{return Err("invalid current graph".into());}
-            seen[i]=true;
+fn check_rows(edges: &[Vec<usize>], n: usize, d: usize) -> Result<(), String> {
+    if edges.len() != n {
+        return Err("bad row count".into());
+    }
+    for (j, row) in edges.iter().enumerate() {
+        if row.len() != d {
+            return Err("outdegree changed".into());
+        }
+        let mut seen = vec![false; n];
+        for &i in row {
+            if i >= n || i == j || seen[i] {
+                return Err("invalid current graph".into());
+            }
+            seen[i] = true;
         }
     }
     Ok(())
 }
 
-pub fn setup(config:&Config, rng:&mut Streams)->Result<ReputationWorld,String>{
+pub fn setup(config: &Config, rng: &mut Streams) -> Result<ReputationWorld, String> {
     config.validate()?;
-    let n=config.actors;
-    let mut names:Vec<usize>=(0..n).collect();
+    let n = config.actors;
+    let mut names: Vec<usize> = (0..n).collect();
     for i in (1..n).rev() {
-        let j=rng.uniform_index("setup/labels",i+1)?;
-        names.swap(i,j);
+        let j = rng.uniform_index("setup/labels", i + 1)?;
+        names.swap(i, j);
     }
-    let mut boost=vec![false;n];
-    for &i in &names[..n/2]{boost[i]=true;}
-    let initial_graph=regular_graph(config,rng,"setup/initial_graph")?;
-    let repair_graph=regular_graph(config,rng,"setup/repair_graph")?;
-    let priors:Vec<f64>=boost.iter().map(|&b|0.5+if b{config.delta}else{-config.delta}).collect();
-    Ok(ReputationWorld{
-        config:config.clone(),boost,
-        graph:initial_graph,
+    let mut boost = vec![false; n];
+    for &i in &names[..n / 2] {
+        boost[i] = true;
+    }
+    let initial_graph = regular_graph(config, rng, "setup/initial_graph")?;
+    let repair_graph = regular_graph(config, rng, "setup/repair_graph")?;
+    let priors: Vec<f64> = boost
+        .iter()
+        .map(|&b| 0.5 + if b { config.delta } else { -config.delta })
+        .collect();
+    Ok(ReputationWorld {
+        config: config.clone(),
+        boost,
+        graph: initial_graph,
         repair_graph,
-        beliefs:vec![priors.clone();n],
-        public:priors,
-        wealth:vec![10;n],
-        step:0,trace:vec![],preintervention_graph:None,
-        preintervention_wealth:None,
+        beliefs: vec![priors.clone(); n],
+        public: priors,
+        wealth: vec![10; n],
+        step: 0,
+        trace: vec![],
+        preintervention_graph: None,
+        preintervention_wealth: None,
     })
 }
 
@@ -140,238 +188,400 @@ pub struct Flow {
 }
 
 /// Pre-event expectation, averaged over a uniformly scheduled allocator.
-pub fn flow(world:&ReputationWorld)->Result<Flow,String>{
-    let n=world.config.actors;
-    let d=world.config.degree;
-    let mut deg=0f64;let mut inherited=0f64;let mut selected=0f64;
+pub fn flow(world: &ReputationWorld) -> Result<Flow, String> {
+    let n = world.config.actors;
+    let d = world.config.degree;
+    let mut deg = 0f64;
+    let mut inherited = 0f64;
+    let mut selected = 0f64;
     for j in 0..n {
-        let row=&world.graph[j];
-        let p=selection_probs(world,j)?;
-        for (k,&i) in row.iter().enumerate(){
-            let sign=if world.boost[i]{1.0}else{-1.0};
-            deg+=sign/(n*d) as f64;
-            if world.preintervention_graph.as_ref().is_none_or(|base|base[j].contains(&i)){
-                inherited+=sign/(n*d) as f64;
+        let row = &world.graph[j];
+        let p = selection_probs(world, j)?;
+        for (k, &i) in row.iter().enumerate() {
+            let sign = if world.boost[i] { 1.0 } else { -1.0 };
+            deg += sign / (n * d) as f64;
+            if world
+                .preintervention_graph
+                .as_ref()
+                .is_none_or(|base| base[j].contains(&i))
+            {
+                inherited += sign / (n * d) as f64;
             }
-            selected+=sign*(p[k]-1.0/d as f64)/n as f64;
+            selected += sign * (p[k] - 1.0 / d as f64) / n as f64;
         }
     }
-    let added=deg-inherited;
-    Ok(Flow{degree:deg,inherited,added,selection:selected,total:deg+selected})
+    let added = deg - inherited;
+    Ok(Flow {
+        degree: deg,
+        inherited,
+        added,
+        selection: selected,
+        total: deg + selected,
+    })
 }
 
-fn softmax(values:&[f64],temperature:f64)->Result<Vec<f64>,String>{
-    if values.is_empty(){return Err("empty choice set".into());}
-    let weighted:Vec<_>=values.iter().map(|x|x*temperature).collect();
-    let max=weighted.iter().copied().fold(f64::NEG_INFINITY,f64::max);
-    let weights:Vec<_>=weighted.iter().map(|x|(x-max).exp()).collect();
-    let total: f64=weights.iter().sum();
-    if !total.is_finite()||total<=0.0{return Err("invalid selection weights".into());}
-    Ok(weights.iter().map(|x|x/total).collect())
+fn softmax(values: &[f64], temperature: f64) -> Result<Vec<f64>, String> {
+    if values.is_empty() {
+        return Err("empty choice set".into());
+    }
+    let weighted: Vec<_> = values.iter().map(|x| x * temperature).collect();
+    let max = weighted.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    let weights: Vec<_> = weighted.iter().map(|x| (x - max).exp()).collect();
+    let total: f64 = weights.iter().sum();
+    if !total.is_finite() || total <= 0.0 {
+        return Err("invalid selection weights".into());
+    }
+    Ok(weights.iter().map(|x| x / total).collect())
 }
-fn selection_probs(w:&ReputationWorld,j:usize)->Result<Vec<f64>,String>{
-    let values=w.graph.get(j).ok_or("invalid allocator")?.iter().map(|&i|w.beliefs[j][i]).collect::<Vec<_>>();
-    let mut p=softmax(&values,w.config.beta)?;
-    let d=p.len() as f64;
-    for x in &mut p{*x=w.config.epsilon/d+(1.0-w.config.epsilon)*(*x);}
+fn selection_probs(w: &ReputationWorld, j: usize) -> Result<Vec<f64>, String> {
+    let values = w
+        .graph
+        .get(j)
+        .ok_or("invalid allocator")?
+        .iter()
+        .map(|&i| w.beliefs[j][i])
+        .collect::<Vec<_>>();
+    let mut p = softmax(&values, w.config.beta)?;
+    let d = p.len() as f64;
+    for x in &mut p {
+        *x = w.config.epsilon / d + (1.0 - w.config.epsilon) * (*x);
+    }
     Ok(p)
 }
-fn uniform(rng:&mut Streams,name:&str)->Result<f64,String>{
-    Ok((rng.draw_u64(name)? >> 11) as f64 * (1.0/((1u64<<53) as f64)))
+fn uniform(rng: &mut Streams, name: &str) -> Result<f64, String> {
+    Ok((rng.draw_u64(name)? >> 11) as f64 * (1.0 / ((1u64 << 53) as f64)))
 }
-fn choose(p:&[f64],rng:&mut Streams,name:&str)->Result<usize,String>{
-    let mut u=uniform(rng,name)?;
-    for (i,&prob) in p.iter().enumerate(){
-        if u<prob{return Ok(i);}
-        u-=prob;
+fn choose(p: &[f64], rng: &mut Streams, name: &str) -> Result<usize, String> {
+    let mut u = uniform(rng, name)?;
+    for (i, &prob) in p.iter().enumerate() {
+        if u < prob {
+            return Ok(i);
+        }
+        u -= prob;
     }
     // Rounding can leave an ~ulp remainder after a probability sum.
-    Ok(p.len()-1)
+    Ok(p.len() - 1)
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Rewire {
-    pub allocator:usize,
-    pub removed:usize,
-    pub added:usize,
+    pub allocator: usize,
+    pub removed: usize,
+    pub added: usize,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Action {
-    pub recipient:usize,
-    pub success:bool,
-    pub rewire:Option<Rewire>,
-    pub pre_flow:Flow,
+    pub recipient: usize,
+    pub success: bool,
+    pub rewire: Option<Rewire>,
+    pub pre_flow: Flow,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StepTrace {
-    pub step:u64,
-    pub allocator:usize,
-    pub recipient:usize,
-    pub sign:i8,
-    pub expectation:Flow,
-    pub rewire:Option<Rewire>,
+    pub step: u64,
+    pub allocator: usize,
+    pub recipient: usize,
+    pub sign: i8,
+    pub expectation: Flow,
+    pub rewire: Option<Rewire>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ReputationWorld {
-    pub config:Config,
-    pub boost:Vec<bool>,
-    pub graph:Vec<Vec<usize>>,
-    pub repair_graph:Vec<Vec<usize>>,
-    pub beliefs:Vec<Vec<f64>>,
-    pub public:Vec<f64>,
-    pub wealth:Vec<u64>,
-    pub step:u64,
-    pub trace:Vec<StepTrace>,
-    pub preintervention_graph:Option<Vec<Vec<usize>>>,
-    pub preintervention_wealth:Option<Vec<u64>>,
+    pub config: Config,
+    pub boost: Vec<bool>,
+    pub graph: Vec<Vec<usize>>,
+    pub repair_graph: Vec<Vec<usize>>,
+    pub beliefs: Vec<Vec<f64>>,
+    pub public: Vec<f64>,
+    pub wealth: Vec<u64>,
+    pub step: u64,
+    pub trace: Vec<StepTrace>,
+    pub preintervention_graph: Option<Vec<Vec<usize>>>,
+    pub preintervention_wealth: Option<Vec<u64>>,
 }
 impl ReputationWorld {
-    pub fn verify(&self)->Result<(),String>{
+    pub fn verify(&self) -> Result<(), String> {
         self.config.validate()?;
-        let n=self.config.actors;
-        if self.boost.len()!=n||self.boost.iter().filter(|x|**x).count()!=n/2
-        ||self.beliefs.len()!=n||self.public.len()!=n||self.wealth.len()!=n
-        ||self.beliefs.iter().any(|row|row.len()!=n||row.iter().any(|x|!x.is_finite()||!(0.0..=1.0).contains(x)))
-        ||self.public.iter().any(|x|!x.is_finite()||!(0.0..=1.0).contains(x))
-        {return Err("belief, label or state invariant failed".into());}
-        check_rows(&self.graph,n,self.config.degree)?;
-        validate_graph(&self.repair_graph,n,self.config.degree)?;
-        if self.preintervention_graph.is_some()!=self.preintervention_wealth.is_some(){return Err("partial fork boundary".into());}
-        if let Some(ref base)=self.preintervention_graph{check_rows(base,n,self.config.degree)?;}
-        let sum:u128=self.wealth.iter().map(|x|*x as u128).sum();
-        if sum!=10u128*n as u128+self.step as u128{return Err("wealth conservation failed".into());}
-        if self.trace.len()!=self.step as usize{return Err("one trace required per opportunity".into());}
+        let n = self.config.actors;
+        if self.boost.len() != n
+            || self.boost.iter().filter(|x| **x).count() != n / 2
+            || self.beliefs.len() != n
+            || self.public.len() != n
+            || self.wealth.len() != n
+            || self.beliefs.iter().any(|row| {
+                row.len() != n
+                    || row
+                        .iter()
+                        .any(|x| !x.is_finite() || !(0.0..=1.0).contains(x))
+            })
+            || self
+                .public
+                .iter()
+                .any(|x| !x.is_finite() || !(0.0..=1.0).contains(x))
+        {
+            return Err("belief, label or state invariant failed".into());
+        }
+        check_rows(&self.graph, n, self.config.degree)?;
+        validate_graph(&self.repair_graph, n, self.config.degree)?;
+        if self.preintervention_graph.is_some() != self.preintervention_wealth.is_some() {
+            return Err("partial fork boundary".into());
+        }
+        if let Some(ref base) = self.preintervention_graph {
+            check_rows(base, n, self.config.degree)?;
+        }
+        let sum: u128 = self.wealth.iter().map(|x| *x as u128).sum();
+        if sum != 10u128 * n as u128 + self.step as u128 {
+            return Err("wealth conservation failed".into());
+        }
+        if self.trace.len() != self.step as usize {
+            return Err("one trace required per opportunity".into());
+        }
         Ok(())
     }
-    pub fn intervene(&mut self,arm:Arm)->Result<(),String>{
-        if self.preintervention_graph.is_some(){return Err("intervention already applied".into());}
-        self.preintervention_graph=Some(self.graph.clone());
-        self.preintervention_wealth=Some(self.wealth.clone());
-        if matches!(arm,Arm::Information|Arm::Both){
-            for b in &mut self.beliefs{b.fill(0.5);}
+    pub fn intervene(&mut self, arm: Arm) -> Result<(), String> {
+        if self.preintervention_graph.is_some() {
+            return Err("intervention already applied".into());
+        }
+        self.preintervention_graph = Some(self.graph.clone());
+        self.preintervention_wealth = Some(self.wealth.clone());
+        if matches!(arm, Arm::Information | Arm::Both) {
+            for b in &mut self.beliefs {
+                b.fill(0.5);
+            }
             self.public.fill(0.5);
         }
-        if matches!(arm,Arm::Structure|Arm::Both){self.graph=self.repair_graph.clone();}
+        if matches!(arm, Arm::Structure | Arm::Both) {
+            self.graph = self.repair_graph.clone();
+        }
         self.verify()
     }
 }
 impl HiyalWorld for ReputationWorld {
-    type Action=Action;
-    type Observation=ReputationWorld;
-    fn observe(&self,_:AgentId)->Result<Self::Observation,String>{Ok(self.clone())}
-    fn apply(&mut self,actor:AgentId,a:Action)->Result<(),String>{
-        let j=usize::try_from(actor.0).map_err(|e|e.to_string())?;
-        let n=self.config.actors; if j>=n{return Err("allocator out of range".into());}
-        if !self.graph[j].contains(&a.recipient){return Err("recipient not eligible".into());}
-        let now=flow(self)?;
-        for (v,x) in [
-            (now.degree,a.pre_flow.degree),(now.inherited,a.pre_flow.inherited),
-            (now.added,a.pre_flow.added),(now.selection,a.pre_flow.selection),(now.total,a.pre_flow.total),
-        ]{if (v-x).abs()>1e-9{return Err("conditional exposure reference mismatch".into());}}
-        let step=self.step.checked_add(1).ok_or("step overflow")?;
-        let requires=self.config.removal!=Removal::None && step%self.config.rewire_every==0;
-        if requires!=a.rewire.is_some(){return Err("incorrect rewiring event timing".into());}
+    type Action = Action;
+    type Observation = ReputationWorld;
+    fn observe(&self, _: AgentId) -> Result<Self::Observation, String> {
+        Ok(self.clone())
+    }
+    fn apply(&mut self, actor: AgentId, a: Action) -> Result<(), String> {
+        let j = usize::try_from(actor.0).map_err(|e| e.to_string())?;
+        let n = self.config.actors;
+        if j >= n {
+            return Err("allocator out of range".into());
+        }
+        if !self.graph[j].contains(&a.recipient) {
+            return Err("recipient not eligible".into());
+        }
+        let now = flow(self)?;
+        for (v, x) in [
+            (now.degree, a.pre_flow.degree),
+            (now.inherited, a.pre_flow.inherited),
+            (now.added, a.pre_flow.added),
+            (now.selection, a.pre_flow.selection),
+            (now.total, a.pre_flow.total),
+        ] {
+            if (v - x).abs() > 1e-9 {
+                return Err("conditional exposure reference mismatch".into());
+            }
+        }
+        let step = self.step.checked_add(1).ok_or("step overflow")?;
+        let requires = self.config.removal != Removal::None && step % self.config.rewire_every == 0;
+        if requires != a.rewire.is_some() {
+            return Err("incorrect rewiring event timing".into());
+        }
         // Stage all changes atomically, as Hiyal also stages its own world.
-        let mut w=self.clone();
-        w.wealth[a.recipient]=w.wealth[a.recipient].checked_add(1).ok_or("wealth overflow")?;
-        let r=a.recipient;
-        w.beliefs[j][r]=(1.0-w.config.learning)*w.beliefs[j][r]+w.config.learning* f64::from(u8::from(a.success));
-        w.public[r]=(1.0-w.config.public_learning)*w.public[r]+w.config.public_learning*f64::from(u8::from(a.success));
-        if let Some(ref change)=a.rewire {
-            if change.allocator>=n || change.added>=n || change.removed>=n || change.added==change.removed
-                || change.added==change.allocator || !w.graph[change.allocator].contains(&change.removed)
+        let mut w = self.clone();
+        w.wealth[a.recipient] = w.wealth[a.recipient]
+            .checked_add(1)
+            .ok_or("wealth overflow")?;
+        let r = a.recipient;
+        w.beliefs[j][r] = (1.0 - w.config.learning) * w.beliefs[j][r]
+            + w.config.learning * f64::from(u8::from(a.success));
+        w.public[r] = (1.0 - w.config.public_learning) * w.public[r]
+            + w.config.public_learning * f64::from(u8::from(a.success));
+        if let Some(ref change) = a.rewire {
+            if change.allocator >= n
+                || change.added >= n
+                || change.removed >= n
+                || change.added == change.removed
+                || change.added == change.allocator
+                || !w.graph[change.allocator].contains(&change.removed)
                 || w.graph[change.allocator].contains(&change.added)
-            {return Err("invalid replacement edge".into());}
-            if w.config.removal==Removal::LowestBelief {
-                let low=w.graph[change.allocator].iter().map(|&i|w.beliefs[change.allocator][i]).fold(f64::INFINITY,f64::min);
-                if (w.beliefs[change.allocator][change.removed]-low).abs()>1e-12{
+            {
+                return Err("invalid replacement edge".into());
+            }
+            if w.config.removal == Removal::LowestBelief {
+                let low = w.graph[change.allocator]
+                    .iter()
+                    .map(|&i| w.beliefs[change.allocator][i])
+                    .fold(f64::INFINITY, f64::min);
+                if (w.beliefs[change.allocator][change.removed] - low).abs() > 1e-12 {
                     return Err("rewiring did not remove lowest-belief neighbor".into());
                 }
             }
-            let idx=w.graph[change.allocator].iter().position(|&x|x==change.removed).ok_or("missing edge")?;
-            w.graph[change.allocator][idx]=change.added;
+            let idx = w.graph[change.allocator]
+                .iter()
+                .position(|&x| x == change.removed)
+                .ok_or("missing edge")?;
+            w.graph[change.allocator][idx] = change.added;
         }
-        w.step=step;
-        w.trace.push(StepTrace{
-            step,allocator:j,recipient:r,sign:if w.boost[r]{1}else{-1},
-            expectation:now,rewire:a.rewire,
+        w.step = step;
+        w.trace.push(StepTrace {
+            step,
+            allocator: j,
+            recipient: r,
+            sign: if w.boost[r] { 1 } else { -1 },
+            expectation: now,
+            rewire: a.rewire,
         });
         w.verify()?;
-        *self=w;
+        *self = w;
         Ok(())
     }
 }
 
 pub struct ReputationPolicy;
 impl EffectPolicy<ReputationWorld> for ReputationPolicy {
-    fn decide(&self,_:AgentId,_:&ReputationWorld,_:&[Receipt])->Result<Action,String>{
+    fn decide(&self, _: AgentId, _: &ReputationWorld, _: &[Receipt]) -> Result<Action, String> {
         Err("randomized reputation decisions require trial-owned streams".into())
     }
-    fn decide_with_streams(&self,actor:AgentId,world:&ReputationWorld,_:&[Receipt],rng:&mut Streams)->Result<Action,String>{
-        let j=usize::try_from(actor.0).map_err(|e|e.to_string())?;
-        if j>=world.config.actors{return Err("unknown allocator".into());}
-        let pre_flow=flow(world)?;
-        let sel=format!("agent/{j}/selection");
-        let index=choose(&selection_probs(world,j)?,rng,&sel)?;
-        let recipient=world.graph[j][index];
-        let sig=format!("agent/{j}/performance");
-        let success=rng.draw_u64(&sig)?&1==0;
-        let step=world.step.checked_add(1).ok_or("step overflow")?;
-        let rewire=if world.config.removal!=Removal::None && step%world.config.rewire_every==0{
-            let stream=format!("agent/{j}/rewiring");
-            let k=rng.uniform_index(&stream,world.config.actors)?;
-            let mut beliefs=world.beliefs[k].clone();
-            let mut public=world.public.clone();
-            if k==j{beliefs[recipient]=(1.0-world.config.learning)*beliefs[recipient]+world.config.learning*f64::from(u8::from(success));}
-            public[recipient]=(1.0-world.config.public_learning)*public[recipient]+world.config.public_learning*f64::from(u8::from(success));
-            let row=&world.graph[k];
-            let rem_index=match world.config.removal{
-                Removal::None=>return Err("impossible rewiring state".into()),
-                Removal::Uniform=>rng.uniform_index(&stream,row.len())?,
-                Removal::LowestBelief=>{
-                    let min=row.iter().map(|&i|beliefs[i]).fold(f64::INFINITY,f64::min);
-                    let tied:Vec<_>=row.iter().enumerate().filter(|(_,i)|(beliefs[**i]-min).abs()<=1e-12).map(|(ix,_)|ix).collect();
-                    tied[rng.uniform_index(&stream,tied.len())?]
+    fn decide_with_streams(
+        &self,
+        actor: AgentId,
+        world: &ReputationWorld,
+        _: &[Receipt],
+        rng: &mut Streams,
+    ) -> Result<Action, String> {
+        let j = usize::try_from(actor.0).map_err(|e| e.to_string())?;
+        if j >= world.config.actors {
+            return Err("unknown allocator".into());
+        }
+        let pre_flow = flow(world)?;
+        let sel = format!("agent/{j}/selection");
+        let index = choose(&selection_probs(world, j)?, rng, &sel)?;
+        let recipient = world.graph[j][index];
+        let sig = format!("agent/{j}/performance");
+        let success = rng.draw_u64(&sig)? & 1 == 0;
+        let step = world.step.checked_add(1).ok_or("step overflow")?;
+        let rewire =
+            if world.config.removal != Removal::None && step % world.config.rewire_every == 0 {
+                let stream = format!("agent/{j}/rewiring");
+                let k = rng.uniform_index(&stream, world.config.actors)?;
+                let mut beliefs = world.beliefs[k].clone();
+                let mut public = world.public.clone();
+                if k == j {
+                    beliefs[recipient] = (1.0 - world.config.learning) * beliefs[recipient]
+                        + world.config.learning * f64::from(u8::from(success));
                 }
+                public[recipient] = (1.0 - world.config.public_learning) * public[recipient]
+                    + world.config.public_learning * f64::from(u8::from(success));
+                let row = &world.graph[k];
+                let rem_index = match world.config.removal {
+                    Removal::None => return Err("impossible rewiring state".into()),
+                    Removal::Uniform => rng.uniform_index(&stream, row.len())?,
+                    Removal::LowestBelief => {
+                        let min = row
+                            .iter()
+                            .map(|&i| beliefs[i])
+                            .fold(f64::INFINITY, f64::min);
+                        let tied: Vec<_> = row
+                            .iter()
+                            .enumerate()
+                            .filter(|(_, i)| (beliefs[**i] - min).abs() <= 1e-12)
+                            .map(|(ix, _)| ix)
+                            .collect();
+                        tied[rng.uniform_index(&stream, tied.len())?]
+                    }
+                };
+                let removed = row[rem_index];
+                let candidates: Vec<_> = (0..world.config.actors)
+                    .filter(|&x| x != k && x != removed && !row.contains(&x))
+                    .collect();
+                if candidates.is_empty() {
+                    return Err("no alternative graph target".into());
+                }
+                let probs = softmax(
+                    &candidates.iter().map(|&i| public[i]).collect::<Vec<_>>(),
+                    world.config.kappa,
+                )?;
+                let added = candidates[choose(&probs, rng, &stream)?];
+                Some(Rewire {
+                    allocator: k,
+                    removed,
+                    added,
+                })
+            } else {
+                None
             };
-            let removed=row[rem_index];
-            let candidates:Vec<_>=(0..world.config.actors).filter(|&x|x!=k && x!=removed && !row.contains(&x)).collect();
-            if candidates.is_empty(){return Err("no alternative graph target".into());}
-            let probs=softmax(&candidates.iter().map(|&i|public[i]).collect::<Vec<_>>(),world.config.kappa)?;
-            let added=candidates[choose(&probs,rng,&stream)?];
-            Some(Rewire{allocator:k,removed,added})
-        }else{None};
-        Ok(Action{recipient,success,rewire,pre_flow})
+        Ok(Action {
+            recipient,
+            success,
+            rewire,
+            pre_flow,
+        })
     }
 }
 
-#[derive(Clone,Copy,Debug,Eq,PartialEq,Serialize,Deserialize)]
-#[serde(rename_all="snake_case")]
-pub enum Arm{Sham,Information,Structure,Both}
-impl Arm{
-    pub const ALL:[Self;4]=[Self::Sham,Self::Information,Self::Structure,Self::Both];
-    pub fn name(self)->&'static str{match self{Self::Sham=>"sham",Self::Information=>"information",Self::Structure=>"structure",Self::Both=>"both"}}
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Arm {
+    Sham,
+    Information,
+    Structure,
+    Both,
+}
+impl Arm {
+    pub const ALL: [Self; 4] = [Self::Sham, Self::Information, Self::Structure, Self::Both];
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Sham => "sham",
+            Self::Information => "information",
+            Self::Structure => "structure",
+            Self::Both => "both",
+        }
+    }
 }
 
-#[derive(Clone,Debug,Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Window {
-    pub from:u64,pub through:u64,pub opportunity_gap:f64,
-    pub degree:f64,pub inherited:f64,pub added:f64,pub selection:f64,
-    pub innovation:f64,pub rewire_events:usize,
+    pub from: u64,
+    pub through: u64,
+    pub opportunity_gap: f64,
+    pub degree: f64,
+    pub inherited: f64,
+    pub added: f64,
+    pub selection: f64,
+    pub innovation: f64,
+    pub rewire_events: usize,
 }
-pub fn window(w:&ReputationWorld,from:u64,through:u64)->Result<Window,String>{
-    if from==0||through<from||through>w.step{return Err("invalid measurement window".into());}
-    let rows:Vec<_>=w.trace.iter().filter(|x|(from..=through).contains(&x.step)).collect();
-    if rows.len()!=usize::try_from(through-from+1).map_err(|e|e.to_string())?{
+pub fn window(w: &ReputationWorld, from: u64, through: u64) -> Result<Window, String> {
+    if from == 0 || through < from || through > w.step {
+        return Err("invalid measurement window".into());
+    }
+    let rows: Vec<_> = w
+        .trace
+        .iter()
+        .filter(|x| (from..=through).contains(&x.step))
+        .collect();
+    if rows.len() != usize::try_from(through - from + 1).map_err(|e| e.to_string())? {
         return Err("missing window events".into());
     }
-    let mean=|f:&dyn Fn(&StepTrace)->f64|rows.iter().map(|t|f(t)).sum::<f64>()/rows.len() as f64;
-    let gap=mean(&|x|x.sign as f64);
-    let degree=mean(&|x|x.expectation.degree);
-    let inherited=mean(&|x|x.expectation.inherited);
-    let added=mean(&|x|x.expectation.added);
-    let selection=mean(&|x|x.expectation.selection);
-    Ok(Window{from,through,opportunity_gap:gap,degree,inherited,added,selection,
-        innovation:gap-degree-selection,rewire_events:rows.iter().filter(|x|x.rewire.is_some()).count()})
+    let mean =
+        |f: &dyn Fn(&StepTrace) -> f64| rows.iter().map(|t| f(t)).sum::<f64>() / rows.len() as f64;
+    let gap = mean(&|x| x.sign as f64);
+    let degree = mean(&|x| x.expectation.degree);
+    let inherited = mean(&|x| x.expectation.inherited);
+    let added = mean(&|x| x.expectation.added);
+    let selection = mean(&|x| x.expectation.selection);
+    Ok(Window {
+        from,
+        through,
+        opportunity_gap: gap,
+        degree,
+        inherited,
+        added,
+        selection,
+        innovation: gap - degree - selection,
+        rewire_events: rows.iter().filter(|x| x.rewire.is_some()).count(),
+    })
 }

@@ -46,15 +46,8 @@ jobs:
           # replicate-001.sh records the PR head, the merge checkout's second parent.
           fetch-depth: 2
       - uses: dtolnay/rust-toolchain@1.89.0
-      - name: Format new source and print review copy (temporary)
-        run: |
-          cargo fmt --all
-          for path in src/reputation.rs src/reputation_pilot.rs src/bin/reputation-pilot.rs tests/reputation_v0.rs; do
-            echo "BEGIN-FORMATTED-FILE:$path"
-            cat "$path"
-            echo "END-FORMATTED-FILE:$path"
-          done
-          git restore src/reputation.rs src/reputation_pilot.rs src/bin/reputation-pilot.rs tests/reputation_v0.rs
+      - name: Check Rust formatting
+        run: cargo fmt --all -- --check
       - name: Check evidence scripts syntax
         run: bash -n scripts/replicate-001.sh scripts/verify-001.sh
 
