@@ -327,6 +327,9 @@ pub struct StepTrace {
     pub sign: i8,
     pub expectation: Flow,
     pub rewire: Option<Rewire>,
+    /// Post-event checkpoint links still continuously present.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub surviving_count: Option<usize>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -513,6 +516,7 @@ impl HiyalWorld for ReputationWorld {
             }
         }
         w.step = step;
+        let surviving_count = w.surviving_edges.as_ref().map(|rows| rows.iter().map(Vec::len).sum());
         w.trace.push(StepTrace {
             step,
             allocator: j,
@@ -522,6 +526,7 @@ impl HiyalWorld for ReputationWorld {
             // by platform, and replay hashes this state.
             expectation: a.pre_flow,
             rewire: a.rewire,
+            surviving_count,
         });
         w.verify()?;
         *self = w;
@@ -655,6 +660,10 @@ pub struct Window {
     pub selection: f64,
     pub innovation: f64,
     pub rewire_events: usize,
+    /// Mean fraction of checkpoint edges that have never been deleted,
+    /// when all events in this window recorded uninterrupted-survival state.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mean_surviving_edge_fraction: Option<f64>,
 }
 pub fn window(w: &ReputationWorld, from: u64, through: u64) -> Result<Window, String> {
     if from == 0 || through < from || through > w.step {
@@ -685,5 +694,9 @@ pub fn window(w: &ReputationWorld, from: u64, through: u64) -> Result<Window, St
         selection,
         innovation: gap - degree - selection,
         rewire_events: rows.iter().filter(|x| x.rewire.is_some()).count(),
+        mean_surviving_edge_fraction: if rows.iter().all(|x|x.surviving_count.is_some()) {
+            let denominator=(w.config.actors*w.config.degree) as f64;
+            Some(rows.iter().map(|x|x.surviving_count.unwrap_or(0) as f64/denominator).sum::<f64>()/rows.len() as f64)
+        } else { None },
     })
 }
