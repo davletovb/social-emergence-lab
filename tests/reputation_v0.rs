@@ -115,8 +115,9 @@ fn valid_policy_actions_preserve_conservation_and_invalid_actions_do_not_mutate(
     let mut rng = Streams::new("actor-validation".into(), 23);
     for t in 1..=50 {
         let actor = AgentId((t % 6) as u64);
+        let observation = w.observe(actor).unwrap();
         let a = ReputationPolicy
-            .decide_with_streams(actor, &w, &[], &mut rng)
+            .decide_with_streams(actor, &observation, &[], &mut rng)
             .unwrap();
         assert!(w.graph[actor.0 as usize].contains(&a.recipient));
         w.apply(actor, a).unwrap();
@@ -294,8 +295,9 @@ fn v1_independent_reference_agrees_before_and_after_real_rewires() {
     for step in 0..40 {
         let j = step % 10;
         reputation_reference::check(&w, 1e-12).unwrap();
+        let observation = w.observe(AgentId(j as u64)).unwrap();
         let action = ReputationPolicy
-            .decide_with_streams(AgentId(j as u64), &w, &[], &mut rng)
+            .decide_with_streams(AgentId(j as u64), &observation, &[], &mut rng)
             .unwrap();
         w.apply(AgentId(j as u64), action).unwrap();
     }
@@ -303,8 +305,9 @@ fn v1_independent_reference_agrees_before_and_after_real_rewires() {
     for step in 40..80 {
         let j = step % 10;
         reputation_reference::check(&w, 1e-12).unwrap();
+        let observation = w.observe(AgentId(j as u64)).unwrap();
         let action = ReputationPolicy
-            .decide_with_streams(AgentId(j as u64), &w, &[], &mut rng)
+            .decide_with_streams(AgentId(j as u64), &observation, &[], &mut rng)
             .unwrap();
         w.apply(AgentId(j as u64), action).unwrap();
     }
@@ -325,8 +328,9 @@ fn v1_annealed_degree_matched_control_replaces_eligibility_in_logged_action() {
     let mut rng = Streams::new("annealed-policy-v1".into(), 82001);
     for step in 0..12 {
         let j = step % 10;
+        let observation = w.observe(AgentId(j as u64)).unwrap();
         let action = ReputationPolicy
-            .decide_with_streams(AgentId(j as u64), &w, &[], &mut rng)
+            .decide_with_streams(AgentId(j as u64), &observation, &[], &mut rng)
             .unwrap();
         let sampled = action.annealed_graph.clone().expect("logged sampled graph");
         validate_graph(&sampled, 10, 3).unwrap();
@@ -387,8 +391,9 @@ fn v1_legacy_v0_trace_hash_semantics_remain_unchanged() {
     w.config.removal = Removal::None;
     w.intervene(Arm::Information).unwrap();
     let mut policy_rng = Streams::new("legacy-policy-v0".into(), 98232);
+    let observation = w.observe(AgentId(0)).unwrap();
     let action = ReputationPolicy
-        .decide_with_streams(AgentId(0), &w, &[], &mut policy_rng)
+        .decide_with_streams(AgentId(0), &observation, &[], &mut policy_rng)
         .unwrap();
     w.apply(AgentId(0), action).unwrap();
     assert!(w.trace.last().unwrap().surviving_count.is_none());

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Verify an Experiment 002 batch written by pilot-002.sh (V0) or
-# pilot-v1-002*.sh (V1): SHA256SUMS matches
+# Verify an Experiment 002 batch written by pilot-002.sh (V0),
+# pilot-v1-002*.sh (V1) or pilot-paired-002.sh (matched pairs): SHA256SUMS matches
 # and covers exactly the files present (and, if given, has the recorded
-# digest); every run is re-derived from its Hiyal evidence by
-# `reputation-pilot verify`; and the batch plan and summaries agree with the
-# verified reports.
+# digest); every run or pair is re-derived from its Hiyal evidence by
+# `reputation-pilot verify` or `reputation-paired-prior verify`; and the batch
+# plan and summaries agree with the verified reports.
 set -euo pipefail
 usage() {
   echo "Usage: bash scripts/verify-002.sh <batch-directory> [expected-SHA256SUMS-sha256]" >&2
@@ -27,43 +27,68 @@ present="$(cd "$batch" && find . -type f ! -name SHA256SUMS ! -name .writer.lock
 [[ "$listed" == "$present" ]] || fail "SHA256SUMS does not cover exactly the files present"
 
 shopt -s nullglob
-for entry in "$batch"/* "$batch"/.[!.]*; do
-  [[ -d "$entry" ]] && continue
-  case "$(basename "$entry")" in
-    SHA256SUMS | batch-plan.json | batch-summary.json | arm-summary.json) ;;
-    *) fail "Unexpected file: $entry" ;;
-  esac
-done
-runs=("$batch"/*/)
-(( ${#runs[@]} > 0 )) || fail "No run directories"
-for f in batch-plan.json batch-summary.json; do [[ -s "$batch/$f" ]] || fail "Missing $f"; done
-# The V0 and V1 batch plans name their revisions differently.
 plan="$batch/batch-plan.json"
-if jq -e 'has("hiyal_commit")' "$plan" >/dev/null; then
-  hiyal_key=hiyal_commit source_key=source_commit summary=scripts/batch-summary-002.jq
+[[ -s "$plan" ]] || fail "Missing batch-plan.json"
+# V0 and V1 plans name their revisions differently; matched false-prior
+# batches declare their layout.
+if jq -e '.layout == "paired-prior"' "$plan" >/dev/null; then
+  layout=paired hiyal_key=hiyal_revision source_key=source_revision
+  summary_file=paired-summary.json summary=scripts/paired-summary-002.jq
+  allowed="SHA256SUMS batch-plan.json paired-summary.json"
+elif jq -e 'has("hiyal_commit")' "$plan" >/dev/null; then
+  layout=runs hiyal_key=hiyal_commit source_key=source_commit
+  summary_file=batch-summary.json summary=scripts/batch-summary-002.jq
+  allowed="SHA256SUMS batch-plan.json batch-summary.json arm-summary.json"
 elif jq -e 'has("hiyal_revision")' "$plan" >/dev/null; then
-  hiyal_key=hiyal_revision source_key=source_revision summary=scripts/batch-summary-v1-002.jq
+  layout=runs hiyal_key=hiyal_revision source_key=source_revision
+  summary_file=batch-summary.json summary=scripts/batch-summary-v1-002.jq
+  allowed="SHA256SUMS batch-plan.json batch-summary.json arm-summary.json"
 else
   fail "Unrecognized batch plan"
 fi
+for entry in "$batch"/* "$batch"/.[!.]*; do
+  [[ -d "$entry" ]] && continue
+  [[ " $allowed " == *" $(basename "$entry") "* ]] || fail "Unexpected file: $entry"
+done
+runs=("$batch"/*/)
+(( ${#runs[@]} > 0 )) || fail "No run directories"
+[[ -s "$batch/$summary_file" ]] || fail "Missing $summary_file"
 
 cd "$repo"
-cargo build --quiet --locked --release --bin reputation-pilot
-target="$(cargo metadata --locked --format-version 1 --no-deps | jq -r .target_directory)"
-for run in "${runs[@]}"; do
-  "$target/release/reputation-pilot" verify "${run%/}" > /dev/null || fail "Run failed verification: $run"
-done
+cargo build --quiet --locked --release --bin reputation-pilot --bin reputation-paired-prior
+target="$(cargo metadata --locked --format-version 1 --no-deps | jq -r .target_directory)/release"
+if [[ $layout == paired ]]; then
+  for run in "${runs[@]}"; do
+    for entry in "$run"* "$run".[!.]*; do
+      case "$(basename "$entry")" in
+        false-prior | no-false-prior | paired-report.json) ;;
+        *) fail "Unexpected entry in pair: $entry" ;;
+      esac
+    done
+    "$target/reputation-paired-prior" verify "${run%/}" > /dev/null || fail "Pair failed verification: $run"
+  done
+  reports=("$batch"/*/paired-report.json)
+else
+  for run in "${runs[@]}"; do
+    "$target/reputation-pilot" verify "${run%/}" > /dev/null || fail "Run failed verification: $run"
+  done
+  reports=("$batch"/*/report.json)
+fi
 
-reports=("$batch"/*/report.json)
-(( ${#reports[@]} == ${#runs[@]} )) || fail "A run directory has no report.json"
+(( ${#reports[@]} == ${#runs[@]} )) || fail "A run directory has no report"
 [[ "$(jq -r .seed "${reports[@]}" | sort | uniq -d)" == "" ]] || fail "Runs reuse a parent seed"
+if jq -e 'has("seeds")' "$plan" >/dev/null; then
+  [[ "$(jq -c '.seeds | sort' "$plan")" == "$(jq -s -c 'map(.seed) | sort' "${reports[@]}")" ]] ||
+    fail "Runs are not exactly the planned seeds"
+fi
 hiyal="$(jq -r .hiyal_revision "${reports[@]}" | sort -u)"
 jq -e --arg key "$hiyal_key" --arg hiyal "$hiyal" '.[$key] == $hiyal' "$plan" >/dev/null ||
   fail "Batch plan names a different Hiyal revision than its runs"
 same() { cmp -s <(jq -cS . "$1") <(jq -s -f "$2" "${reports[@]}" | jq -cS .); }
-same "$batch/batch-summary.json" "$summary" || fail "batch-summary.json disagrees with the runs"
+same "$batch/$summary_file" "$summary" || fail "$summary_file disagrees with the runs"
 if [[ -e "$batch/arm-summary.json" ]]; then
   same "$batch/arm-summary.json" scripts/arm-summary-002.jq || fail "arm-summary.json disagrees with the runs"
 fi
-echo "Verified ${#runs[@]} runs: seal, Hiyal setup/replay/fork ancestry, interventions, reports and summaries"
+what=$([[ $layout == paired ]] && echo "matched pairs" || echo runs)
+echo "Verified ${#runs[@]} $what: seal, Hiyal setup/replay/fork ancestry, interventions, reports and summaries"
 echo "Source commit $(jq -r --arg key "$source_key" '.[$key]' "$plan"), Hiyal $hiyal"

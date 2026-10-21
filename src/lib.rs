@@ -17,6 +17,7 @@ pub mod mobility;
 pub mod reference;
 pub mod reputation;
 pub mod reputation_pilot;
+pub mod reputation_prior_pair;
 pub mod reputation_reference;
 pub mod runner;
 pub mod stats;
