@@ -1,24 +1,29 @@
 //! Hiyal-native parameter sweeps; results remain explicitly exploratory.
 //! Trials are event-sourced, fully verified, and resumed without overwriting
 //! existing arm histories. One society/seed is the statistical unit.
+//!
+//! Uniform controls ignore the feedback offset, so every (actors, initial,
+//! horizon, seed) group has one parent and one control, and each offset cell
+//! forks its own linear-feedback treatment from that same parent. Offset rows
+//! within a group therefore share a control sample and are not independent.
 use crate::{
     Allocate, Feedback, KIND, OpportunityPolicy, Society, gini,
     mobility::{mean_rank_movement, rank_persistence},
     reference,
-    runner::{create_parent_staged, discard_lone_arm, hiyal_revision, sync_dir, write_atomic},
+    runner::{create_parent_staged, hiyal_revision, sync_dir, write_atomic},
     stats::{Pair, summarize},
     top_quintile_share,
 };
 use hiyal::{
     core::TrialId,
     experiment::Trial,
-    research::{paired_forks, verify_fork},
+    research::{fork_at_head, verify_fork},
     runtime::ScriptedBackend,
     storage::{ReadOnly, Store},
 };
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::BTreeSet,
+    collections::{BTreeMap, BTreeSet},
     fmt::Write as FmtWrite,
     fs::{self, OpenOptions},
     io::{Read, Write},
@@ -26,7 +31,11 @@ use std::{
     sync::Arc,
     time::Instant,
 };
+/// Schema 2: one shared control per group (schema 1 forked a control per cell).
+const SCHEMA: u32 = 2;
 const MAX_STEPS: u64 = 120_000;
+/// The control world's offset field; unused under uniform feedback.
+const CONTROL_OFFSET: u64 = 1;
 const INTERVENTION: &str = "wealth-feedback-v1";
 const BENCHMARK_HEADER: &str = "actors,initial,offset,horizon,seed,arm,start_step,new_accepted_steps,run_ms,verification_ms,journal_bytes,snapshot_bytes,state_json_bytes\n";
 
@@ -69,7 +78,7 @@ pub struct StudyPlan {
 impl StudyPlan {
     pub fn small(first_seed: u64, pairs: usize) -> Result<Self, String> {
         Ok(Self {
-            schema: 1,
+            schema: SCHEMA,
             purpose: "exploratory_hiyal_smoke".into(),
             hiyal_revision: hiyal_revision()?.into(),
             first_seed,
@@ -105,7 +114,7 @@ impl StudyPlan {
             }
         }
         Ok(Self {
-            schema: 1,
+            schema: SCHEMA,
             purpose: "exploratory_hiyal_grid".into(),
             hiyal_revision: hiyal_revision()?.into(),
             first_seed,
@@ -114,7 +123,7 @@ impl StudyPlan {
         })
     }
     pub fn validate(&self) -> Result<(), String> {
-        if self.schema != 1
+        if self.schema != SCHEMA
             || self.hiyal_revision != hiyal_revision()?
             || self.cells.is_empty()
             || self.cells.len() > 18
@@ -127,23 +136,70 @@ impl StudyPlan {
             .first_seed
             .checked_add((self.pairs - 1) as u64)
             .ok_or("seed range overflow")?;
-        let mut seen = std::collections::BTreeSet::new();
-        let mut total = 0u64;
+        let mut seen = BTreeSet::new();
         for c in &self.cells {
             c.validate()?;
             if !seen.insert(c.identity()) {
                 return Err("duplicate cell".into());
             }
+        }
+        let mut total = 0u64;
+        for (group, cells) in self.groups() {
+            // One shared control plus one treatment per offset cell.
+            let arms = 1 + cells.len() as u64;
             total = total
-                .checked_add(c.horizon * 2 * self.pairs as u64)
+                .checked_add(group.horizon * arms * self.pairs as u64)
                 .ok_or("study bound overflow")?;
         }
         if total > MAX_STEPS {
             return Err(format!(
-                "at most {MAX_STEPS} total accepted events per study (both arms)"
+                "at most {MAX_STEPS} total accepted events per study (controls + treatments)"
             ));
         }
         Ok(())
+    }
+    /// Cells grouped by shared control, in order of first appearance.
+    fn groups(&self) -> Vec<(Group, Vec<&Cell>)> {
+        let mut groups: Vec<(Group, Vec<&Cell>)> = Vec::new();
+        for cell in &self.cells {
+            let group = Group::of(cell);
+            match groups.iter_mut().find(|(g, _)| *g == group) {
+                Some((_, cells)) => cells.push(cell),
+                None => groups.push((group, vec![cell])),
+            }
+        }
+        groups
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct Group {
+    actors: usize,
+    initial: u64,
+    horizon: u64,
+}
+impl Group {
+    fn of(cell: &Cell) -> Self {
+        Self {
+            actors: cell.actors,
+            initial: cell.initial,
+            horizon: cell.horizon,
+        }
+    }
+    fn identity(&self) -> String {
+        format!(
+            "actors-{}-initial-{}-steps-{}",
+            self.actors, self.initial, self.horizon
+        )
+    }
+    /// Specification of the shared control arm.
+    fn control(&self) -> Cell {
+        Cell {
+            actors: self.actors,
+            initial: self.initial,
+            offset: CONTROL_OFFSET,
+            horizon: self.horizon,
+        }
     }
 }
 struct Trajectory {
@@ -152,15 +208,6 @@ struct Trajectory {
     top_share: f64,
     rank_persistence: Option<f64>,
     mean_rank_movement: f64,
-}
-struct CellSummary {
-    cell: Cell,
-    pairs: usize,
-    control_mean_gini: f64,
-    treatment_mean_gini: f64,
-    mean_delta: f64,
-    bootstrap_lo: Option<f64>,
-    bootstrap_hi: Option<f64>,
 }
 
 fn enforce_plan(root: &Path, plan: &StudyPlan) -> Result<(), String> {
@@ -196,27 +243,28 @@ fn enforce_plan(root: &Path, plan: &StudyPlan) -> Result<(), String> {
     Ok(())
 }
 
-fn parent_name(cell: &Cell, seed: u64) -> String {
-    format!("inequality-study-{}-{}", cell.identity(), seed)
+fn parent_name(group: &Group, seed: u64) -> String {
+    format!("inequality-study-{}-{}", group.identity(), seed)
 }
 
 /// Returns the parent's trial ID and chain head, which every arm of this
-/// seed must descend from.
+/// group and seed must descend from.
 fn create_or_check_parent(
     parent: &Path,
-    cell: &Cell,
+    group: &Group,
     seed: u64,
 ) -> Result<(String, String), String> {
+    let world = group.control().society()?;
     if !parent.exists() {
-        create_parent_staged(parent, &parent_name(cell, seed), seed, cell.society()?)?;
+        create_parent_staged(parent, &parent_name(group, seed), seed, world.clone())?;
     }
     let ro = Store::<Society, Allocate>::inspect_read_only(parent)?;
-    if ro.genesis.trial_id != TrialId::new(&parent_name(cell, seed), seed).0
+    if ro.genesis.trial_id != TrialId::new(&parent_name(group, seed), seed).0
         || ro.genesis.world_kind != KIND
         || ro.logical_step != 0
-        || ro.world != cell.society()?
+        || ro.world != world
     {
-        return Err("existing parent does not match intended cell and seed".into());
+        return Err("existing parent does not match intended group and seed".into());
     }
     Ok((ro.genesis.trial_id, ro.chain_head))
 }
@@ -225,37 +273,59 @@ fn treatment_parameters(cell: &Cell) -> serde_json::Value {
     serde_json::json!({"feedback":"linear","offset":cell.offset,"actors":cell.actors,"horizon":cell.horizon})
 }
 
-fn fork_pair(
+/// Forks are deterministic in the parent head, arm and parameters, so a
+/// missing arm (for example after a kill between forks) is simply forked.
+fn fork_control(
     parent: &Path,
-    arms: &Path,
-    cell: &Cell,
+    dir: &Path,
     backend: Arc<ScriptedBackend>,
-) -> Result<(ResearchTrial, ResearchTrial), String> {
-    paired_forks(
+) -> Result<ResearchTrial, String> {
+    fork_at_head(
         parent,
-        arms,
+        dir,
         INTERVENTION,
-        treatment_parameters(cell),
-        || OpportunityPolicy,
-        |world: &mut Society| {
-            world.feedback = Feedback::Linear;
-            Ok(())
-        },
+        "control",
+        serde_json::json!({}),
+        |_world: &mut Society| Ok(()),
+        OpportunityPolicy,
         backend,
     )
 }
 
-fn check_world(world: &Society, cell: &Cell, feedback: Feedback) -> Result<(), String> {
+fn fork_treatment(
+    parent: &Path,
+    dir: &Path,
+    cell: &Cell,
+    backend: Arc<ScriptedBackend>,
+) -> Result<ResearchTrial, String> {
+    let offset = cell.offset;
+    fork_at_head(
+        parent,
+        dir,
+        INTERVENTION,
+        "treatment",
+        treatment_parameters(cell),
+        move |world: &mut Society| {
+            world.feedback = Feedback::Linear;
+            world.offset = offset;
+            Ok(())
+        },
+        OpportunityPolicy,
+        backend,
+    )
+}
+
+fn check_world(world: &Society, spec: &Cell, feedback: Feedback) -> Result<(), String> {
     if world.feedback != feedback
-        || world.wealth.len() != cell.actors
-        || world.offset != cell.offset
+        || world.wealth.len() != spec.actors
+        || world.offset != spec.offset
     {
         return Err("existing fork world differs from expected cell".into());
     }
     Ok(())
 }
 
-/// Ties an existing arm to this cell's intervention and to this seed's
+/// Ties an existing arm to its intervention and to this group's and seed's
 /// parent, so arms copied from another seed or cell are refused.
 fn check_attribution(
     dir: &Path,
@@ -271,9 +341,7 @@ fn check_attribution(
         || meta.parent_head != parent.1
         || meta.parent_logical_step != 0
     {
-        return Err(
-            "existing paired fork attribution differs from study plan, seed or parent".into(),
-        );
+        return Err("existing fork attribution differs from study plan, seed or parent".into());
     }
     Ok(())
 }
@@ -281,18 +349,18 @@ fn check_attribution(
 /// Runs the remaining steps and returns (start step, new steps, run ms).
 /// Invariants are checked before checkpointing so a violating state never
 /// becomes the trusted snapshot.
-async fn complete_arm(trial: &mut ResearchTrial, cell: &Cell) -> Result<(u64, u64, u128), String> {
+async fn complete_arm(trial: &mut ResearchTrial, spec: &Cell) -> Result<(u64, u64, u128), String> {
     let completed = trial.store.logical_step();
-    if completed > cell.horizon {
+    if completed > spec.horizon {
         return Err("run progressed beyond intended horizon".into());
     }
-    let remaining = cell.horizon - completed;
+    let remaining = spec.horizon - completed;
     let start = Instant::now();
     if trial.run_attempts(remaining).await? != remaining {
         return Err("not all opportunities were accepted".into());
     }
-    trial.store.world().verify_accounting(cell.initial)?;
-    if trial.store.world().opportunities != cell.horizon {
+    trial.store.world().verify_accounting(spec.initial)?;
+    if trial.store.world().opportunities != spec.horizon {
         return Err("opportunity counter differs from committed steps".into());
     }
     trial.checkpoint()?;
@@ -304,18 +372,18 @@ async fn complete_arm(trial: &mut ResearchTrial, cell: &Cell) -> Result<(u64, u6
 fn verified_outcomes(
     dir: &Path,
     ro: &ReadOnly<Society>,
-    cell: &Cell,
+    spec: &Cell,
 ) -> Result<(Vec<Trajectory>, f64), String> {
-    if ro.logical_step != cell.horizon
-        || ro.world.opportunities != cell.horizon
-        || ro.world.wealth.len() != cell.actors
-        || ro.world.offset != cell.offset
+    if ro.logical_step != spec.horizon
+        || ro.world.opportunities != spec.horizon
+        || ro.world.wealth.len() != spec.actors
+        || ro.world.offset != spec.offset
     {
         return Err("terminal world/size/horizon mismatch".into());
     }
-    ro.world.verify_accounting(cell.initial)?;
-    let early = (cell.horizon / 4).max(1);
-    let checkpoints: BTreeSet<u64> = [early, (cell.horizon / 2).max(1), cell.horizon]
+    ro.world.verify_accounting(spec.initial)?;
+    let early = (spec.horizon / 4).max(1);
+    let checkpoints: BTreeSet<u64> = [early, (spec.horizon / 2).max(1), spec.horizon]
         .into_iter()
         .collect();
     let mut rows = Vec::new();
@@ -352,6 +420,76 @@ fn verified_outcomes(
     Ok((rows, gini(&ro.world.wealth)?))
 }
 
+/// One run segment's cost: (start step, new steps, run ms, verification ms,
+/// journal bytes, snapshot bytes, serialized state bytes).
+type Segment = (u64, u64, u128, u128, u64, u64, usize);
+
+/// Brings one arm to its horizon (forking it if missing) and verifies it.
+/// Complete arms are only inspected (once), never reopened for writing.
+async fn process_arm(
+    dir: &Path,
+    spec: &Cell,
+    feedback: Feedback,
+    attribution: (&str, &serde_json::Value, &(String, String)),
+    backend: &Arc<ScriptedBackend>,
+    fork: impl FnOnce() -> Result<ResearchTrial, String>,
+) -> Result<(Vec<Trajectory>, f64, Option<Segment>), String> {
+    let mut complete = None;
+    let trial = if dir.exists() {
+        check_attribution(dir, attribution.0, attribution.1, attribution.2)?;
+        let ro = Store::<Society, Allocate>::inspect_read_only(dir)?;
+        check_world(&ro.world, spec, feedback)?;
+        if ro.logical_step < spec.horizon {
+            Some(Trial::resume(
+                dir,
+                KIND,
+                OpportunityPolicy,
+                backend.clone(),
+                false,
+            )?)
+        } else {
+            complete = Some(ro);
+            None
+        }
+    } else {
+        Some(fork()?)
+    };
+    let run = match trial {
+        Some(mut trial) => {
+            check_world(trial.store.world(), spec, feedback)?;
+            let run = complete_arm(&mut trial, spec).await?;
+            drop(trial);
+            Some(run)
+        }
+        None => None,
+    };
+    let started = Instant::now();
+    let ro = match complete {
+        Some(ro) => ro,
+        None => Store::<Society, Allocate>::inspect_read_only(dir)?,
+    };
+    check_world(&ro.world, spec, feedback)?;
+    let (rows, terminal_gini) = verified_outcomes(dir, &ro, spec)?;
+    let verification_ms = started.elapsed().as_millis();
+    let segment = match run {
+        Some((start_step, new_steps, run_ms)) => Some((
+            start_step,
+            new_steps,
+            run_ms,
+            verification_ms,
+            ro.log_bytes,
+            fs::metadata(dir.join("snapshot.json"))
+                .map_err(|e| e.to_string())?
+                .len(),
+            serde_json::to_vec(&ro.world)
+                .map_err(|e| e.to_string())?
+                .len(),
+        )),
+        None => None,
+    };
+    Ok((rows, terminal_gini, segment))
+}
+
 /// Appends one durable benchmark row per run segment, so timings survive
 /// interruption and are never overwritten by a later invocation. A torn final
 /// row from a crash mid-append is dropped first.
@@ -384,154 +522,114 @@ fn append_benchmark(path: &Path, row: &str) -> Result<(), String> {
 fn csv_option(value: Option<f64>) -> String {
     value.map(|v| format!("{v:.12}")).unwrap_or_default()
 }
+
+/// Writes one arm's trajectory rows and, if it ran, its benchmark row. The
+/// shared control has no offset, so its offset column is empty.
+fn record_arm(
+    root: &Path,
+    trajectories: &mut String,
+    group: &Group,
+    offset: Option<u64>,
+    seed: u64,
+    arm: &str,
+    rows: &[Trajectory],
+    segment: Option<Segment>,
+) -> Result<(), String> {
+    let offset = offset.map(|o| o.to_string()).unwrap_or_default();
+    let label = format!(
+        "{},{},{},{},{},{}",
+        group.actors, group.initial, offset, group.horizon, seed, arm
+    );
+    for x in rows {
+        writeln!(
+            trajectories,
+            "{label},{},{:.12},{:.12},{},{:.12}",
+            x.step,
+            x.gini,
+            x.top_share,
+            csv_option(x.rank_persistence),
+            x.mean_rank_movement
+        )
+        .map_err(|e| e.to_string())?;
+    }
+    if let Some((start, steps, run_ms, verify_ms, journal, snapshot, state)) = segment {
+        append_benchmark(
+            &root.join("hiyal-benchmarks.csv"),
+            &format!("{label},{start},{steps},{run_ms},{verify_ms},{journal},{snapshot},{state}\n"),
+        )?;
+    }
+    Ok(())
+}
+
 pub async fn run(root: &Path, plan: StudyPlan) -> Result<(), String> {
     enforce_plan(root, &plan)?;
     let backend = Arc::new(ScriptedBackend);
     let mut trajectories = String::from(
         "actors,initial,offset,horizon,seed,arm,step,gini,top_share,rank_persistence,mean_rank_movement\n",
     );
-    let mut summaries = Vec::new();
-    for cell in &plan.cells {
-        let params = treatment_parameters(cell);
-        let mut paired = Vec::new();
+    let mut pairs_by_cell: BTreeMap<String, Vec<Pair>> = BTreeMap::new();
+    for (group, cells) in plan.groups() {
+        let control_spec = group.control();
         for i in 0..plan.pairs {
             let seed = plan.first_seed + i as u64;
-            let seed_root = root.join(cell.identity()).join(format!("seed-{seed:020}"));
+            let seed_root = root.join(group.identity()).join(format!("seed-{seed:020}"));
             fs::create_dir_all(&seed_root).map_err(|e| e.to_string())?;
             let parent = seed_root.join("parent");
-            let parent_ref = create_or_check_parent(&parent, cell, seed)?;
+            let parent_ref = create_or_check_parent(&parent, &group, seed)?;
             let arms = seed_root.join("arms");
             let control_dir = arms.join("control");
-            let treatment_dir = arms.join("treatment");
-            match (control_dir.exists(), treatment_dir.exists()) {
-                (true, false) => discard_lone_arm(&control_dir)?,
-                (false, true) => discard_lone_arm(&treatment_dir)?,
-                _ => {}
-            }
-            let (mut control, mut treatment) = if control_dir.exists() {
-                check_attribution(&control_dir, "control", &serde_json::json!({}), &parent_ref)?;
-                check_attribution(&treatment_dir, "treatment", &params, &parent_ref)?;
-                (None, None)
-            } else {
-                let (c, t) = fork_pair(&parent, &arms, cell, backend.clone())?;
-                (Some(c), Some(t))
-            };
-            let mut gini_by_arm = [0.0; 2];
-            for (index, (dir, arm, feedback, fresh)) in [
-                (&control_dir, "control", Feedback::Uniform, control.take()),
-                (
-                    &treatment_dir,
-                    "treatment",
-                    Feedback::Linear,
-                    treatment.take(),
-                ),
-            ]
-            .into_iter()
-            .enumerate()
-            {
-                // Complete arms are only inspected (once), never reopened for writing.
-                let mut complete = None;
-                let trial = match fresh {
-                    Some(trial) => Some(trial),
-                    None => {
-                        let ro = Store::<Society, Allocate>::inspect_read_only(dir)?;
-                        check_world(&ro.world, cell, feedback)?;
-                        if ro.logical_step < cell.horizon {
-                            Some(Trial::resume(
-                                dir,
-                                KIND,
-                                OpportunityPolicy,
-                                backend.clone(),
-                                false,
-                            )?)
-                        } else {
-                            complete = Some(ro);
-                            None
-                        }
-                    }
-                };
-                let segment = match trial {
-                    Some(mut trial) => {
-                        check_world(trial.store.world(), cell, feedback)?;
-                        let segment = complete_arm(&mut trial, cell).await?;
-                        drop(trial);
-                        Some(segment)
-                    }
-                    None => None,
-                };
-                let started = Instant::now();
-                let ro = match complete {
-                    Some(ro) => ro,
-                    None => Store::<Society, Allocate>::inspect_read_only(dir)?,
-                };
-                check_world(&ro.world, cell, feedback)?;
-                let (rows, terminal_gini) = verified_outcomes(dir, &ro, cell)?;
-                let verification_ms = started.elapsed().as_millis();
-                for x in &rows {
-                    writeln!(
-                        trajectories,
-                        "{},{},{},{},{},{},{},{:.12},{:.12},{},{:.12}",
-                        cell.actors,
-                        cell.initial,
-                        cell.offset,
-                        cell.horizon,
-                        seed,
-                        arm,
-                        x.step,
-                        x.gini,
-                        x.top_share,
-                        csv_option(x.rank_persistence),
-                        x.mean_rank_movement
-                    )
-                    .map_err(|e| e.to_string())?;
-                }
-                if let Some((start_step, new_steps, run_ms)) = segment {
-                    let snapshot_bytes = fs::metadata(dir.join("snapshot.json"))
-                        .map_err(|e| e.to_string())?
-                        .len();
-                    let state_json_bytes = serde_json::to_vec(&ro.world)
-                        .map_err(|e| e.to_string())?
-                        .len();
-                    append_benchmark(
-                        &root.join("hiyal-benchmarks.csv"),
-                        &format!(
-                            "{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
-                            cell.actors,
-                            cell.initial,
-                            cell.offset,
-                            cell.horizon,
-                            seed,
-                            arm,
-                            start_step,
-                            new_steps,
-                            run_ms,
-                            verification_ms,
-                            ro.log_bytes,
-                            snapshot_bytes,
-                            state_json_bytes
-                        ),
-                    )?;
-                }
-                gini_by_arm[index] = terminal_gini;
-            }
-            paired.push(Pair {
+            let (rows, control_gini, segment) = process_arm(
+                &control_dir,
+                &control_spec,
+                Feedback::Uniform,
+                ("control", &serde_json::json!({}), &parent_ref),
+                &backend,
+                || fork_control(&parent, &control_dir, backend.clone()),
+            )
+            .await?;
+            record_arm(
+                root,
+                &mut trajectories,
+                &group,
+                None,
                 seed,
-                horizon: cell.horizon,
-                control: gini_by_arm[0],
-                treatment: gini_by_arm[1],
-            });
+                "control",
+                &rows,
+                segment,
+            )?;
+            for cell in &cells {
+                let dir = arms.join(format!("treatment-offset-{}", cell.offset));
+                let params = treatment_parameters(cell);
+                let (rows, treatment_gini, segment) = process_arm(
+                    &dir,
+                    cell,
+                    Feedback::Linear,
+                    ("treatment", &params, &parent_ref),
+                    &backend,
+                    || fork_treatment(&parent, &dir, cell, backend.clone()),
+                )
+                .await?;
+                record_arm(
+                    root,
+                    &mut trajectories,
+                    &group,
+                    Some(cell.offset),
+                    seed,
+                    "treatment",
+                    &rows,
+                    segment,
+                )?;
+                pairs_by_cell
+                    .entry(cell.identity())
+                    .or_default()
+                    .push(Pair {
+                        seed,
+                        horizon: cell.horizon,
+                        control: control_gini,
+                        treatment: treatment_gini,
+                    });
+            }
         }
-        let stat = summarize(&paired, 2_000, 0x51_2026_001)?;
-        let bounds = stat.bootstrap_percentile_95;
-        summaries.push(CellSummary {
-            cell: cell.clone(),
-            pairs: plan.pairs,
-            control_mean_gini: stat.mean_control,
-            treatment_mean_gini: stat.mean_treatment,
-            mean_delta: stat.mean_delta,
-            bootstrap_lo: bounds.map(|b| b[0]),
-            bootstrap_hi: bounds.map(|b| b[1]),
-        });
     }
     // Derived CSVs are regenerated from verified histories on every completed
     // invocation; the benchmark log above is append-only.
@@ -542,20 +640,25 @@ pub async fn run(root: &Path, plan: StudyPlan) -> Result<(), String> {
     let mut summary = String::from(
         "actors,initial,offset,horizon,pairs,control_mean_gini,treatment_mean_gini,paired_delta,bootstrap_95_lo,bootstrap_95_hi\n",
     );
-    for s in &summaries {
+    for cell in &plan.cells {
+        let paired = pairs_by_cell
+            .get(&cell.identity())
+            .ok_or("cell has no verified pairs")?;
+        let stat = summarize(paired, 2_000, 0x51_2026_001)?;
+        let bounds = stat.bootstrap_percentile_95;
         writeln!(
             summary,
             "{},{},{},{},{},{:.12},{:.12},{:.12},{},{}",
-            s.cell.actors,
-            s.cell.initial,
-            s.cell.offset,
-            s.cell.horizon,
-            s.pairs,
-            s.control_mean_gini,
-            s.treatment_mean_gini,
-            s.mean_delta,
-            csv_option(s.bootstrap_lo),
-            csv_option(s.bootstrap_hi)
+            cell.actors,
+            cell.initial,
+            cell.offset,
+            cell.horizon,
+            paired.len(),
+            stat.mean_control,
+            stat.mean_treatment,
+            stat.mean_delta,
+            csv_option(bounds.map(|b| b[0])),
+            csv_option(bounds.map(|b| b[1]))
         )
         .map_err(|e| e.to_string())?;
     }
@@ -577,6 +680,7 @@ pub async fn run(root: &Path, plan: StudyPlan) -> Result<(), String> {
         "hiyal_git_revision":plan.hiyal_revision,
         "cells":plan.cells.len(),"pairs_per_cell":plan.pairs,
         "scientific_unit":"one independently seeded society pair",
+        "control_sharing":"one uniform control per (actors, initial wealth, horizon, seed), shared by every offset cell in that group; offset rows within a group are not independent",
         "uncertainty":"paired percentile bootstrap 95%, 2000 draws, omitted for n<10",
         "benchmark_scope":"append-only log, one row per run segment: wall-clock for newly accepted steps + checkpoint, then full ledger and reference verification; on shared machine; no measured peak process RSS",
         "reporting":"all configured cells, null and negative effects retained",
@@ -611,7 +715,8 @@ mod tests {
     }
 
     fn seed_dir(root: &Path, cell: &Cell, seed: u64) -> std::path::PathBuf {
-        root.join(cell.identity()).join(format!("seed-{seed:020}"))
+        root.join(Group::of(cell).identity())
+            .join(format!("seed-{seed:020}"))
     }
 
     fn copy_dir(from: &Path, to: &Path) {
@@ -634,11 +739,16 @@ mod tests {
         let b = StudyPlan::grid(101, 10).unwrap();
         b.validate().unwrap();
         assert_eq!(b.cells.len(), 18);
+        assert_eq!(b.groups().len(), 6);
+        assert!(b.groups().iter().all(|(_, cells)| cells.len() == 3));
         assert!(StudyPlan::grid(101, 11).unwrap().validate().is_err());
         assert!(StudyPlan::grid(u64::MAX, 2).unwrap().validate().is_err());
         let mut stale = StudyPlan::small(101, 2).unwrap();
         stale.hiyal_revision = "0000000000000000000000000000000000000000".into();
         assert!(stale.validate().is_err());
+        let mut old_schema = StudyPlan::small(101, 2).unwrap();
+        old_schema.schema = 1;
+        assert!(old_schema.validate().is_err());
     }
 
     #[tokio::test]
@@ -673,53 +783,94 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn offset_cells_share_one_control() {
+        let root = test_root("shared-control");
+        let cell = |offset| Cell {
+            actors: 10,
+            initial: 10,
+            offset,
+            horizon: 20,
+        };
+        let plan = StudyPlan {
+            schema: SCHEMA,
+            purpose: "test".into(),
+            hiyal_revision: hiyal_revision().unwrap().into(),
+            first_seed: 5050,
+            pairs: 1,
+            cells: vec![cell(1), cell(10)],
+        };
+        run(&root, plan.clone()).await.unwrap();
+        let mut arms: Vec<_> = fs::read_dir(seed_dir(&root, &plan.cells[0], 5050).join("arms"))
+            .unwrap()
+            .map(|e| e.unwrap().file_name().into_string().unwrap())
+            .filter(|name| !name.starts_with('.'))
+            .collect();
+        arms.sort();
+        assert_eq!(
+            arms,
+            ["control", "treatment-offset-1", "treatment-offset-10"]
+        );
+        let trajectories = fs::read_to_string(root.join("hiyal-trajectories.csv")).unwrap();
+        let control_rows = trajectories
+            .lines()
+            .filter(|l| l.starts_with("10,10,,20,5050,control,"))
+            .count();
+        assert_eq!(control_rows, 3);
+        let summary = fs::read_to_string(root.join("hiyal-summary.csv")).unwrap();
+        let controls: Vec<_> = summary
+            .lines()
+            .skip(1)
+            .map(|l| l.split(',').nth(5).unwrap().to_owned())
+            .collect();
+        assert_eq!(controls.len(), 2);
+        assert_eq!(controls[0], controls[1]);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[tokio::test]
     async fn interrupted_runs_resume_to_identical_results() {
         let clean = test_root("clean");
         let plan = StudyPlan::small(3030, 1).unwrap();
         run(&clean, plan.clone()).await.unwrap();
         let backend = Arc::new(ScriptedBackend);
-
-        // Lone control arm left by a kill between the two forks.
-        let lone = test_root("lone-arm");
-        enforce_plan(&lone, &plan).unwrap();
         let cell = &plan.cells[0];
-        let seed = seed_dir(&lone, cell, 3030);
+        let group = Group::of(cell);
+
+        // Control forked but treatment missing, as after a kill between forks.
+        let missing = test_root("missing-arm");
+        enforce_plan(&missing, &plan).unwrap();
+        let seed = seed_dir(&missing, cell, 3030);
         fs::create_dir_all(&seed).unwrap();
-        create_or_check_parent(&seed.join("parent"), cell, 3030).unwrap();
-        hiyal::research::fork_at_head(
-            seed.join("parent"),
-            seed.join("arms/control"),
-            INTERVENTION,
-            "control",
-            serde_json::json!({}),
-            |_world: &mut Society| Ok(()),
-            OpportunityPolicy,
+        create_or_check_parent(&seed.join("parent"), &group, 3030).unwrap();
+        fork_control(
+            &seed.join("parent"),
+            &seed.join("arms/control"),
             backend.clone(),
         )
         .unwrap();
-        run(&lone, plan.clone()).await.unwrap();
-        assert_eq!(derived(&clean), derived(&lone));
+        run(&missing, plan.clone()).await.unwrap();
+        assert_eq!(derived(&clean), derived(&missing));
 
         // Arm stopped part-way through its horizon.
         let partial = test_root("partial-arm");
         enforce_plan(&partial, &plan).unwrap();
         let seed = seed_dir(&partial, cell, 3030);
         fs::create_dir_all(&seed).unwrap();
-        create_or_check_parent(&seed.join("parent"), cell, 3030).unwrap();
-        let (mut control, treatment) =
-            fork_pair(&seed.join("parent"), &seed.join("arms"), cell, backend).unwrap();
+        create_or_check_parent(&seed.join("parent"), &group, 3030).unwrap();
+        let mut control =
+            fork_control(&seed.join("parent"), &seed.join("arms/control"), backend).unwrap();
         assert_eq!(control.run_attempts(5).await.unwrap(), 5);
         control.checkpoint().unwrap();
-        drop((control, treatment));
+        drop(control);
         run(&partial, plan.clone()).await.unwrap();
         assert_eq!(derived(&clean), derived(&partial));
         let log = fs::read_to_string(partial.join("hiyal-benchmarks.csv")).unwrap();
         let resumed = log
             .lines()
-            .find(|l| l.starts_with("10,10,1,30,3030,control,"))
+            .find(|l| l.starts_with("10,10,,30,3030,control,"))
             .unwrap();
         assert!(
-            resumed.starts_with("10,10,1,30,3030,control,5,25,"),
+            resumed.starts_with("10,10,,30,3030,control,5,25,"),
             "{resumed}"
         );
 
@@ -736,7 +887,7 @@ mod tests {
         assert!(!stage.exists());
         assert_eq!(derived(&clean), derived(&staged));
 
-        for root in [clean, lone, partial, staged] {
+        for root in [clean, missing, partial, staged] {
             fs::remove_dir_all(root).unwrap();
         }
     }

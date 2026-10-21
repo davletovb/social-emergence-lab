@@ -4,13 +4,13 @@
 
 ## What the new Hiyal runner does
 
-Run two paired branches (uniform opportunity allocation vs linear wealth feedback) through Hiyal's pinned ChaCha20 engine. Each condition is born from the same 0-event parent and records its own audited actions, named RNG state, snapshot and fork attribution. Every final state is independently verified using Hiyal's event-hash validation **and** an independent plain-vector replay before any derived statistic is published.
+Run paired branches (uniform opportunity allocation vs linear wealth feedback) through Hiyal's pinned ChaCha20 engine. The uniform control ignores the feedback offset, so each **(actors, initial wealth, horizon, seed) group** has one 0-event parent and one shared control, and every offset cell in that group forks its own treatment from the same parent (directories `<group>/seed-N/arms/control` and `arms/treatment-offset-K`). Each arm records its own audited actions, named RNG state, snapshot and fork attribution. Every final state is independently verified using Hiyal's event-hash validation **and** an independent plain-vector replay before any derived statistic is published.
 
 The fixed exploratory parameter grid has 18 cells:
 - actor population **10, 20, 40**;
 - wealth-feedback offset **1, 10, 100**; equal initial wealth 10;
 - horizon **100, 500 accepted opportunities**;
-- up to **10 paired society seeds per cell**, with a total cap of 120,000 accepted events (across control + treatment).
+- up to **10 paired society seeds per cell**, with a total cap of 120,000 accepted events (shared controls plus treatments; the full 10-pair grid needs 72,000).
 
 To prevent expensive accidental runs, the grid is **manual-only** and not part of ordinary PR CI. A two-cell, one-pair smoke is the default PR integration. Use unique output directories per scientific plan. The runner creates immutable \`study-plan.json\` (its Hiyal revision is read from \`Cargo.lock\`); resuming a directory with a changed plan is refused.
 
@@ -52,7 +52,7 @@ For longer horizons, journal validation and checkpoint economics should be bench
 
 ## Statistical plan
 
-One independent *paired society seed* is the unit of analysis. Per-cell difference equals mean Gini(treatment-control), with a paired percentile bootstrap 95% interval for **at least 10** paired societies. With fewer pairs, the interval is omitted; we do not give false precision for a one-pair smoke. Report all grid cells including negative/null effects; do not infer any universal sociological mechanism from this synthetic experiment.
+One independent *paired society seed* is the unit of analysis. Per-cell difference equals mean Gini(treatment-control), where the control is the group's shared control. **The three offset rows of a group reuse the same control societies, so they are correlated and must not be treated as independent specifications** (the same convention as the reference sensitivity grid). Study plans use schema 2; directories written by the earlier per-cell-control runner (schema 1) are refused rather than mixed. with a paired percentile bootstrap 95% interval for **at least 10** paired societies. With fewer pairs, the interval is omitted; we do not give false precision for a one-pair smoke. Report all grid cells including negative/null effects; do not infer any universal sociological mechanism from this synthetic experiment.
 
 ## Remaining before scientific confirmation
 
