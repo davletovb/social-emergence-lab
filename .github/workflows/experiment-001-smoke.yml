@@ -46,17 +46,10 @@ jobs:
           # replicate-001.sh records the PR head, the merge checkout's second parent.
           fetch-depth: 2
       - uses: dtolnay/rust-toolchain@1.89.0
-      - name: Temporarily format and emit V1 files for review
-        run: |
-          cargo fmt --all
-          for path in src/reputation.rs src/reputation_reference.rs src/reputation_pilot.rs src/bin/reputation-graph-benchmark.rs tests/reputation_v0.rs; do
-            echo "BEGIN-V1-FORMATTED:$path"
-            cat "$path"
-            echo "END-V1-FORMATTED:$path"
-          done
-          git restore src/reputation.rs src/reputation_reference.rs src/reputation_pilot.rs src/bin/reputation-graph-benchmark.rs tests/reputation_v0.rs
+      - name: Check Rust formatting
+        run: cargo fmt --all -- --check
       - name: Check evidence scripts syntax
-        run: bash -n scripts/replicate-001.sh scripts/verify-001.sh scripts/pilot-002.sh scripts/verify-002.sh
+        run: bash -n scripts/replicate-001.sh scripts/verify-001.sh scripts/pilot-002.sh scripts/verify-002.sh scripts/pilot-v1-002.sh
 
       - name: Check analytic prediction and exploratory sample-size calculator
         run: |
@@ -96,6 +89,23 @@ jobs:
           cat /tmp/hiyal-grid-smoke/hiyal-benchmarks.csv
       - name: Evidence pipeline smoke (generate, seal and verify)
         run: bash scripts/replicate-001.sh /tmp/hiyal-evidence-smoke 62000 smoke 1
+      - name: One-time Experiment 002 V1 graph acceptance benchmark
+        run: |
+          cargo run --locked --release --bin reputation-graph-benchmark -- /tmp/reputation-v1-graph-N20.json 20 4 94000 4
+          jq '{actors,degree,attempt_cap,accepted_graphs,failed_graphs,samples:[.samples[]|{seed,graph,attempts,elapsed_micros,error}]}' /tmp/reputation-v1-graph-N20.json
+      - name: One-time 15-parent 20-agent exploratory V1 batch
+        run: bash scripts/pilot-v1-002.sh /tmp/reputation-v1-002-evidence
+      - name: Upload complete V1 original evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: experiment-002-v1-20agent-exploratory
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 6
+          include-hidden-files: true
+          path: |
+            /tmp/reputation-v1-002-evidence/
+            /tmp/reputation-v1-graph-N20.json
       - name: Optional full 18-cell Hiyal grid with sealed evidence
         if: github.event_name == 'workflow_dispatch' && inputs.hiyal_grid
         env:

@@ -37,7 +37,9 @@ pub struct Config {
     #[serde(default, skip_serializing_if = "is_false")]
     pub annealed: bool,
 }
-fn is_false(v: &bool) -> bool { !*v }
+fn is_false(v: &bool) -> bool {
+    !*v
+}
 
 impl Config {
     pub fn default_for(actors: usize, degree: usize) -> Self {
@@ -87,7 +89,10 @@ impl Config {
 /// Exact uniform sampling over simple directed d-in/d-out-regular graphs,
 /// conditioned on configuration-model rejection. Stop rather than loop forever.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct GraphSample { pub edges: Vec<Vec<usize>>, pub attempts: usize }
+pub struct GraphSample {
+    pub edges: Vec<Vec<usize>>,
+    pub attempts: usize,
+}
 
 /// Count every attempted uniform stub pairing, including rejected graphs.
 pub fn sample_regular_graph(
@@ -106,7 +111,10 @@ pub fn sample_regular_graph(
         }
         let edges: Vec<Vec<usize>> = targets.chunks(d).map(<[usize]>::to_vec).collect();
         if validate_graph(&edges, n, d).is_ok() {
-            return Ok(GraphSample { edges, attempts: attempt });
+            return Ok(GraphSample {
+                edges,
+                attempts: attempt,
+            });
         }
     }
     Err(format!(
@@ -115,26 +123,37 @@ pub fn sample_regular_graph(
     ))
 }
 
-pub fn regular_graph(config: &Config, streams: &mut Streams, name: &str) -> Result<Vec<Vec<usize>>, String> {
+pub fn regular_graph(
+    config: &Config,
+    streams: &mut Streams,
+    name: &str,
+) -> Result<Vec<Vec<usize>>, String> {
     Ok(sample_regular_graph(config, streams, name)?.edges)
 }
 
 /// Balanced but explicitly NONUNIFORM graph family for annealed-mixing null.
 /// Node permutation is freshly drawn from the acting agent stream every step.
-pub fn annealed_regular_graph(n: usize, d: usize, rng: &mut Streams, stream: &str) -> Result<Vec<Vec<usize>>, String> {
-    if n < 3 || d == 0 || d >= n { return Err("bad annealed graph dimensions".into()); }
+pub fn annealed_regular_graph(
+    n: usize,
+    d: usize,
+    rng: &mut Streams,
+    stream: &str,
+) -> Result<Vec<Vec<usize>>, String> {
+    if n < 3 || d == 0 || d >= n {
+        return Err("bad annealed graph dimensions".into());
+    }
     let mut order: Vec<usize> = (0..n).collect();
     for k in (1..n).rev() {
-        let j = rng.uniform_index(stream, k+1)?;
-        order.swap(k,j);
+        let j = rng.uniform_index(stream, k + 1)?;
+        order.swap(k, j);
     }
     let mut edges = vec![Vec::with_capacity(d); n];
     for k in 0..n {
         for h in 1..=d {
-            edges[order[k]].push(order[(k+h)%n]);
+            edges[order[k]].push(order[(k + h) % n]);
         }
     }
-    validate_graph(&edges,n,d)?;
+    validate_graph(&edges, n, d)?;
     Ok(edges)
 }
 
@@ -193,10 +212,15 @@ pub fn setup(config: &Config, rng: &mut Streams) -> Result<ReputationWorld, Stri
         boost[i] = true;
     }
     let (initial_graph, repair_graph) = if config.degree == n - 1 {
-        let complete = (0..n).map(|j| (0..n).filter(|&i| i != j).collect::<Vec<_>>()).collect::<Vec<_>>();
+        let complete = (0..n)
+            .map(|j| (0..n).filter(|&i| i != j).collect::<Vec<_>>())
+            .collect::<Vec<_>>();
         (complete.clone(), complete)
     } else {
-        (regular_graph(config, rng, "setup/initial_graph")?, regular_graph(config, rng, "setup/repair_graph")?)
+        (
+            regular_graph(config, rng, "setup/initial_graph")?,
+            regular_graph(config, rng, "setup/repair_graph")?,
+        )
     };
     let priors: Vec<f64> = boost
         .iter()
@@ -445,8 +469,10 @@ impl HiyalWorld for ReputationWorld {
         }
         let mut pre = self.clone();
         if let Some(ref new_graph) = a.annealed_graph {
-            if !pre.config.annealed { return Err("unexpected annealed graph".into()); }
-            validate_graph(new_graph,n,pre.config.degree)?;
+            if !pre.config.annealed {
+                return Err("unexpected annealed graph".into());
+            }
+            validate_graph(new_graph, n, pre.config.degree)?;
             pre.graph = new_graph.clone();
             if let Some(ref mut surviving) = pre.surviving_edges {
                 for (row, links) in surviving.iter_mut().zip(&pre.graph) {
@@ -516,7 +542,10 @@ impl HiyalWorld for ReputationWorld {
             }
         }
         w.step = step;
-        let surviving_count = w.surviving_edges.as_ref().map(|rows| rows.iter().map(Vec::len).sum());
+        let surviving_count = w
+            .surviving_edges
+            .as_ref()
+            .map(|rows| rows.iter().map(Vec::len).sum());
         w.trace.push(StepTrace {
             step,
             allocator: j,
@@ -553,7 +582,8 @@ impl EffectPolicy<ReputationWorld> for ReputationPolicy {
         let mut pre = world.clone();
         let annealed_graph = if world.config.annealed {
             let stream = format!("agent/{j}/annealed");
-            let edges = annealed_regular_graph(world.config.actors,world.config.degree,rng,&stream)?;
+            let edges =
+                annealed_regular_graph(world.config.actors, world.config.degree, rng, &stream)?;
             pre.graph = edges.clone();
             if let Some(ref mut surviving) = pre.surviving_edges {
                 for (row, links) in surviving.iter_mut().zip(&pre.graph) {
@@ -561,7 +591,9 @@ impl EffectPolicy<ReputationWorld> for ReputationPolicy {
                 }
             }
             Some(edges)
-        } else { None };
+        } else {
+            None
+        };
         let pre_flow = flow(&pre)?;
         let sel = format!("agent/{j}/selection");
         let index = choose(&selection_probs(&pre, j)?, rng, &sel)?;
@@ -694,9 +726,16 @@ pub fn window(w: &ReputationWorld, from: u64, through: u64) -> Result<Window, St
         selection,
         innovation: gap - degree - selection,
         rewire_events: rows.iter().filter(|x| x.rewire.is_some()).count(),
-        mean_surviving_edge_fraction: if rows.iter().all(|x|x.surviving_count.is_some()) {
-            let denominator=(w.config.actors*w.config.degree) as f64;
-            Some(rows.iter().map(|x|x.surviving_count.unwrap_or(0) as f64/denominator).sum::<f64>()/rows.len() as f64)
-        } else { None },
+        mean_surviving_edge_fraction: if rows.iter().all(|x| x.surviving_count.is_some()) {
+            let denominator = (w.config.actors * w.config.degree) as f64;
+            Some(
+                rows.iter()
+                    .map(|x| x.surviving_count.unwrap_or(0) as f64 / denominator)
+                    .sum::<f64>()
+                    / rows.len() as f64,
+            )
+        } else {
+            None
+        },
     })
 }

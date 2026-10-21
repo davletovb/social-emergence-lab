@@ -79,7 +79,7 @@ fn exact_exposure_identity_and_zero_beta_selection() {
         recipient: w.graph[0][1],
         success: true,
         pre_flow: flow(&w).unwrap(),
-            annealed_graph: None,
+        annealed_graph: None,
         rewire: Some(Rewire {
             allocator: 0,
             removed,
@@ -108,7 +108,7 @@ fn valid_policy_actions_preserve_conservation_and_invalid_actions_do_not_mutate(
         success: true,
         rewire: None,
         pre_flow: flow(&w).unwrap(),
-            annealed_graph: None,
+        annealed_graph: None,
     };
     assert!(w.apply(AgentId(0), bad).is_err());
     assert_eq!(w, prior);
@@ -153,13 +153,18 @@ fn negative_control_variants_are_explicit() {
     let churn = control_config(10, 2, "random-churn").unwrap();
     assert_eq!(churn.removal, Removal::Uniform);
     assert_eq!(churn.kappa, 0.0);
-    let annealed=control_config(20,4,"annealed-mixing").unwrap();
+    let annealed = control_config(20, 4, "annealed-mixing").unwrap();
     assert!(annealed.annealed);
-    assert_eq!(annealed.removal,Removal::None);
-    let complete=control_config(20,4,"full-mixing").unwrap();
-    assert_eq!(complete.degree,19);
-    assert_eq!(complete.removal,Removal::None);
-    assert_eq!(control_config(20,4,"rewire-every-2").unwrap().rewire_every,2);
+    assert_eq!(annealed.removal, Removal::None);
+    let complete = control_config(20, 4, "full-mixing").unwrap();
+    assert_eq!(complete.degree, 19);
+    assert_eq!(complete.removal, Removal::None);
+    assert_eq!(
+        control_config(20, 4, "rewire-every-2")
+            .unwrap()
+            .rewire_every,
+        2
+    );
     assert!(control_config(20, 19, "default").is_err());
     let mut rng = Streams::new("reputation-test".into(), 5);
     let symmetric = setup(&null, &mut rng).unwrap();
@@ -282,72 +287,86 @@ fn removed_then_readded_checkpoint_edge_is_not_counted_as_inherited() {
 }
 
 #[test]
-fn v1_independent_reference_agrees_before_and_after_real_rewires(){
+fn v1_independent_reference_agrees_before_and_after_real_rewires() {
     use social_emergence_lab::reputation_reference;
-    let mut w=built(10,3,601);
-    let mut rng=Streams::new("reference-policy-v1".into(),81001);
+    let mut w = built(10, 3, 601);
+    let mut rng = Streams::new("reference-policy-v1".into(), 81001);
     for step in 0..40 {
-        let j=step%10;
-        reputation_reference::check(&w,1e-12).unwrap();
-        let action=ReputationPolicy.decide_with_streams(AgentId(j as u64),&w,&[],&mut rng).unwrap();
-        w.apply(AgentId(j as u64),action).unwrap();
+        let j = step % 10;
+        reputation_reference::check(&w, 1e-12).unwrap();
+        let action = ReputationPolicy
+            .decide_with_streams(AgentId(j as u64), &w, &[], &mut rng)
+            .unwrap();
+        w.apply(AgentId(j as u64), action).unwrap();
     }
     w.intervene(Arm::Information).unwrap();
     for step in 40..80 {
-        let j=step%10;
-        reputation_reference::check(&w,1e-12).unwrap();
-        let action=ReputationPolicy.decide_with_streams(AgentId(j as u64),&w,&[],&mut rng).unwrap();
-        w.apply(AgentId(j as u64),action).unwrap();
+        let j = step % 10;
+        reputation_reference::check(&w, 1e-12).unwrap();
+        let action = ReputationPolicy
+            .decide_with_streams(AgentId(j as u64), &w, &[], &mut rng)
+            .unwrap();
+        w.apply(AgentId(j as u64), action).unwrap();
     }
-    reputation_reference::check(&w,1e-12).unwrap();
-    assert!(window(&w,41,80).unwrap().mean_surviving_edge_fraction.is_some());
+    reputation_reference::check(&w, 1e-12).unwrap();
+    assert!(
+        window(&w, 41, 80)
+            .unwrap()
+            .mean_surviving_edge_fraction
+            .is_some()
+    );
 }
 #[test]
-fn v1_annealed_degree_matched_control_replaces_eligibility_in_logged_action(){
+fn v1_annealed_degree_matched_control_replaces_eligibility_in_logged_action() {
     use social_emergence_lab::reputation_reference;
-    let mut w=built(10,3,602);
-    w.config.removal=Removal::None;
-    w.config.annealed=true;
-    let mut rng=Streams::new("annealed-policy-v1".into(),82001);
+    let mut w = built(10, 3, 602);
+    w.config.removal = Removal::None;
+    w.config.annealed = true;
+    let mut rng = Streams::new("annealed-policy-v1".into(), 82001);
     for step in 0..12 {
-        let j=step%10;
-        let action=ReputationPolicy.decide_with_streams(AgentId(j as u64),&w,&[],&mut rng).unwrap();
-        let sampled=action.annealed_graph.clone().expect("logged sampled graph");
-        validate_graph(&sampled,10,3).unwrap();
+        let j = step % 10;
+        let action = ReputationPolicy
+            .decide_with_streams(AgentId(j as u64), &w, &[], &mut rng)
+            .unwrap();
+        let sampled = action.annealed_graph.clone().expect("logged sampled graph");
+        validate_graph(&sampled, 10, 3).unwrap();
         assert!(sampled[j].contains(&action.recipient));
-        let mut reference=w.clone();
-        reference.graph=sampled;
-        if let Some(ref mut surviving)=reference.surviving_edges {
-            for (row,links) in surviving.iter_mut().zip(&reference.graph){
-                row.retain(|i|links.contains(i));
+        let mut reference = w.clone();
+        reference.graph = sampled;
+        if let Some(ref mut surviving) = reference.surviving_edges {
+            for (row, links) in surviving.iter_mut().zip(&reference.graph) {
+                row.retain(|i| links.contains(i));
             }
         }
-        reputation_reference::check(&reference,1e-12).unwrap();
-        assert!((action.pre_flow.total - flow(&reference).unwrap().total).abs()<1e-12);
-        w.apply(AgentId(j as u64),action).unwrap();
+        reputation_reference::check(&reference, 1e-12).unwrap();
+        assert!((action.pre_flow.total - flow(&reference).unwrap().total).abs() < 1e-12);
+        w.apply(AgentId(j as u64), action).unwrap();
     }
-    assert_eq!(w.step,12);
+    assert_eq!(w.step, 12);
 }
 #[test]
-fn v1_complete_network_control_is_regular_and_has_no_rewiring(){
+fn v1_complete_network_control_is_regular_and_has_no_rewiring() {
     use social_emergence_lab::reputation_reference;
-    let c=control_config(20,4,"full-mixing").unwrap();
-    assert_eq!(c.degree,19);
-    let mut rng=Streams::new("full-mixing-v1".into(),83001);
-    let w=setup(&c,&mut rng).unwrap();
-    validate_graph(&w.graph,20,19).unwrap();
-    assert!(w.graph.iter().enumerate().all(|(j,row)| !row.contains(&j)));
-    reputation_reference::check(&w,1e-12).unwrap();
-    assert_eq!(w.config.removal,Removal::None);
+    let c = control_config(20, 4, "full-mixing").unwrap();
+    assert_eq!(c.degree, 19);
+    let mut rng = Streams::new("full-mixing-v1".into(), 83001);
+    let w = setup(&c, &mut rng).unwrap();
+    validate_graph(&w.graph, 20, 19).unwrap();
+    assert!(w.graph.iter().enumerate().all(|(j, row)| !row.contains(&j)));
+    reputation_reference::check(&w, 1e-12).unwrap();
+    assert_eq!(w.config.removal, Removal::None);
 }
 #[tokio::test]
-async fn v1_annealed_four_fork_stand_in_replays(){
-    let root=temp();
-    let c=control_config(6,2,"annealed-mixing").unwrap();
-    let report=run(&root,82995,c,20,60).await.unwrap();
-    assert_eq!(report.per_arm.len(),4);
-    assert!(report.per_arm.iter().all(|a|a.full.rewire_events==0));
-    let check=social_emergence_lab::reputation_pilot::verify(&root).unwrap();
-    assert_eq!(serde_json::to_value(check).unwrap(),serde_json::to_value(report).unwrap());
+async fn v1_annealed_four_fork_stand_in_replays() {
+    let root = temp();
+    let c = control_config(6, 2, "annealed-mixing").unwrap();
+    let report = run(&root, 82995, c, 20, 60).await.unwrap();
+    assert_eq!(report.per_arm.len(), 4);
+    assert!(report.per_arm.iter().all(|a| a.full.rewire_events == 0));
+    let check = social_emergence_lab::reputation_pilot::verify(&root).unwrap();
+    assert_eq!(
+        serde_json::to_value(check).unwrap(),
+        serde_json::to_value(report).unwrap()
+    );
     std::fs::remove_dir_all(root).unwrap();
 }
