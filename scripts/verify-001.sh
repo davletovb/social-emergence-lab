@@ -10,7 +10,7 @@ for f in study-plan.json hiyal-summary.csv hiyal-trajectories.csv hiyal-benchmar
 done
 jq -e '.schema == 2 and .pairs == 10 and (.cells | length) == 18' "$output/study-plan.json" >/dev/null
 jq -e '.scientific_status == "exploratory_not_preregistered" and .paired_societies_per_cell == 10' "$output/reproducibility-manifest.json" >/dev/null
-count="$(find "$output" -type f -path '*/arms/*/events.jsonl' | wc -l)"
+count="$(find "$output" -type f -path '*/arms/*/events.jsonl' ! -path '*/ancestry/*' | wc -l)"
 [[ "$count" -eq 240 ]] || { echo "Expected 240 Hiyal arm journals, found $count" >&2; exit 2; }
 awk -F, '
   NR==1 { if ($0 != "actors,initial,offset,horizon,pairs,control_mean_gini,treatment_mean_gini,paired_delta,bootstrap_95_lo,bootstrap_95_hi") exit 1; next }
