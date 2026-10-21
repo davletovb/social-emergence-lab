@@ -7,6 +7,7 @@ use hiyal::{
     runtime::Receipt,
 };
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 
 pub const KIND: &str = "social-emergence-lab.reputation.v0";
 pub const MAX_GRAPH_ATTEMPTS: usize = 200_000;
@@ -481,9 +482,11 @@ impl ReputationWorld {
 }
 impl HiyalWorld for ReputationWorld {
     type Action = Action;
-    type Observation = ReputationWorld;
+    // EffectPolicy receives the world directly; the empty effect-request
+    // path does not need a cloned, ever-growing step trace as an observation.
+    type Observation = ();
     fn observe(&self, _: AgentId) -> Result<Self::Observation, String> {
-        Ok(self.clone())
+        Ok(())
     }
     fn apply(&mut self, actor: AgentId, a: Action) -> Result<(), String> {
         let j = usize::try_from(actor.0).map_err(|e| e.to_string())?;
@@ -592,24 +595,27 @@ impl EffectPolicy<ReputationWorld> for ReputationPolicy {
         if j >= world.config.actors {
             return Err("unknown allocator".into());
         }
-        let mut pre = world.clone();
-        let annealed_graph = if world.config.annealed {
-            let stream = format!("agent/{j}/annealed");
-            let edges =
-                annealed_regular_graph(world.config.actors, world.config.degree, rng, &stream)?;
-            pre.graph = edges.clone();
-            if let Some(ref mut surviving) = pre.surviving_edges {
-                for (row, links) in surviving.iter_mut().zip(&pre.graph) {
-                    row.retain(|i| links.contains(i));
+        // Borrow the original world in the common persistent-graph case;
+        // only the annealed control needs an owned, ephemeral replacement.
+        let (pre, annealed_graph): (Cow<'_, ReputationWorld>, Option<Vec<Vec<usize>>>) =
+            if world.config.annealed {
+                let stream = format!("agent/{j}/annealed");
+                let edges =
+                    annealed_regular_graph(world.config.actors, world.config.degree, rng, &stream)?;
+                let mut changed = world.clone();
+                changed.graph = edges.clone();
+                if let Some(ref mut surviving) = changed.surviving_edges {
+                    for (row, links) in surviving.iter_mut().zip(&changed.graph) {
+                        row.retain(|i| links.contains(i));
+                    }
                 }
-            }
-            Some(edges)
-        } else {
-            None
-        };
-        let pre_flow = flow(&pre)?;
+                (Cow::Owned(changed), Some(edges))
+            } else {
+                (Cow::Borrowed(world), None)
+            };
+        let pre_flow = flow(pre.as_ref())?;
         let sel = format!("agent/{j}/selection");
-        let index = choose(&selection_probs(&pre, j)?, rng, &sel)?;
+        let index = choose(&selection_probs(pre.as_ref(), j)?, rng, &sel)?;
         let recipient = pre.graph[j][index];
         let sig = format!("agent/{j}/performance");
         let success = rng.draw_u64(&sig)? & 1 == 0;
