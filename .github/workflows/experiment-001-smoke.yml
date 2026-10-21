@@ -49,7 +49,7 @@ jobs:
       - name: Check Rust formatting
         run: cargo fmt --all -- --check
       - name: Check evidence scripts syntax
-        run: bash -n scripts/replicate-001.sh scripts/verify-001.sh
+        run: bash -n scripts/replicate-001.sh scripts/verify-001.sh scripts/pilot-002.sh
 
       - name: Check analytic prediction and exploratory sample-size calculator
         run: |
@@ -82,6 +82,17 @@ jobs:
           cat /tmp/hiyal-grid-smoke/hiyal-benchmarks.csv
       - name: Evidence pipeline smoke (generate, seal and verify)
         run: bash scripts/replicate-001.sh /tmp/hiyal-evidence-smoke 62000 smoke 1
+      - name: One-time Experiment 002 development batch (12 independent parents)
+        run: bash scripts/pilot-002.sh /tmp/reputation-002-evidence-batch
+      - name: Preserve Experiment 002 bounded development batch
+        uses: actions/upload-artifact@v4
+        with:
+          name: experiment-002-v0-dev-batch
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 6
+          include-hidden-files: true
+          path: /tmp/reputation-002-evidence-batch/
       - name: Optional full 18-cell Hiyal grid with sealed evidence
         if: github.event_name == 'workflow_dispatch' && inputs.hiyal_grid
         env:
