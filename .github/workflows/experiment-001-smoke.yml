@@ -89,17 +89,6 @@ jobs:
           cat /tmp/hiyal-grid-smoke/hiyal-benchmarks.csv
       - name: Evidence pipeline smoke (generate, seal and verify)
         run: bash scripts/replicate-001.sh /tmp/hiyal-evidence-smoke 62000 smoke 1
-      - name: One-time five-parent V1 resource-bounded pilot
-        run: bash scripts/pilot-v1-002-fallback.sh /tmp/reputation-v1-002-five-parent
-      - name: Preserve V1 five-parent pilot evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: experiment-002-v1-five-parent-exploratory
-          if-no-files-found: error
-          retention-days: 90
-          compression-level: 6
-          include-hidden-files: true
-          path: /tmp/reputation-v1-002-five-parent/
       - name: Optional full 18-cell Hiyal grid with sealed evidence
         if: github.event_name == 'workflow_dispatch' && inputs.hiyal_grid
         env:

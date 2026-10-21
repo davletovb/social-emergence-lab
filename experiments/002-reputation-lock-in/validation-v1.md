@@ -46,6 +46,17 @@ Script: `scripts/pilot-v1-002.sh`. N=20 agents, d=4 default links, shared interv
 
 These group sizes are **far too small for reliable variance estimates**, confidence intervals, equivalence tests, power calculations or a meaningful scientific claim. There is no held-out confirmatory sample or preregistration. The batch is an engineering and direction-finding probe.
 
+## Observed engineering outcome — five-parent fallback
+
+The original 15-parent grid did **not** finish and yielded no complete evidence bundle. Its workflow was cancelled at the 30-minute CI limit. The fixed five-parent fallback **did finish**: [Actions run 39624548746](https://github.com/davletovb/social-emergence-lab/actions/runs/39624548746) verified every Hiyal parent/fork, checked the evidence seal and uploaded the original raw bundle (artifact `12356838566`, expires **2027-01-19**). Results and exact hashes are in [V1 development results](results/v1-development-20261021/README.md).
+
+| N=20,d=4, τ=200,T=600 | Independent parents | Late signed information-only opportunity gap | Incremental repair-after-truth contrast |
+| --- | ---: | ---: | ---: |
+| Default false-prior effect δ=0.2 | 3 | +0.2267 | +0.2933 |
+| No-false-prior δ=0 | 2 | +0.2100 | +0.0500 |
+
+The signed opportunity gap is measured in the final **100** post-checkpoint events. These means are highly imprecise. Critically, a substantial signed gap also appears when the false-prior treatment is absent; this warns against interpreting the default positive gap as uniquely caused by earlier misinformation. `info_degree_mean`, `info_selection_mean`, `info_inherited_mean`, `info_added_mean` and `info_survival_mean` are also retained in the [machine-readable summary](results/v1-development-20261021/batch-summary.json). The separate groups have different random parent seeds; their difference is **not** a within-parent controlled treatment effect.
+
 ## Minimum gates after V1
 
 - [ ] Independently review mathematical and programming assumptions, including uniform-stub conditioning and synthetic-world symmetry.

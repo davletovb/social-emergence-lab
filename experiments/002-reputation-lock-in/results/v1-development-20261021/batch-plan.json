@@ -1,0 +1,15 @@
+{
+  "scientific_status": "EXPLORATORY_UNREGISTERED_MODEL_VALIDATION",
+  "source_revision": "8728ebde897768eed55a17c1e82e78f4a300cfe0",
+  "hiyal_revision": "e38419f857afbb53428284a312b0eb926a2320e2",
+  "actors": 20,
+  "checkpoint": 200,
+  "total_steps": 600,
+  "controls": [
+    "default",
+    "no-false-prior"
+  ],
+  "seed_policy": "Fixed publicly listed, disjoint development seeds; never replace failed seeds",
+  "measurement": "Last 100 accepted post-checkpoint opportunities",
+  "warning": "Three independent parents in default, two no-false-prior parents; no other controls in this fallback. No significant differences, power, human effects or novel scientific discovery can be inferred."
+}

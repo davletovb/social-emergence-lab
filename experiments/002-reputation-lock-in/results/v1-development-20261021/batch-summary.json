@@ -1,0 +1,70 @@
+{
+  "scientific_status": "exploratory_only_no_inferential_claim",
+  "groups": [
+    {
+      "config": {
+        "actors": 20,
+        "degree": 4,
+        "beta": 4.0,
+        "epsilon": 0.1,
+        "delta": 0.0,
+        "learning": 0.1,
+        "public_learning": 0.1,
+        "kappa": 6.0,
+        "rewire_every": 10,
+        "removal": "lowest_belief",
+        "graph_attempts": 200000,
+        "survival_accounting": true
+      },
+      "parents": 2,
+      "seeds": [
+        91100,
+        91101
+      ],
+      "info_gap_mean": 0.21,
+      "info_gap_sd": 0.042426406871192854,
+      "repair_after_truth_mean": 0.049999999999999975,
+      "repair_after_truth_sd": 0.21213203435596428,
+      "repair_without_truth_mean": 0.0025000000000000022,
+      "info_degree_mean": 0.1249999999999998,
+      "info_selection_mean": 0.03120189254122138,
+      "info_inherited_mean": -0.0025000000000000022,
+      "info_added_mean": 0.12749999999999992,
+      "info_survival_mean": 0.6743125000000003,
+      "combined_gap_mean": 0.16
+    },
+    {
+      "config": {
+        "actors": 20,
+        "degree": 4,
+        "beta": 4.0,
+        "epsilon": 0.1,
+        "delta": 0.2,
+        "learning": 0.1,
+        "public_learning": 0.1,
+        "kappa": 6.0,
+        "rewire_every": 10,
+        "removal": "lowest_belief",
+        "graph_attempts": 200000,
+        "survival_accounting": true
+      },
+      "parents": 3,
+      "seeds": [
+        91000,
+        91001,
+        91002
+      ],
+      "info_gap_mean": 0.22666666666666668,
+      "info_gap_sd": 0.09018499505645788,
+      "repair_after_truth_mean": 0.29333333333333333,
+      "repair_after_truth_sd": 0.12858201014657272,
+      "repair_without_truth_mean": 0.2233333333333333,
+      "info_degree_mean": 0.18166666666666673,
+      "info_selection_mean": 0.0054141250084620285,
+      "info_inherited_mean": 0.2095833333333332,
+      "info_added_mean": -0.027916666666666645,
+      "info_survival_mean": 0.6464583333333332,
+      "combined_gap_mean": -0.06666666666666667
+    }
+  ]
+}
