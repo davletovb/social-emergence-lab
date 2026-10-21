@@ -20,7 +20,7 @@ This is a calibration for second moments of *counts*, **not** an exact formula f
 
 For N=20, W0=10, offset=1, T=500: total initial concentration is 220, so the exact count-variance ratio is **720/221 ≈ 3.2579**; control variance **23.75**; treatment variance **approximately 77.38**. Our observed Gini differences are a distinct, nonlinear statistic, so this result does not mathematically prove the reported Gini interval.
 
-The Rust library implementation is in [src/analytic.rs](../../src/analytic.rs); unit tests cover exact two-actor enumeration, zero amplification after the first draw, horizon/offset direction, and overflow/boundary validation.
+The Rust library implementation is in [src/analytic.rs](../../src/analytic.rs); unit tests cover exact two-actor enumeration, zero amplification after the first draw, horizon/offset direction, and overflow/boundary validation. A further test simulates 3,000 societies per arm with both the independent reference simulator and the production `OpportunityPolicy` drawing from Hiyal's named streams, and requires both empirical per-agent variances to match the closed form within 8%; a weighting or ticket-selection bug in the policy fails it.
 
 ## Interpretation for scientific publication
 

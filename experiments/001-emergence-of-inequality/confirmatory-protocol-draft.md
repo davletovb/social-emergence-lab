@@ -12,7 +12,7 @@ Candidate exact specification to freeze **before** any held-out testing:
 - Uniform control: each recipient weight 1.
 - Treatment: recipient weight current wealth + 1 (linear feedback with offset 1).
 - Candidate primary horizon: **500 accepted opportunities** in each arm, matching the pilot sample that supports our variance estimate; 1,000 steps remains a separate, unpowered alternative requiring its own pilot.
-- Candidate **100 paired societies**, based on a deliberately conservative pilot-based approximation, **not a finalized power result**. Doubling the observed 10-pair SD gives a planning SD of ~0.04484; estimated N=78 for a ±0.01 half-width and N=53 for an approximately 90%-power test of a 0.02 Gini-unit effect. See [sample-size analysis](sample-size-and-registration.md). A separately reviewed confirmatory runner is required; the exploratory grid is capped at ten pairs.
+- Candidate **100 paired societies**, based on a deliberately conservative pilot-based approximation, **not a finalized power result**. Doubling the observed 10-pair SD gives a planning SD of ~0.04484; paired-t planning gives N=80 for a ±0.01 half-width and N=55 for a 90%-power two-sided paired t-test of a 0.02 Gini-unit effect. See [sample-size analysis](sample-size-and-registration.md). A separately reviewed confirmatory runner is required; the exploratory grid is capped at ten pairs.
 - Within each pair, Hiyal paired-fork identities share initial world and RNG seed-domain. Different arm weights can alter rejection counts and RNG consumption: they do **not** guarantee common identical random recipients.
 
 ## Inferential analysis — still to freeze
@@ -21,7 +21,7 @@ Calculate one terminal Gini difference per paired society; estimate the sample m
 
 ## Negative controls and exclusions — to freeze
 
-Use exact equality, no-op and probability-symmetry tests, an equal-weight/zero-feedback negative control and conservation identity \`sum(wealth) = actors × starting_wealth + accepted_events\`. Any failed Hiyal replay/ancestry check, unexpected rejection or checksum mismatch aborts the complete batch; do **not** drop inconvenient society outcomes. Retain failure logs.
+Use exact equality, no-op and probability-symmetry tests, an equal-weight/zero-feedback negative control and conservation identity `sum(wealth) = actors × starting_wealth + accepted_events`. Any failed Hiyal replay/ancestry check, unexpected rejection or checksum mismatch aborts the complete batch; do **not** drop inconvenient society outcomes. Retain failure logs.
 
 Random seeds and complete generator algorithm, source revisions, model parameters, analysis hashes, sampling plan and precommitted exclusions must be frozen in a public, immutable revision **before** confirmatory runs. Seeds used in previous pilot, reference sensitivity, and the replicated Hiyal study cannot be reused as held-out confirmation.
 

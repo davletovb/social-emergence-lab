@@ -34,6 +34,8 @@ use std::{
 /// Schema 2: one shared control per group (schema 1 forked a control per cell).
 const SCHEMA: u32 = 2;
 const MAX_STEPS: u64 = 120_000;
+/// Column layout of `hiyal-trajectories.csv`, shared with its readers.
+pub const TRAJECTORY_HEADER: &str = "actors,initial,offset,horizon,seed,arm,step,gini,top_share,rank_persistence,mean_rank_movement";
 /// The control world's offset field; unused under uniform feedback.
 const CONTROL_OFFSET: u64 = 1;
 const INTERVENTION: &str = "wealth-feedback-v1";
@@ -564,9 +566,7 @@ fn record_arm(
 pub async fn run(root: &Path, plan: StudyPlan) -> Result<(), String> {
     enforce_plan(root, &plan)?;
     let backend = Arc::new(ScriptedBackend);
-    let mut trajectories = String::from(
-        "actors,initial,offset,horizon,seed,arm,step,gini,top_share,rank_persistence,mean_rank_movement\n",
-    );
+    let mut trajectories = format!("{TRAJECTORY_HEADER}\n");
     let mut pairs_by_cell: BTreeMap<String, Vec<Pair>> = BTreeMap::new();
     for (group, cells) in plan.groups() {
         let control_spec = group.control();

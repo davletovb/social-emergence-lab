@@ -97,6 +97,25 @@ pub struct PairedSummary {
 fn mean(v: &[f64]) -> f64 {
     v.iter().sum::<f64>() / v.len() as f64
 }
+
+/// Horizon, mean and sample SD (n − 1 denominator; `None` for a single pair)
+/// of the paired treatment − control differences. Shared by the bootstrap
+/// summary and the design calculator so both use one definition.
+pub fn delta_moments(pairs: &[Pair]) -> Result<(u64, f64, Option<f64>), String> {
+    if pairs.is_empty() {
+        return Err("no matched pairs".into());
+    }
+    let horizon = pairs[0].horizon;
+    if pairs.iter().any(|p| p.horizon != horizon) {
+        return Err("mixed terminal horizons".into());
+    }
+    let deltas: Vec<f64> = pairs.iter().map(Pair::delta).collect();
+    let delta = mean(&deltas);
+    let sd = (deltas.len() > 1).then(|| {
+        (deltas.iter().map(|d| (d - delta).powi(2)).sum::<f64>() / (deltas.len() - 1) as f64).sqrt()
+    });
+    Ok((horizon, delta, sd))
+}
 struct XorShift64(u64);
 impl XorShift64 {
     fn next(&mut self) -> u64 {
@@ -116,26 +135,16 @@ pub fn summarize(
     resamples: usize,
     bootstrap_seed: u64,
 ) -> Result<PairedSummary, String> {
-    if pairs.is_empty() {
-        return Err("no matched pairs".into());
-    }
+    let (horizon, delta, sample_sd_delta) = delta_moments(pairs)?;
     if !(100..=100_000).contains(&resamples) {
         return Err("bootstrap resamples outside 100..=100000".into());
     }
     if bootstrap_seed == 0 {
         return Err("bootstrap seed must be nonzero".into());
     }
-    let horizon = pairs[0].horizon;
-    if pairs.iter().any(|p| p.horizon != horizon) {
-        return Err("mixed terminal horizons".into());
-    }
     let control = mean(&pairs.iter().map(|p| p.control).collect::<Vec<_>>());
     let treatment = mean(&pairs.iter().map(|p| p.treatment).collect::<Vec<_>>());
     let deltas: Vec<f64> = pairs.iter().map(Pair::delta).collect();
-    let delta = mean(&deltas);
-    let sample_sd_delta = (deltas.len() > 1).then(|| {
-        (deltas.iter().map(|d| (d - delta).powi(2)).sum::<f64>() / (deltas.len() - 1) as f64).sqrt()
-    });
     // With very small n, report descriptive means, not misleading bootstrap CI.
     let ci = if pairs.len() < 10 {
         None

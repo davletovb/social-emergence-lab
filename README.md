@@ -19,7 +19,7 @@ cargo run --locked --bin design -- experiments/001-emergence-of-inequality/resul
 cargo run --locked --bin hiyal-grid -- smoke /tmp/social-hiyal-smoke 1 62000
 ```
 
-See the [research roadmap](docs/research-roadmap.md), [methodology](docs/methodology.md), and [experiment plan](experiments/001-emergence-of-inequality/plan.md). Larger exploratory sweeps are opt-in to avoid recurring CI costs.
+See the [research roadmap](docs/research-roadmap.md), [theoretical framework](docs/theoretical-framework.md), [methodology](docs/methodology.md), and for Experiment 001 the [plan](experiments/001-emergence-of-inequality/plan.md), [protocol checklist](experiments/001-emergence-of-inequality/protocol.md), [implementation](experiments/001-emergence-of-inequality/implementation.md), [independent validation and exploratory sensitivity](experiments/001-emergence-of-inequality/validation-and-sensitivity.md) and [Hiyal-backed study](experiments/001-emergence-of-inequality/hiyal-backed-study.md). Larger exploratory sweeps are opt-in to avoid recurring CI costs.
 
 ## Original evidence preservation
 

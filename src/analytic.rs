@@ -5,6 +5,7 @@
 //! an Eggenberger–Pólya urn, with equal initial concentrations (initial+offset).
 //! Uniform control has a multinomial allocation; reinforced treatment has a
 //! Dirichlet–multinomial allocation. These results are not novel sociology.
+use crate::{Feedback, Society};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct MomentPrediction {
@@ -26,15 +27,13 @@ pub fn predict_moments(
     offset: u64,
     opportunities: u64,
 ) -> Result<MomentPrediction, String> {
-    if !(2..=1000).contains(&actors) || initial == 0 || offset == 0 || opportunities == 0 {
-        return Err("require >=2 agents, positive initial/offset and positive horizon".into());
+    if opportunities == 0 {
+        return Err("require a positive horizon".into());
     }
-    let concentration = initial
-        .checked_add(offset)
-        .ok_or("initial concentration overflow")?;
-    let total_concentration = concentration
-        .checked_mul(u64::try_from(actors).map_err(|e| e.to_string())?)
-        .ok_or("total concentration overflow")?;
+    // The simulated model's own bounds, including that actors × (initial +
+    // offset) does not overflow.
+    Society::new(actors, initial, offset, Feedback::Uniform)?;
+    let total_concentration = (initial + offset) * actors as u64;
     let n = actors as f64;
     let t = opportunities as f64;
     let a = total_concentration as f64;
@@ -81,5 +80,72 @@ mod tests {
         assert!((long.variance_ratio - 720.0 / 221.0).abs() < 1e-13);
         assert!(predict_moments(1, 10, 1, 500).is_err());
         assert!(predict_moments(20, u64::MAX, 1, 500).is_err());
+        assert!(predict_moments(20, 10, 1, 0).is_err());
+    }
+
+    /// Mean over agents of each agent's across-society variance of its
+    /// allocation increment.
+    fn pooled_variance(societies: &[Vec<u64>], initial: u64) -> f64 {
+        let reps = societies.len() as f64;
+        let actors = societies[0].len();
+        (0..actors)
+            .map(|i| {
+                let x: Vec<f64> = societies.iter().map(|w| (w[i] - initial) as f64).collect();
+                let mean = x.iter().sum::<f64>() / reps;
+                x.iter().map(|v| (v - mean).powi(2)).sum::<f64>() / (reps - 1.0)
+            })
+            .sum::<f64>()
+            / actors as f64
+    }
+
+    #[test]
+    fn simulated_allocation_variances_match_closed_form() {
+        use crate::{OpportunityPolicy, reference::simulate_reference};
+        use hiyal::{
+            core::{AgentId, World},
+            experiment::EffectPolicy,
+            rng::Streams,
+        };
+        // Expected variances 6.4 (uniform) and 22.0 (ratio 55/16); with 3,000
+        // societies the pooled estimates' sampling error is about 2%, so a
+        // weighting or selection bug (e.g. weight = wealth, ratio 50/11)
+        // falls far outside the 8% tolerance.
+        let (actors, initial, offset, steps, reps) = (5, 2, 1, 40, 3_000);
+        let m = predict_moments(actors, initial, offset, steps).unwrap();
+        for (feedback, expected) in [
+            (Feedback::Uniform, m.uniform_variance),
+            (Feedback::Linear, m.reinforced_variance),
+        ] {
+            let linear = feedback == Feedback::Linear;
+            let reference: Vec<_> = (0..reps)
+                .map(|r| {
+                    simulate_reference(1_000 + r, actors, initial, offset, steps, linear)
+                        .unwrap()
+                        .wealth
+                })
+                .collect();
+            // The production policy, drawing from Hiyal's named streams.
+            let mut streams = Streams::new("analytic-check".into(), u64::from(linear) + 1);
+            let policy: Vec<_> = (0..reps)
+                .map(|_| {
+                    let mut world = Society::new(actors, initial, offset, feedback).unwrap();
+                    for _ in 0..steps {
+                        let obs = world.observe(AgentId(0)).unwrap();
+                        let action = OpportunityPolicy
+                            .decide_with_streams(AgentId(0), &obs, &[], &mut streams)
+                            .unwrap();
+                        world.apply(AgentId(0), action).unwrap();
+                    }
+                    world.wealth
+                })
+                .collect();
+            for (source, societies) in [("reference", reference), ("policy", policy)] {
+                let observed = pooled_variance(&societies, initial);
+                assert!(
+                    (observed / expected - 1.0).abs() < 0.08,
+                    "{source} {feedback:?}: variance {observed} vs closed form {expected}"
+                );
+            }
+        }
     }
 }
