@@ -1,0 +1,32 @@
+{
+  "scientific_status": "ENGINEERING_ONLY_NO_SCIENTIFIC_INFERENCE",
+  "baseline": "fb716dee97b2bfdb0e234c4c747e5c890cc1ea01",
+  "optimized": "784db6633ec43f520cd5fa51ba1bda118c8eef44",
+  "same_runner": true,
+  "release": true,
+  "byte_identical_parent_and_four_fork_event_journals": true,
+  "cases": [
+    {
+      "case": "n10-d3-92550",
+      "actors": 10,
+      "seed": 92550,
+      "baseline_run_ms": 609,
+      "optimized_run_ms": 620,
+      "baseline_verify_ms": 235,
+      "optimized_verify_ms": 244,
+      "baseline_evidence_bytes": 1486746,
+      "optimized_evidence_bytes": 1486746
+    },
+    {
+      "case": "n20-d4-92551",
+      "actors": 20,
+      "seed": 92551,
+      "baseline_run_ms": 2624,
+      "optimized_run_ms": 2630,
+      "baseline_verify_ms": 1155,
+      "optimized_verify_ms": 1187,
+      "baseline_evidence_bytes": 4222585,
+      "optimized_evidence_bytes": 4222585
+    }
+  ]
+}
