@@ -12,10 +12,15 @@ on:
   workflow_dispatch:
     inputs:
       hiyal_grid:
-        description: 'Run full Hiyal-backed 18-cell exploratory grid (10 pairs)'
+        description: 'Run full Hiyal-backed 18-cell exploratory grid (10 pairs) and archive all evidence'
         type: boolean
         required: false
         default: false
+      grid_first_seed:
+        description: 'First paired-society seed for the full grid'
+        type: string
+        required: false
+        default: '74000'
       exploratory_batch:
         description: 'Also run 20 paired societies with 200 steps per arm'
         type: boolean
@@ -32,9 +37,12 @@ concurrency:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          # replicate-001.sh records the PR head, the merge checkout's second parent.
+          fetch-depth: 2
       - uses: dtolnay/rust-toolchain@1.89.0
       - name: Check Rust formatting
         run: cargo fmt --all -- --check
@@ -60,24 +68,35 @@ jobs:
           cargo run --locked --bin hiyal-grid -- smoke /tmp/hiyal-grid-smoke 1 62000
           cat /tmp/hiyal-grid-smoke/hiyal-summary.csv
           cat /tmp/hiyal-grid-smoke/hiyal-benchmarks.csv
-      - name: Optional Hiyal 18-cell exploratory grid
+      - name: Evidence pipeline smoke (generate, seal and verify)
+        run: bash scripts/replicate-001.sh /tmp/hiyal-evidence-smoke 62000 smoke 1
+      - name: Optional full 18-cell Hiyal grid with sealed evidence
         if: github.event_name == 'workflow_dispatch' && inputs.hiyal_grid
+        env:
+          GRID_FIRST_SEED: ${{ inputs.grid_first_seed }}
         run: |
-          cargo run --locked --release --bin hiyal-grid -- grid /tmp/hiyal-grid-full 10 63000
-          cat /tmp/hiyal-grid-full/hiyal-summary.csv
-      - name: Archive manually requested Hiyal-grid derived evidence
+          out="/tmp/hiyal-replicated-$GRID_FIRST_SEED"
+          bash scripts/replicate-001.sh "$out" "$GRID_FIRST_SEED"
+          echo "SHA256SUMS sha256: $(sha256sum "$out/SHA256SUMS" | cut -d' ' -f1)"
+          echo "Sealed files: $(wc -l < "$out/SHA256SUMS")"
+          # Committed copies are checked against SHA256SUMS, so print it and
+          # the small derived files in full.
+          for f in SHA256SUMS hiyal-summary.csv hiyal-trajectories.csv hiyal-benchmarks.csv study-plan.json hiyal-study-report.json reproducibility-manifest.json; do
+            echo "BEGIN-EVIDENCE-FILE:$f"
+            cat "$out/$f"
+            echo
+            echo "END-EVIDENCE-FILE:$f"
+          done
+      - name: Archive full sealed evidence
         if: github.event_name == 'workflow_dispatch' && inputs.hiyal_grid
         uses: actions/upload-artifact@v4
         with:
-          name: hiyal-grid-exploratory-derived
-          retention-days: 7
+          name: experiment-001-10pair-full-evidence
           if-no-files-found: error
-          path: |
-            /tmp/hiyal-grid-full/study-plan.json
-            /tmp/hiyal-grid-full/hiyal-trajectories.csv
-            /tmp/hiyal-grid-full/hiyal-summary.csv
-            /tmp/hiyal-grid-full/hiyal-benchmarks.csv
-            /tmp/hiyal-grid-full/hiyal-study-report.json
+          retention-days: 90
+          compression-level: 6
+          include-hidden-files: true
+          path: /tmp/hiyal-replicated-${{ inputs.grid_first_seed }}/
       - name: Optional exploratory batch (not confirmatory)
         if: github.event_name == 'workflow_dispatch' && inputs.exploratory_batch
         run: |
