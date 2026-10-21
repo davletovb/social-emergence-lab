@@ -5,14 +5,14 @@
 ## Three independent checks
 
 1. **Hiyal integrity:** `Store::inspect_read_only` validates the event journal and reconstructed state.
-2. **Mechanism reference:** `reference::replay` parses accepted recipients from JSONL using an independently written plain-vector reducer. It compares every final actor balance and accepted event count to the verified Hiyal state.
-3. **Metric reference:** an ordered weighted-sum Gini implementation is compared with the primary pairwise absolute-difference definition, and the top-quintile metric is separately calculated. Tests include exhaustive three-agent label permutations, accounting, ties and known inequalities.
+2. **Mechanism reference:** `reference::replay` parses accepted recipients from JSONL using an independently written plain-vector reducer. It replays exactly the journal prefix Hiyal verified and compares every final actor balance and accepted event count to the verified Hiyal state, adding the fork's starting opportunity count so arms forked after parent steps validate correctly.
+3. **Metric reference:** an ordered weighted-sum Gini implementation is compared with the primary pairwise absolute-difference definition, and the top-quintile metric is recomputed from a balance histogram rather than by sorting, with its ceil(n/5) definition pinned by hand-computed cases (including n=7, n=12 and ties). Tests include exhaustive three-agent label permutations, accounting, ties and known inequalities.
 
 These are *software and formal-mechanism* checks; they do not establish that modeled wealth or reinforcement corresponds to actual human wealth or status.
 
 ## Inferential summaries
 
-`analyze` pairs rows by **society seed**, rejects duplicate/unpaired/mismatched-horizon samples, and reports the mean control Gini, mean treatment Gini, the **mean within-society difference**, and sample standard deviation across independent societies. For 10 or more matched societies it also reports a *nonparametric paired percentile bootstrap 95% interval* using 10,000 resamples and fixed bootstrap seed `0x5eed20261021`. This is an exploratory precision diagnostic, **not** a prespecified significance test; coverage may be poor for small or highly skewed samples. Fewer than 10 pairs yield means only.
+`analyze` pairs rows by **society seed**, rejects duplicate/unpaired/mismatched-horizon samples and malformed Gini, top-quintile or chain-head fields (attempts may exceed accepted opportunities because Hiyal also counts rejected and pause records), and reports the mean control Gini, mean treatment Gini, the **mean within-society difference**, and sample standard deviation across independent societies. For 10 or more matched societies it also reports a *nonparametric paired percentile bootstrap 95% interval* using 10,000 resamples and fixed bootstrap seed `0x5eed20261021`. This is an exploratory precision diagnostic, **not** a prespecified significance test; coverage may be poor for small or highly skewed samples. Fewer than 10 pairs yield means only.
 
 Agents and individual steps are **never** treated as independent observations for inference. The random seed is an identifier for a simulated society, not a real-world sampling frame.
 

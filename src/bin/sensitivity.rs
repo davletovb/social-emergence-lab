@@ -25,15 +25,26 @@ fn main() {
             "actors,initial_wealth,offset,steps,pairs,control_mean_gini,treatment_mean_gini,paired_delta,bootstrap_95_lo,bootstrap_95_hi\n",
         );
         for actors in [10usize, 20, 40] {
+            // The uniform control ignores offset, so one control sample per
+            // (actors, steps, seed) is shared by all three offset rows.
+            let mut controls = std::collections::BTreeMap::new();
+            for steps in [100u64, 500] {
+                let mut ginis = Vec::with_capacity(pairs);
+                for i in 0..pairs {
+                    let seed = first_seed.checked_add(i as u64).ok_or("seed overflow")?;
+                    let c = simulate_reference(seed, actors, 10, 1, steps, false)?;
+                    ginis.push(reference_gini(&c.wealth)?);
+                }
+                controls.insert(steps, ginis);
+            }
             for offset in [1u64, 10, 100] {
                 for steps in [100u64, 500] {
                     let mut matched = Vec::new();
                     for i in 0..pairs {
                         let seed = first_seed.checked_add(i as u64).ok_or("seed overflow")?;
                         // Each arm restarts its own identical reference RNG domain.
-                        let c = simulate_reference(seed, actors, 10, offset, steps, false)?;
+                        let cg = controls[&steps][i];
                         let t = simulate_reference(seed, actors, 10, offset, steps, true)?;
-                        let cg = reference_gini(&c.wealth)?;
                         let tg = reference_gini(&t.wealth)?;
                         writeln!(
                             outcomes,

@@ -33,9 +33,18 @@ pub fn read_pairs(path: &Path) -> Result<Vec<Pair>, String> {
             .parse::<u64>()
             .map_err(|_| "invalid opportunities")?;
         let gini = parts[4].parse::<f64>().map_err(|_| "invalid Gini")?;
+        let top_share = parts[5]
+            .parse::<f64>()
+            .map_err(|_| "invalid top-quintile share")?;
+        // Hiyal's attempt sequence also counts rejected and control (pause)
+        // records, so attempts may exceed accepted opportunities.
         if !gini.is_finite()
             || !(0.0..=1.0).contains(&gini)
-            || attempts != opportunities
+            || !top_share.is_finite()
+            || !(0.0..=1.0).contains(&top_share)
+            || parts[6].is_empty()
+            || !parts[6].bytes().all(|b| b.is_ascii_hexdigit())
+            || attempts < opportunities
             || opportunities == 0
         {
             return Err(format!("row {}: invalid or incomplete outcome", row + 2));
@@ -99,15 +108,7 @@ impl XorShift64 {
         x
     }
     fn index(&mut self, n: usize) -> usize {
-        // Equal-support rejection sampler, avoiding the bootstrap modulo mapping bias.
-        let bound = n as u64;
-        let threshold = bound.wrapping_neg() % bound;
-        loop {
-            let v = self.next();
-            if v >= threshold {
-                return (v % bound) as usize;
-            }
-        }
+        crate::reference::unbiased_below(n as u64, || self.next()) as usize
     }
 }
 pub fn summarize(
@@ -201,11 +202,70 @@ mod tests {
         );
         assert!(summarize(&[p.clone(), Pair { horizon: 200, ..p }], 1000, 1).is_err());
     }
-    #[test]
-    fn rejects_duplicate_or_unpaired_rows() {
-        let file = std::env::temp_dir().join(format!("paired-results-{}.csv", std::process::id()));
-        std::fs::write(&file,"seed,arm,attempts,opportunities,gini,top_quintile_share,chain_head\n1,control,2,2,0.1,0.2,hash\n").unwrap();
-        assert!(read_pairs(&file).is_err());
+    const HEADER: &str = "seed,arm,attempts,opportunities,gini,top_quintile_share,chain_head\n";
+
+    fn parse(label: &str, rows: &str) -> Result<Vec<Pair>, String> {
+        let file =
+            std::env::temp_dir().join(format!("paired-results-{label}-{}.csv", std::process::id()));
+        std::fs::write(&file, rows).unwrap();
+        let result = read_pairs(&file);
         std::fs::remove_file(file).unwrap();
+        result
+    }
+
+    #[test]
+    fn accepts_pairs_with_extra_rejected_or_control_attempts() {
+        let rows = format!("{HEADER}1,control,3,2,0.1,0.2,ab12\n1,treatment,2,2,0.2,0.3,cd34\n");
+        let pairs = parse("extra-attempts", &rows).unwrap();
+        assert_eq!(pairs.len(), 1);
+        assert_eq!(pairs[0].horizon, 2);
+    }
+
+    #[test]
+    fn rejects_malformed_duplicate_or_unpaired_rows() {
+        let ok_t = "1,treatment,2,2,0.2,0.3,cd34\n";
+        let cases = [
+            (
+                "unpaired",
+                format!("{HEADER}1,control,2,2,0.1,0.2,ab12\n"),
+                "unpaired treatment",
+            ),
+            (
+                "duplicate",
+                format!("{HEADER}1,control,2,2,0.1,0.2,ab12\n1,control,2,2,0.1,0.2,ab12\n{ok_t}"),
+                "duplicate arm/seed",
+            ),
+            (
+                "horizon",
+                format!("{HEADER}1,control,3,3,0.1,0.2,ab12\n{ok_t}"),
+                "mismatched horizons",
+            ),
+            ("schema", format!("seed,arm\n1,control\n"), "schema"),
+            (
+                "arm",
+                format!("{HEADER}1,placebo,2,2,0.1,0.2,ab12\n{ok_t}"),
+                "unexpected arm",
+            ),
+            (
+                "attempts",
+                format!("{HEADER}1,control,1,2,0.1,0.2,ab12\n{ok_t}"),
+                "invalid or incomplete",
+            ),
+            (
+                "top-share",
+                format!("{HEADER}1,control,2,2,0.1,NaN,ab12\n{ok_t}"),
+                "invalid or incomplete",
+            ),
+            (
+                "chain-head",
+                format!("{HEADER}1,control,2,2,0.1,0.2,\n{ok_t}"),
+                "invalid or incomplete",
+            ),
+            ("empty", HEADER.to_owned(), "empty"),
+        ];
+        for (label, rows, expected) in cases {
+            let error = parse(label, &rows).unwrap_err();
+            assert!(error.contains(expected), "{label}: {error}");
+        }
     }
 }

@@ -3,9 +3,12 @@
 //! It validates recipients/accounting/metrics, not the RNG's causal draws.
 use std::{
     fs::File,
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, Read},
     path::Path,
 };
+
+/// Same per-record cap as Hiyal's journal reader.
+const MAX_RECORD_BYTES: u64 = 32 * 1024 * 1024;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct ReferenceOutcome {
@@ -13,21 +16,43 @@ pub struct ReferenceOutcome {
     pub opportunities: u64,
 }
 
-pub fn replay(journal: &Path, initial: &[u64]) -> Result<ReferenceOutcome, String> {
+/// Replays only the first `verified_bytes` of the journal, i.e. exactly the
+/// prefix Hiyal verified, so concurrent appends or a torn tail are ignored.
+/// `opportunities` counts accepted events in that prefix only.
+pub fn replay(
+    journal: &Path,
+    initial: &[u64],
+    verified_bytes: u64,
+) -> Result<ReferenceOutcome, String> {
     if initial.len() < 2 || initial.iter().any(|w| *w == 0) {
         return Err("reference requires >=2 positive initial endowments".into());
     }
     let file = File::open(journal).map_err(|e| e.to_string())?;
+    if file.metadata().map_err(|e| e.to_string())?.len() < verified_bytes {
+        return Err("journal is shorter than the verified prefix".into());
+    }
     let mut wealth = initial.to_vec();
     let mut opportunities = 0u64;
-    let reader = BufReader::new(file);
-    for (line_number, line) in reader.lines().enumerate() {
-        let line = line.map_err(|e| e.to_string())?;
+    let mut reader = BufReader::new(file.take(verified_bytes));
+    let mut raw = Vec::new();
+    for line_number in 1.. {
+        raw.clear();
+        let read = (&mut reader)
+            .take(MAX_RECORD_BYTES + 1)
+            .read_until(b'\n', &mut raw)
+            .map_err(|e| e.to_string())?;
+        if read == 0 {
+            break;
+        }
+        if raw.pop() != Some(b'\n') {
+            return Err(format!("unterminated or oversized record at {line_number}"));
+        }
+        let line = std::str::from_utf8(&raw).map_err(|e| format!("record {line_number}: {e}"))?;
         if line.is_empty() {
-            return Err(format!("empty journal record at {}", line_number + 1));
+            return Err(format!("empty journal record at {line_number}"));
         }
         let record: serde_json::Value =
-            serde_json::from_str(&line).map_err(|e| format!("record {}: {e}", line_number + 1))?;
+            serde_json::from_str(line).map_err(|e| format!("record {line_number}: {e}"))?;
         let event = record.get("outcome").ok_or("missing outcome")?;
         let kind = event
             .get("outcome")
@@ -81,22 +106,45 @@ pub fn reference_gini(input: &[u64]) -> Result<f64, String> {
     Ok(weighted as f64 / (n * sum as f64))
 }
 
+/// Share held by the ceil(n/5) highest balances, computed from a histogram of
+/// balances (taking whole tie groups, then part of the boundary group) rather
+/// than by sorting. The definition itself is pinned by hand-computed cases.
 pub fn reference_top_share(input: &[u64]) -> Result<f64, String> {
     if input.is_empty() {
         return Err("empty vector".into());
     }
-    let n = input.len().div_ceil(5);
-    let mut sorted = input.to_vec();
-    sorted.sort_unstable();
-    let total: u128 = sorted.iter().map(|x| u128::from(*x)).sum();
+    let mut histogram = std::collections::BTreeMap::<u64, u128>::new();
+    for &value in input {
+        *histogram.entry(value).or_default() += 1;
+    }
+    let total: u128 = histogram.iter().map(|(v, c)| u128::from(*v) * c).sum();
     if total == 0 {
         return Err("zero sum".into());
     }
-    let highest: u128 = sorted.iter().rev().take(n).map(|x| u128::from(*x)).sum();
+    let mut remaining = (input.len() as u128).div_ceil(5);
+    let mut highest = 0u128;
+    for (&value, &count) in histogram.iter().rev() {
+        let taken = count.min(remaining);
+        highest += u128::from(value) * taken;
+        remaining -= taken;
+        if remaining == 0 {
+            break;
+        }
+    }
     Ok(highest as f64 / total as f64)
 }
 
-/// Tests of label invariance are exact: changing labels without changing balances cannot affect inequality.
+/// Unbiased integer in `0..bound` by rejection sampling, shared by the
+/// reference simulator and the bootstrap.
+pub(crate) fn unbiased_below(bound: u64, mut next: impl FnMut() -> u64) -> u64 {
+    let threshold = bound.wrapping_neg() % bound;
+    loop {
+        let draw = next();
+        if draw >= threshold {
+            return draw % bound;
+        }
+    }
+}
 
 /// Independent stochastic model for **exploratory** parameter sensitivity.
 /// Its SplitMix64 random stream is intentionally different from Hiyal's
@@ -116,30 +164,22 @@ pub fn simulate_reference(
     let mut state = seed;
     for _ in 0..steps {
         // Direct cumulative weighted lottery; separate from production select_ticket.
-        let mut total = 0u64;
-        for &v in &wealth {
-            let weight = if linear {
-                v.checked_add(offset).ok_or("weight overflow")?
-            } else {
-                1
-            };
-            total = total.checked_add(weight).ok_or("weight sum overflow")?;
-        }
-        let threshold = total.wrapping_neg() % total;
-        let chosen = loop {
-            let random = splitmix64(&mut state);
-            if random >= threshold {
-                break random % total;
-            }
-        };
-        let mut cursor = chosen;
+        let weights = wealth
+            .iter()
+            .map(|&v| {
+                if linear {
+                    v.checked_add(offset).ok_or("weight overflow")
+                } else {
+                    Ok(1)
+                }
+            })
+            .collect::<Result<Vec<u64>, _>>()?;
+        let total = weights
+            .iter()
+            .try_fold(0u64, |s, w| s.checked_add(*w).ok_or("weight sum overflow"))?;
+        let mut cursor = unbiased_below(total, || splitmix64(&mut state));
         let mut recipient = None;
-        for (idx, &v) in wealth.iter().enumerate() {
-            let weight = if linear {
-                v.checked_add(offset).ok_or("weight overflow")?
-            } else {
-                1
-            };
+        for (idx, &weight) in weights.iter().enumerate() {
             if cursor < weight {
                 recipient = Some(idx);
                 break;
@@ -254,9 +294,46 @@ mod tests {
             ),
         )
         .unwrap();
-        let outcome = replay(&file, &[10, 10, 10]).unwrap();
+        let outcome = replay(
+            &file,
+            &[10, 10, 10],
+            std::fs::metadata(&file).unwrap().len(),
+        )
+        .unwrap();
         assert_eq!(outcome.wealth, vec![10, 12, 10]);
         assert_eq!(outcome.opportunities, 2);
         std::fs::remove_file(file).unwrap();
+    }
+    #[test]
+    fn replay_stops_at_verified_prefix_and_rejects_torn_records() {
+        let file =
+            std::env::temp_dir().join(format!("reference-prefix-{}.jsonl", std::process::id()));
+        let first = "{\"outcome\":{\"outcome\":\"accepted\",\"action\":{\"recipient\":0}}}\n";
+        let appended = "{\"outcome\":{\"outcome\":\"accepted\",\"action\":{\"recipient\":1}}}\n";
+        std::fs::write(&file, format!("{first}{appended}")).unwrap();
+        let outcome = replay(&file, &[10, 10], first.len() as u64).unwrap();
+        assert_eq!(outcome.wealth, vec![11, 10]);
+        assert_eq!(outcome.opportunities, 1);
+        assert!(replay(&file, &[10, 10], first.len() as u64 - 1).is_err());
+        assert!(replay(&file, &[10, 10], 10_000).is_err());
+        std::fs::remove_file(file).unwrap();
+    }
+    #[test]
+    fn top_share_matches_hand_computed_definition() {
+        // ceil(n/5) top balances: n=5 -> 1, n=7 -> 2, n=12 -> 3, ties split.
+        assert_eq!(reference_top_share(&[1, 1, 1, 1, 6]).unwrap(), 0.6);
+        assert_eq!(reference_top_share(&[1, 1, 1, 1, 1, 2, 3]).unwrap(), 0.5);
+        let twelve = [1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 4, 5];
+        assert_eq!(reference_top_share(&twelve).unwrap(), 12.0 / 21.0);
+        assert_eq!(
+            reference_top_share(&[5, 5, 5, 1, 1, 1, 1]).unwrap(),
+            10.0 / 19.0
+        );
+        for values in [twelve.to_vec(), vec![5, 5, 5, 1, 1, 1, 1], vec![0, 0, 9]] {
+            assert_eq!(
+                top_quintile_share(&values).unwrap(),
+                reference_top_share(&values).unwrap()
+            );
+        }
     }
 }
