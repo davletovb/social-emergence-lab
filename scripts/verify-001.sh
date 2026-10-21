@@ -47,11 +47,32 @@ if [[ "$check_hashes" == yes ]]; then
     || fail "SHA256SUMS does not cover exactly the files present"
 fi
 
+planned_cells="$(mktemp)"
+planned_trials="$(mktemp)"
+trap 'rm -f "$planned_cells" "$planned_trials"' EXIT
+# The exact trial directories the plan implies: per group and seed, one
+# parent, one shared control and one treatment per offset cell.
+first_seed="$(jq -r .first_seed "$plan")"
+[[ "$first_seed" =~ ^[0-9]+$ ]] || fail "Unsupported first_seed in study plan"
+while IFS=$'\t' read -r actors initial horizon offsets; do
+  for ((i = 0; i < pairs; i++)); do
+    seed_dir="./actors-$actors-initial-$initial-steps-$horizon/seed-$(printf '%020d' $((first_seed + i)))"
+    echo "$seed_dir/parent"
+    echo "$seed_dir/arms/control"
+    for offset in $offsets; do
+      echo "$seed_dir/arms/treatment-offset-$offset"
+    done
+  done
+done < <(jq -r '.cells | group_by([.actors, .initial, .horizon])[]
+  | [.[0].actors, .[0].initial, .[0].horizon, ([.[].offset | tostring] | join(" "))] | @tsv' "$plan") \
+  | LC_ALL=C sort > "$planned_trials"
+[[ "$(wc -l < "$planned_trials")" -eq $((arms + parents)) ]] || fail "Could not derive the planned trial set"
 # Search relative to the output directory so its own path cannot match.
-mapfile -d '' arm_dirs < <(find . -mindepth 4 -maxdepth 4 -type d -path './*/seed-*/arms/*' ! -name '.*' -print0 | LC_ALL=C sort -z)
-mapfile -d '' parent_dirs < <(find . -mindepth 3 -maxdepth 3 -type d -path './*/seed-*/parent' -print0 | LC_ALL=C sort -z)
-[[ ${#arm_dirs[@]} -eq $arms ]] || fail "Expected $arms Hiyal arms, found ${#arm_dirs[@]}"
-[[ ${#parent_dirs[@]} -eq $parents ]] || fail "Expected $parents parent trials, found ${#parent_dirs[@]}"
+find . -mindepth 3 -maxdepth 4 -type d \( -path './*/seed-*/parent' -o -path './*/seed-*/arms/*' \) ! -name '.*' \
+  | LC_ALL=C sort | diff -q - "$planned_trials" >/dev/null \
+  || fail "Trial directories do not match the study plan's groups, seeds and arms"
+mapfile -t arm_dirs < <(grep '/arms/' "$planned_trials")
+mapfile -t parent_dirs < <(grep '/parent$' "$planned_trials")
 for dir in "${arm_dirs[@]}"; do
   for f in manifest.json events.jsonl snapshot.json fork.json; do
     [[ -s "$dir/$f" ]] || fail "Incomplete Hiyal arm bundle at $dir (missing $f)"
@@ -68,8 +89,6 @@ for dir in "${parent_dirs[@]}"; do
 done
 
 # Derived outputs must match the plan's shape.
-planned_cells="$(mktemp)"
-trap 'rm -f "$planned_cells"' EXIT
 jq -r '.cells[] | [.actors, .initial, .offset, .horizon] | join(",")' "$plan" | LC_ALL=C sort > "$planned_cells"
 awk -F, -v pairs="$pairs" '
   NR==1 { if ($0 != "actors,initial,offset,horizon,pairs,control_mean_gini,treatment_mean_gini,paired_delta,bootstrap_95_lo,bootstrap_95_hi") exit 1; next }
