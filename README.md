@@ -13,3 +13,7 @@ Simulation infrastructure: [Hiyal](https://github.com/davletovb/hiyal), a separa
 - [Theoretical framework](docs/theoretical-framework.md)
 - [Methodology and reproducibility policy](docs/methodology.md)
 - [Experiment 001 — Emergence of inequality](experiments/001-emergence-of-inequality/plan.md) and its [protocol checklist](experiments/001-emergence-of-inequality/protocol.md)
+
+## Independent validation and exploratory sensitivity
+
+See [validation and sensitivity protocol](experiments/001-emergence-of-inequality/validation-and-sensitivity.md) for independent journal replay, paired-society bootstrap uncertainty, and an independent reference-model sensitivity grid. These tools do not convert the exploratory runs into confirmatory sociological evidence.

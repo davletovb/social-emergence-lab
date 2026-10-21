@@ -36,6 +36,16 @@ jobs:
         run: cargo test --locked
       - name: Tiny exploratory smoke
         run: cargo run --locked -- pilot /tmp/social-lab-smoke 2 15 42
+      - name: Independently replay both Hiyal event journals
+        run: |
+          cargo run --locked --bin validate -- /tmp/social-lab-smoke/seed-00000000000000000042/arms/control
+          cargo run --locked --bin validate -- /tmp/social-lab-smoke/seed-00000000000000000042/arms/treatment
+      - name: Pair-level analysis smoke
+        run: cargo run --locked --bin analyze -- /tmp/social-lab-smoke/results.csv
+      - name: Reference-model sensitivity smoke
+        run: |
+          cargo run --locked --bin sensitivity -- /tmp/lab-reference-smoke 10 40000
+          cat /tmp/lab-reference-smoke/reference-sensitivity-summary.csv
       - name: Optional exploratory batch (not confirmatory)
         if: github.event_name == 'workflow_dispatch' && inputs.exploratory_batch
         run: |
