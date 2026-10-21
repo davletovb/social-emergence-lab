@@ -65,6 +65,73 @@ pub fn reference_top_share(input:&[u64])->Result<f64,String> {
 }
 
 /// Tests of label invariance are exact: changing labels without changing balances cannot affect inequality.
+
+
+/// Independent stochastic model for **exploratory** parameter sensitivity.
+/// Its SplitMix64 random stream is intentionally different from Hiyal's
+/// ChaCha20 profile: compare statistical patterns, never byte-identical runs.
+pub fn simulate_reference(
+    seed:u64, actors:usize, initial:u64, offset:u64, steps:u64, linear:bool
+)->Result<ReferenceOutcome,String>{
+    if !(2..=1000).contains(&actors)||initial==0||offset==0||steps>100_000 {
+        return Err("reference simulation parameters out of bounds".into());
+    }
+    let mut wealth=vec![initial;actors];
+    let mut state=seed;
+    for _ in 0..steps {
+        // Direct cumulative weighted lottery; separate from production select_ticket.
+        let mut total=0u64;
+        for &v in &wealth {
+            let weight=if linear {v.checked_add(offset).ok_or("weight overflow")?}else{1};
+            total=total.checked_add(weight).ok_or("weight sum overflow")?;
+        }
+        let threshold=total.wrapping_neg()%total;
+        let chosen=loop {
+            let random=splitmix64(&mut state);
+            if random>=threshold {break random%total;}
+        };
+        let mut cursor=chosen;
+        let mut recipient=None;
+        for (idx,&v) in wealth.iter().enumerate() {
+            let weight=if linear{v.checked_add(offset).ok_or("weight overflow")?}else{1};
+            if cursor<weight {recipient=Some(idx);break;}
+            cursor-=weight;
+        }
+        let idx=recipient.ok_or("reference lottery exhausted")?;
+        wealth[idx]=wealth[idx].checked_add(1).ok_or("reference wealth overflow")?;
+    }
+    Ok(ReferenceOutcome{wealth,opportunities:steps})
+}
+
+fn splitmix64(state:&mut u64)->u64 {
+    *state=state.wrapping_add(0x9E3779B97F4A7C15);
+    let mut z=*state;
+    z=(z^(z>>30)).wrapping_mul(0xBF58476D1CE4E5B9);
+    z=(z^(z>>27)).wrapping_mul(0x94D049BB133111EB);
+    z^(z>>31)
+}
+
+#[cfg(test)]
+mod sensitivity_tests {
+    use super::*;
+    #[test]
+    fn reference_simulation_conserves_resources_and_seeded_replays() {
+        let a=simulate_reference(17,20,10,1,1000,true).unwrap();
+        let b=simulate_reference(17,20,10,1,1000,true).unwrap();
+        assert_eq!(a,b);
+        assert_eq!(a.wealth.iter().sum::<u64>(),1200);
+        assert_eq!(a.opportunities,1000);
+        let c=simulate_reference(17,20,10,1,1000,false).unwrap();
+        assert_eq!(c.wealth.iter().sum::<u64>(),1200);
+    }
+    #[test]
+    fn zero_step_reference_is_equal_and_safe() {
+        let a=simulate_reference(2,10,3,1,0,false).unwrap();
+        assert_eq!(a.wealth,vec![3;10]);
+        assert_eq!(reference_gini(&a.wealth).unwrap(),0.0);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
