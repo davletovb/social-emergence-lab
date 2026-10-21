@@ -10,7 +10,7 @@ The **candidate claim** is about the postcorrection flow of *new* opportunities,
 
 ## Primary causal test
 
-All agents have **identical true quality**. Randomly give half artificially high and half artificially low starting reputation labels. Let reputations affect selection and endogenous outgoing social links until checkpoint τ. From an identical preintervention history, fork four interventions:
+All agents have **identical true quality**. Randomly give half artificially high and half artificially low starting reputation labels. Let reputations (private beliefs and a shared public reputation) affect selection and endogenous outgoing social links, before and after checkpoint τ. From an identical preintervention history, fork four interventions:
 
 | Arm | Correct false beliefs? | Independently repair opportunity links? |
 | --- | --- | --- |
@@ -19,7 +19,7 @@ All agents have **identical true quality**. Randomly give half artificially high
 | Network-only | No | Yes |
 | Both | Yes | Yes |
 
-For each fork measure `D`, the share of **post-τ** opportunity tokens reaching the randomly boosted half minus the share reaching the other half. A **candidate primary contrast** is the mean paired difference `D_information-only − D_both` across independently seeded preintervention societies. As drafted, `E[D_both]=0` exactly by label symmetry, so this contrast equals `E[D_information-only]`; the choice of primary estimand is [open decision D2](design-review-and-tests.md#open-design-decisions). Do not count actors or fork branches as independent samples.
+For each fork measure `D`, the share of **post-τ** opportunity tokens reaching the randomly boosted half minus the share reaching the other half. The **candidate primary estimand** is `E[D_information-only]` across independently seeded preintervention societies: the gap in new opportunities that survives complete belief correction while rewiring continues, judged against its degree-only prediction and its late-window value. `D_both` is an exact-zero control (`E[D_both]=0` by label symmetry), and `E[D_sham − D_network-only]` is the repair contrast ([design decisions](design-review-and-tests.md#design-decisions-adopted)). Do not count actors or fork branches as independent samples.
 
 **Falsification is essential:** if correction alone removes the future opportunity gap, or structural repair does not help, the proposed mechanism is not supported for the tested parameter range. Negative controls must distinguish graph-induced exclusion from noisy belief updating and arbitrary allocation. Every parameter/outcome and inference rule remains a draft.
 
