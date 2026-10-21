@@ -36,13 +36,14 @@ This update targeted empirical field/lab studies on reputation, manipulated popu
 
 ## 2. Critical design issues found
 
-### A. The primary estimand must compare counterfactual repairs, not only one arm
+### A. The primary estimand: the late posttruth gap, not a paired I–IS contrast
 
-The merged protocol defines the primary quantity as `E[D_I]` (posttruth false-boost opportunity gap in information-only arm) and calls `E[D_I - D_IS]` degenerate, claiming it has “about twice the variance”. That variance statement is unjustified.
+*Revised after review of this pull request.* An earlier version of this section called the merged protocol's "about twice the variance" statement unjustified and recommended the paired contrast `θ = E_parent[D_I^late − D_IS^late]` as primary. That recommendation is withdrawn:
 
-Mathematically `E[D_I-D_IS]=E[D_I]-E[D_IS]`, and under an explicit exchangeability null `E[D_IS]=0`. **Yet** the paired variance equals `Var(D_I)+Var(D_IS)-2Cov(D_I,D_IS)`, which can be *larger or smaller* than `Var(D_I)`. Further, the within-parent contrast is the direct **causal effect of graph repair conditional on truthful correction**, while `E[D_I]` alone describes persistence.
+- Under the explicit exchangeability null `E[D_IS]=0`, so `E[D_I^late − D_IS^late] = E[D_I^late]`. The paired contrast adds no estimand beyond the persistence quantity itself; reporting it as a separate "effect of repair" would count one result twice.
+- `Var(D_I−D_IS)=Var(D_I)+Var(D_IS)−2Cov(D_I,D_IS)` holds, but here the covariance is near zero: after the fork IS runs on an independent `A*` with reset beliefs, and the arms share only per-agent random draws, which map to different recipients once neighborhoods differ. The paired difference therefore has about twice the variance of `D_I^late` alone, so the original statement was approximately right.
 
-**Recommendation:** candidate primary intervention contrast `θ_repair|truth = E_parent[D_I^late - D_IS^late]` over a predeclared *late* post-τ window; full-window `E[D_I]` and its components remain co-primary diagnostics/secondary estimands until preregistration. **Do not fix a null-testing procedure or decision rule yet.** If one wants only to know whether any gap survives information correction, `E[D_I]` is an appropriate descriptive target, not an independent policy effect.
+**Recommendation:** primary `E_parent[D_I^late]` over a predeclared late window, counted as lock-in only if the late gap is not carried solely by links surviving from τ (see B and F). IS stays an exchangeability control. Repair is assessed by the non-degenerate contrast `E_parent[D_U − D_S]` (repair without correction), judged by magnitude. Full-window `E[D_I]` and its components are diagnostics, not co-primary. **Do not fix a null-testing procedure or decision rule yet.**
 
 ### B. Separate exact graph exposure from belief-mediated selection at every step
 
@@ -61,23 +62,27 @@ UNDER β=0: g_t^sel = 0 exactly, hence g_t = g_t^deg.
 
 These are **known mathematical accounting identities, not a discovered sociology law**. The observed signed winner indicator is `b_recipient`; its innovation noise `b_recipient - g_t` should have zero conditional mean if sampling is implemented correctly.
 
-This decomposition is essential: a positive `D_I` could be *nothing more than inherited in-degree*, or could reflect belief re-formation after correction. Report time-averaged `g^deg`, `g^sel`, observed signed flow and the difference between the observed flow and its conditional expected flow. For structural explanation, compare a separate **β=0** allocation with the same graph history where feasible, and an independent graph generator.
+This decomposition is essential: a positive `D_I` could be *nothing more than inherited in-degree*, or could reflect belief re-formation after correction. Split `g^deg` further into links present at τ and still present (`g^inh`) and links added after τ (`g^new`): a late gap carried only by `g^inh` is slow relaxation of the inherited graph, so H1 requires a positive late `g^new + g^sel`. Report time-averaged `g^deg`, `g^sel`, observed signed flow and the difference between the observed flow and its conditional expected flow. For structural explanation, compare a separate **β=0** allocation with the same graph history where feasible, and an independent graph generator.
 
-### C. Graph initialization claims unjustified uniformity
+### C. Graph initialization: keep the exact uniform sampler
 
-The current formal model claims a **uniform draw over all simple directed d-in/d-out-regular graphs** “for example configuration pairing with rejection,” but does not provide a sampler and correctness argument. Naive pairings generate multi-edges/self-edges; rejection may be astronomically inefficient, and generic rewiring chains have mixing uncertainty.
+*Revised after review of this pull request.* An earlier version of this section argued that configuration pairing with rejection lacked a correctness argument and "may be astronomically inefficient", and replaced it with a permuted circulant. Both points were wrong:
 
-**Recommendation for V0:** define and test an **exact balanced, explicitly nonuniform permutation-of-circulant generator** (independently seeded node permutation, directed offsets `1..d`). It guarantees no self-loops and in/outdegree d, and makes no unproved uniform-distribution claim. Label assignments, initial graph and pre-drawn repair graph use separate setup substreams. Add graph-family robustness later (degree-preserving edge swaps with stated mixing limitations), not as a silent model change.
+- **Correctness:** with d labelled out-stubs and d labelled in-stubs per agent, every simple directed d-in/d-out-regular graph arises from exactly `(d!)^{2N}` stub pairings, so conditioning a uniformly random pairing on simplicity gives an exactly uniform simple graph.
+- **Cost:** at N=20, d=4 about 1 in 9,000 pairings is simple, roughly 0.25 s per graph in a Python check and milliseconds in Rust.
+- **The circulant's cost:** a permuted circulant `π(C)` with independent random labels has the same distribution as the fixed lattice `C` with relabelled labels, so every parent society would share one vertex-transitive topology with no reciprocal ties, and between-seed variance would omit topology entirely.
+
+**Recommendation for V0:** configuration pairing with rejection for both the initial graph and `A*`, from separate setup substreams. Report reciprocity and clustering across seeds; add other graph families (for example degree-preserving edge swaps, with stated mixing limitations) as declared robustness variants.
 
 ### D. Correct Hiyal genesis/setup RNG ownership
 
-Current `Trial::create` creates `initial_streams = Streams::new(trial,seed)` **after** the supplied world is constructed. Consequently “draw B, graph and A* from trial-owned `setup` streams at genesis” cannot be implemented by drawing from an unrelated temporary RNG and then calling `Trial::create`. We must explicitly construct a serializable `Genesis` with the *advanced, audited setup stream positions* and call Hiyal `Trial::create_from_genesis`, or define an independently specified deterministic world-construction algorithm with fully recorded seed derivation and no claim to the trial's setup-stream replay. `scheduler` must remain owned by Hiyal and each event action must materialize the noisy performance and rewiring results; `World::apply` must consume **no RNG**.
+Current `Trial::create` creates `initial_streams = Streams::new(trial,seed)` **after** the supplied world is constructed. Consequently “draw B, graph and A* from trial-owned `setup` streams at genesis” cannot be implemented by drawing from an unrelated temporary RNG and then calling `Trial::create`. Hand-building a serializable `Genesis` in lab code and calling `Trial::create_from_genesis` would work, but copies engine internals (schema, trial-ID derivation, build provenance, stream positions) that drift when Hiyal changes. Recording setup draws in a trial's own streams is generic to any randomized initial state, so it belongs in Hiyal as a genesis-setup API (for example `Trial::create_with_setup`, running a setup closure on the trial's named streams before genesis is written). `scheduler` must remain owned by Hiyal and each event action must materialize the noisy performance and rewiring results; `World::apply` must consume **no RNG**. Hiyal also restricts a policy to the acting agent's `agent/<id>/…` streams, so per-step draws must use names such as `agent/<j>/selection`; flat names like `selection` are rejected at run time.
 
 No agent ability variation is allowed in V0, so selecting and observing performance are separable as specified.
 
 ### E. Exact-zero claims require stated symmetry assumptions
 
-`E[D_IS]=0` is an **expectation under exchangeability**, not a promise that any seed yields exactly zero realized gap. The claim assumes the repaired graph and future transition/RNG law are B-independent, equal quality, no wealth→selection path, no hidden label-index-based tie-breaks, and proper symmetric randomization. Validate both exact per-state identities (when appropriate) and Monte Carlo tests with prechosen tolerances.
+`E[D_IS]=0` is an **expectation under exchangeability**, not a promise that any seed yields exactly zero realized gap. The claim assumes the repaired graph and future transition/RNG law are B-independent, equal quality, no wealth→selection path, no hidden label-index-based tie-breaks, and proper symmetric randomization. Validate both exact per-state identities (when appropriate) and Monte Carlo tests with prechosen tolerances. Per-seed deviations are expected, but a mean across parents outside the prechosen tolerance invalidates the run as an implementation or setup error; it is not evidence of a mechanism.
 
 Likewise `E[D_I]=0` under no rewiring and corrected belief is a model-conditional expectation, not a finite-run identity. Unequal realized rewards are normal.
 
