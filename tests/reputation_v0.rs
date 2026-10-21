@@ -3,12 +3,13 @@ use hiyal::{
     core::{AgentId, World},
     experiment::EffectPolicy,
     rng::Streams,
+    storage::Store,
 };
 use social_emergence_lab::reputation::{
     Action, Arm, Config, Removal, ReputationPolicy, ReputationWorld, Rewire, flow, regular_graph,
     setup, validate_graph, window,
 };
-use social_emergence_lab::reputation_pilot::{control_config, run};
+use social_emergence_lab::reputation_pilot::{control_config, run, verify};
 use std::{
     path::PathBuf,
     sync::atomic::{AtomicUsize, Ordering},
@@ -44,9 +45,19 @@ fn graph_sampling_is_bounded_and_has_exact_degrees() {
     let mut rng = Streams::new("reputation-test".into(), 11);
     assert_eq!(setup(&w.config, &mut rng).unwrap(), w);
     assert_eq!(rng.positions.len(), 3);
-    let mut impossible = w.config.clone();
-    impossible.graph_attempts = 0;
-    assert!(regular_graph(&impossible, &mut rng, "setup/bad").is_err());
+    // A zero budget is a configuration error; a budget of one is exhausted by
+    // any rejected pairing, which most N=6, d=2 pairings are.
+    let mut budget = w.config.clone();
+    budget.graph_attempts = 0;
+    assert!(budget.validate().is_err());
+    budget.graph_attempts = 1;
+    let error = (0..64)
+        .find_map(|seed| {
+            let mut rng = Streams::new("reputation-budget".into(), seed);
+            regular_graph(&budget, &mut rng, "setup/initial_graph").err()
+        })
+        .unwrap();
+    assert!(error.contains("not found after 1 bounded draws"), "{error}");
 }
 #[test]
 fn exact_exposure_identity_and_zero_beta_selection() {
@@ -58,8 +69,26 @@ fn exact_exposure_identity_and_zero_beta_selection() {
     let result = flow(&w).unwrap();
     assert!(result.selection.abs() < 1e-12);
     assert!((result.degree - result.total).abs() < 1e-12);
-    // An irregular graph is permitted after rewiring; its degree-only
-    // expectation must agree with direct in-degree calculation.
+    // One rewiring makes the in-degrees irregular; the degree-only
+    // expectation must still agree with a direct in-degree calculation.
+    w.config.removal = Removal::Uniform;
+    w.config.rewire_every = 1;
+    let removed = w.graph[0][0];
+    let added = (1..10).find(|i| !w.graph[0].contains(i)).unwrap();
+    let action = Action {
+        recipient: w.graph[0][1],
+        success: true,
+        pre_flow: flow(&w).unwrap(),
+        rewire: Some(Rewire {
+            allocator: 0,
+            removed,
+            added,
+        }),
+    };
+    w.apply(AgentId(0), action).unwrap();
+    assert!(validate_graph(&w.graph, 10, 2).is_err());
+    let result = flow(&w).unwrap();
+    assert!(result.selection.abs() < 1e-12);
     let direct = w
         .graph
         .iter()
@@ -123,6 +152,32 @@ fn negative_control_variants_are_explicit() {
     assert_eq!(churn.removal, Removal::Uniform);
     assert_eq!(churn.kappa, 0.0);
     assert!(control_config(20, 19, "default").is_err());
+    let mut rng = Streams::new("reputation-test".into(), 5);
+    let symmetric = setup(&null, &mut rng).unwrap();
+    assert!(symmetric.public.iter().all(|&p| p == 0.5));
+    assert!(symmetric.beliefs.iter().flatten().all(|&p| p == 0.5));
+}
+
+#[tokio::test]
+async fn fixed_graph_control_never_rewires_in_any_arm() {
+    let root = temp();
+    let cfg = control_config(6, 2, "fixed-graph").unwrap();
+    run(&root, 81403, cfg, 20, 60).await.unwrap();
+    let parent = Store::<ReputationWorld, Action>::inspect_read_only(root.join("parent")).unwrap();
+    let initial = &parent.genesis.initial_world;
+    assert_eq!(parent.world.graph, initial.graph);
+    for arm in Arm::ALL {
+        let ro =
+            Store::<ReputationWorld, Action>::inspect_read_only(root.join(arm.name())).unwrap();
+        let expected = match arm {
+            Arm::Structure | Arm::Both => &initial.repair_graph,
+            Arm::Sham | Arm::Information => &initial.graph,
+        };
+        assert_eq!(&ro.world.graph, expected, "{}", arm.name());
+        assert!(ro.world.trace.iter().all(|t| t.rewire.is_none()));
+    }
+    verify(&root).unwrap();
+    std::fs::remove_dir_all(root).unwrap();
 }
 #[tokio::test]
 async fn four_arm_hiyal_exploration_is_replayable() {
@@ -146,6 +201,20 @@ async fn four_arm_hiyal_exploration_is_replayable() {
     assert!(root.join("parent/manifest.json").is_file());
     assert!(root.join("both/fork.json").is_file());
     assert!(root.join("report.json").is_file());
+    // The report is re-derivable from the journals alone, and only from them.
+    let verified = verify(&root).unwrap();
+    assert_eq!(
+        serde_json::to_value(&verified).unwrap(),
+        serde_json::to_value(&report).unwrap()
+    );
+    let path = root.join("report.json");
+    let original = std::fs::read_to_string(&path).unwrap();
+    std::fs::write(
+        &path,
+        original.replacen("\"seed\": 81402", "\"seed\": 81403", 1),
+    )
+    .unwrap();
+    assert!(verify(&root).unwrap_err().contains("not derivable"));
     assert!(
         run(
             &root,

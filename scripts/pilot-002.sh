@@ -31,24 +31,18 @@ for entry in "83000 no-false-prior" "83001 no-selection-bias" "83002 fixed-graph
   "$pilot" "$root/n6-control-$scenario-$seed" "$seed" 6 2 20 60 "$scenario" > /dev/null
 done
 
-jq -n --arg source "$source_sha" --arg hiyal "4bb53aca5cffa6bc01b7558efbd690af7dbed79f" '
+# The engine records its own revision in every genesis; the runs must agree.
+hiyal="$(jq -r .hiyal_revision "$root"/n*/report.json | sort -u)"
+[[ "$hiyal" =~ ^[0-9a-f]{40}$ ]] || { echo "Runs disagree on, or lack, the Hiyal revision" >&2; exit 2; }
+jq -n --arg source "$source_sha" --arg hiyal "$hiyal" '
   {scientific_status:"exploratory_model_development_NOT_preregistered",
    source_commit:$source,hiyal_commit:$hiyal,
    purpose:"Testing simulation behavior, not evidence about real societies",
    started_from_fixed_seeds:true,
    specification:"n6,d2 and n10,d3 each four independent parents (tau20,total60), plus one parent for each named n6 negative control",
    limitations:"Four societies per configuration; do not report confidence intervals, significance, reproducibility across settings, or novel causal laws"}' > "$root/batch-plan.json"
-jq -s '
-  def avg(xs): (xs | add/length);
-  {scientific_status:"exploratory_only_no_inferential_claim",
-   groups:(group_by([.config.actors,.config.degree,.config.delta,.config.beta,.config.removal,.config.kappa])
-   | map({actors:.[0].config.actors,degree:.[0].config.degree,
-     removal:.[0].config.removal,delta:.[0].config.delta,beta:.[0].config.beta,
-     kappa:.[0].config.kappa,parents:length,seeds:map(.seed),
-     mean_information_late_gap:avg(map(.primary_information_late_gap)),
-     mean_repair_after_truth_late:avg(map(.repair_after_truth_late)),
-     mean_repair_without_truth_full:avg(map(.repair_without_truth_full))}))}
-' "$root"/n*/report.json > "$root/batch-summary.json"
+jq -s -f "$repo/scripts/batch-summary-002.jq" "$root"/n*/report.json > "$root/batch-summary.json"
+jq -s -f "$repo/scripts/arm-summary-002.jq" "$root"/n*/report.json > "$root/arm-summary.json"
 (
   cd "$root"
   find . -type f ! -name SHA256SUMS ! -name .writer.lock ! -name .effects-writer.lock -print0 |
@@ -58,6 +52,9 @@ jq -s '
 echo "BEGIN-002-BATCH-SUMMARY"
 cat "$root/batch-summary.json"
 echo "END-002-BATCH-SUMMARY"
+echo "BEGIN-002-ARM-SUMMARY"
+cat "$root/arm-summary.json"
+echo "END-002-ARM-SUMMARY"
 echo "BEGIN-002-BATCH-PLAN"
 cat "$root/batch-plan.json"
 echo "END-002-BATCH-PLAN"

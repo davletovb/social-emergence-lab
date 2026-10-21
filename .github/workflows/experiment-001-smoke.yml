@@ -49,7 +49,7 @@ jobs:
       - name: Check Rust formatting
         run: cargo fmt --all -- --check
       - name: Check evidence scripts syntax
-        run: bash -n scripts/replicate-001.sh scripts/verify-001.sh scripts/pilot-002.sh
+        run: bash -n scripts/replicate-001.sh scripts/verify-001.sh scripts/pilot-002.sh scripts/verify-002.sh
 
       - name: Check analytic prediction and exploratory sample-size calculator
         run: |
@@ -62,7 +62,9 @@ jobs:
       - name: Test Rust model and Hiyal fork integration
         run: cargo test --locked
       - name: Experiment 002 tiny four-arm exploratory model smoke
-        run: cargo run --locked --bin reputation-pilot -- /tmp/reputation-v0-pr-smoke 62000 6 2 20 60 default
+        run: |
+          cargo run --locked --bin reputation-pilot -- /tmp/reputation-v0-pr-smoke 62000 6 2 20 60 default
+          cargo run --locked --bin reputation-pilot -- verify /tmp/reputation-v0-pr-smoke > /dev/null
       - name: Tiny exploratory smoke
         run: cargo run --locked -- pilot /tmp/social-lab-smoke 2 15 42
       - name: Independently replay both Hiyal event journals

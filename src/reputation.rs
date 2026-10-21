@@ -463,7 +463,9 @@ impl HiyalWorld for ReputationWorld {
             allocator: j,
             recipient: r,
             sign: if w.boost[r] { 1 } else { -1 },
-            expectation: now,
+            // Keep the recorded value, not `now`: `f64::exp` precision varies
+            // by platform, and replay hashes this state.
+            expectation: a.pre_flow,
             rewire: a.rewire,
         });
         w.verify()?;
