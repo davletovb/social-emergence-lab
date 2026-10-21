@@ -27,9 +27,9 @@ cat /tmp/social-lab-pilot/results.csv
 
 For a tiny integration smoke: `cargo run --locked -- pilot /tmp/social-smoke 2 15 42`.
 
-A complete run writes a `results.csv` (one row per society/arm), `pilot-summary.json` and, per arm, `wealth.csv`, plus Hiyal-owned manifest, journal, snapshot, fork attribution and ancestry evidence. All these outputs are generated artifacts; none should be mistaken for raw human data.
+A complete run writes a `results.csv` (one row per society/arm), `pilot-summary.json` (with the Hiyal revision read from `Cargo.lock`) and, per society, `outputs/<arm>-wealth.csv`, plus Hiyal-owned manifest, journal, snapshot, fork attribution and ancestry evidence under `parent/` and `arms/`. All these outputs are generated artifacts; none should be mistaken for raw human data.
 
-The command restarts matching existing pairs, reconstructs summaries from verified journals and fails closed on partial/mismatched pairs or tampered ancestry. Re-running with a larger horizon appends additional accepted events; attempting a shorter horizon fails. **Never** reuse a directory for another scientific protocol or change the core model silently.
+The command restarts matching existing pairs, reconstructs summaries from verified journals and fails closed on mismatched pairs or tampered ancestry. The parent is published atomically, and a lone arm left at the fork boundary by an interrupted run is discarded and the pair re-forked; a lone arm with committed events is never replaced. Each invocation is limited to 1,000,000 pair-steps (journals use roughly 2.2 KB per step per arm). Re-running with a larger horizon appends additional accepted events; attempting a shorter horizon fails. **Never** reuse a directory for another scientific protocol or change the core model silently.
 
 ## Remaining work / gating
 

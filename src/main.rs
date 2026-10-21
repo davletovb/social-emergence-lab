@@ -15,12 +15,33 @@ use social_emergence_lab::{
 use std::{
     env,
     fmt::Write as _,
-    fs,
+    fs::{self, File},
+    io::Write as _,
     path::{Path, PathBuf},
     sync::Arc,
 };
 
 type ResearchTrial = Trial<Society, OpportunityPolicy>;
+
+/// Upper bound on pairs * accepted steps. Each journal entry is roughly 2.2 KB
+/// at 20 actors, so this caps journals at about 4.4 GB per pilot invocation.
+const MAX_PAIR_STEPS: u64 = 1_000_000;
+
+/// Hiyal revision actually compiled in, read from the committed lockfile so the
+/// exported provenance cannot drift from the pinned dependency.
+fn hiyal_revision() -> Result<&'static str, String> {
+    let lock = include_str!("../Cargo.lock");
+    lock.split("[[package]]")
+        .find(|block| block.lines().any(|line| line.trim() == "name = \"hiyal\""))
+        .and_then(|block| {
+            block
+                .lines()
+                .find_map(|line| line.trim().strip_prefix("source = \""))
+        })
+        .and_then(|source| source.trim_end_matches('"').rsplit_once('#'))
+        .map(|(_, rev)| rev)
+        .ok_or_else(|| "Cargo.lock does not pin a hiyal git revision".into())
+}
 
 #[derive(Serialize)]
 struct ResultRow {
@@ -33,16 +54,37 @@ struct ResultRow {
     chain_head: String,
 }
 
-fn write_atomic(path: &Path, content: &[u8]) -> Result<(), String> {
-    let tmp = path.with_extension("tmp");
-    fs::write(&tmp, content).map_err(|e| e.to_string())?;
-    fs::rename(&tmp, path).map_err(|e| e.to_string())
+fn sync_dir(dir: &Path) -> Result<(), String> {
+    #[cfg(unix)]
+    File::open(dir)
+        .and_then(|f| f.sync_all())
+        .map_err(|e| e.to_string())?;
+    #[cfg(not(unix))]
+    let _ = dir;
+    Ok(())
 }
 
+fn write_atomic(path: &Path, content: &[u8]) -> Result<(), String> {
+    let tmp = path.with_extension("tmp");
+    let mut file = File::create(&tmp).map_err(|e| e.to_string())?;
+    file.write_all(content).map_err(|e| e.to_string())?;
+    file.sync_all().map_err(|e| e.to_string())?;
+    drop(file);
+    fs::rename(&tmp, path).map_err(|e| e.to_string())?;
+    sync_dir(path.parent().ok_or("output path has no parent")?)
+}
+
+/// Build the parent in a staging directory and publish it by rename, so a
+/// crash never leaves a half-built `parent` that blocks every later run.
 fn create_parent(dir: &Path, seed: u64) -> Result<(), String> {
+    let root = dir.parent().ok_or("parent path has no directory")?;
+    let stage = root.join(format!(".parent.pending-{}", std::process::id()));
+    if stage.exists() {
+        fs::remove_dir_all(&stage).map_err(|e| e.to_string())?;
+    }
     let initial = Society::new(ACTORS, INITIAL_WEALTH, OFFSET, Feedback::Uniform)?;
     let trial = Trial::create(
-        dir,
+        &stage,
         &format!("inequality-001-{seed}"),
         seed,
         KIND,
@@ -53,7 +95,9 @@ fn create_parent(dir: &Path, seed: u64) -> Result<(), String> {
         Scheduling::RoundRobin,
     )?;
     trial.checkpoint()?;
-    Ok(())
+    drop(trial);
+    fs::rename(&stage, dir).map_err(|e| e.to_string())?;
+    sync_dir(root)
 }
 
 fn check_parent(dir: &Path, seed: u64) -> Result<(), String> {
@@ -78,31 +122,46 @@ async fn advance(trial: &mut ResearchTrial, target: u64) -> Result<(), String> {
     if accepted != remaining {
         return Err("unexpected rejection/no eligible actor".into());
     }
-    trial.checkpoint()?;
+    // Check invariants before checkpointing so a violating state never
+    // becomes the trusted snapshot.
     trial.store.world().verify_accounting(INITIAL_WEALTH)?;
     if trial.store.world().opportunities != target {
         return Err("opportunity counter differs from committed steps".into());
     }
+    trial.checkpoint()?;
     Ok(())
 }
 
-fn row(dir: &Path, seed: u64, arm: &str) -> Result<ResultRow, String> {
-    let ro = Store::<Society, Allocate>::inspect_read_only(dir)?;
-    ro.world.verify_accounting(INITIAL_WEALTH)?;
+/// Derived outputs live under `outputs/`, outside the Hiyal-owned arm
+/// directories, so they never mix with audited evidence.
+fn row(trial: &ResearchTrial, outputs: &Path, seed: u64, arm: &str) -> Result<ResultRow, String> {
+    let world = trial.store.world();
+    world.verify_accounting(INITIAL_WEALTH)?;
     let mut out = String::from("agent_id,wealth\n");
-    for (id, wealth) in ro.world.wealth.iter().enumerate() {
+    for (id, wealth) in world.wealth.iter().enumerate() {
         writeln!(out, "{id},{wealth}").map_err(|e| e.to_string())?;
     }
-    write_atomic(&dir.join("wealth.csv"), out.as_bytes())?;
+    write_atomic(&outputs.join(format!("{arm}-wealth.csv")), out.as_bytes())?;
     Ok(ResultRow {
         seed,
         arm: arm.into(),
-        attempts: ro.sequence,
-        opportunities: ro.logical_step,
-        gini: gini(&ro.world.wealth)?,
-        top_quintile_share: top_quintile_share(&ro.world.wealth)?,
-        chain_head: ro.chain_head,
+        attempts: trial.store.sequence(),
+        opportunities: trial.store.logical_step(),
+        gini: gini(&world.wealth)?,
+        top_quintile_share: top_quintile_share(&world.wealth)?,
+        chain_head: trial.store.chain_head().to_owned(),
     })
+}
+
+/// `fork_at_head` publishes each arm atomically, so a lone arm means the run
+/// stopped between the two forks. Discard it only while it is still at the
+/// fork boundary; an arm with committed events is never deleted.
+fn discard_lone_arm(dir: &Path) -> Result<(), String> {
+    let arm = Store::<Society, Allocate>::inspect_read_only(dir)?;
+    if arm.logical_step != 0 {
+        return Err("only one arm exists and it has committed events; refusing to replace".into());
+    }
+    fs::remove_dir_all(dir).map_err(|e| e.to_string())
 }
 
 async fn one(root: &Path, seed: u64, target: u64) -> Result<Vec<ResultRow>, String> {
@@ -115,9 +174,13 @@ async fn one(root: &Path, seed: u64, target: u64) -> Result<Vec<ResultRow>, Stri
     let arms_dir = root.join("arms");
     let control_dir = arms_dir.join("control");
     let treatment_dir = arms_dir.join("treatment");
-    let present = (control_dir.exists(), treatment_dir.exists());
+    match (control_dir.exists(), treatment_dir.exists()) {
+        (true, false) => discard_lone_arm(&control_dir)?,
+        (false, true) => discard_lone_arm(&treatment_dir)?,
+        _ => {}
+    }
     let backend = Arc::new(ScriptedBackend);
-    let (mut control, mut treatment) = match present {
+    let (mut control, mut treatment) = match (control_dir.exists(), treatment_dir.exists()) {
         (false, false) => paired_forks(
             &parent,
             &arms_dir,
@@ -134,7 +197,7 @@ async fn one(root: &Path, seed: u64, target: u64) -> Result<Vec<ResultRow>, Stri
             resume_fork(&control_dir, OpportunityPolicy, backend.clone(), false)?,
             resume_fork(&treatment_dir, OpportunityPolicy, backend, false)?,
         ),
-        _ => return Err("only one arm exists; refusing to silently replace pair".into()),
+        _ => return Err("arm directories changed during startup".into()),
     };
     if control.store.world().feedback != Feedback::Uniform
         || treatment.store.world().feedback != Feedback::Linear
@@ -145,11 +208,11 @@ async fn one(root: &Path, seed: u64, target: u64) -> Result<Vec<ResultRow>, Stri
     }
     advance(&mut control, target).await?;
     advance(&mut treatment, target).await?;
-    drop(control);
-    drop(treatment);
 
-    let c = row(&control_dir, seed, "control")?;
-    let t = row(&treatment_dir, seed, "treatment")?;
+    let outputs = root.join("outputs");
+    fs::create_dir_all(&outputs).map_err(|e| e.to_string())?;
+    let c = row(&control, &outputs, seed, "control")?;
+    let t = row(&treatment, &outputs, seed, "treatment")?;
     if c.opportunities != target || t.opportunities != target {
         return Err("unexpected number of steps".into());
     }
@@ -160,6 +223,12 @@ pub async fn pilot(root: &Path, pairs: usize, steps: u64, first_seed: u64) -> Re
     if !(1..=500).contains(&pairs) || !(1..=100_000).contains(&steps) {
         return Err("use 1..=500 pairs and 1..=100000 accepted steps per arm".into());
     }
+    if (pairs as u64) * steps > MAX_PAIR_STEPS {
+        return Err(format!(
+            "pairs * steps must be at most {MAX_PAIR_STEPS} (~2.2 KB of journal per step per arm)"
+        ));
+    }
+    let hiyal_revision = hiyal_revision()?;
     let mut all = Vec::with_capacity(pairs * 2);
     for i in 0..pairs {
         let seed = first_seed.checked_add(i as u64).ok_or("seed overflow")?;
@@ -188,7 +257,7 @@ pub async fn pilot(root: &Path, pairs: usize, steps: u64, first_seed: u64) -> Re
     let summary = serde_json::json!({
         "study": "001-emergence-of-inequality",
         "status": "exploratory-pilot",
-        "hiyal_revision": "c6f3d5d650457077eaff4e26a0060bc6cee5dbdd",
+        "hiyal_revision": hiyal_revision,
         "pairs": pairs,
         "first_seed": first_seed,
         "accepted_opportunities_per_arm": steps,
@@ -275,7 +344,88 @@ mod tests {
         let mut bytes = fs::read(&p).unwrap();
         bytes.push(b' ');
         fs::write(p, bytes).unwrap();
-        assert!(pilot(&a, 1, 4, 99).await.is_err());
+        let error = pilot(&a, 1, 5, 99).await.unwrap_err();
+        assert!(error.contains("parent evidence bytes altered"), "{error}");
         fs::remove_dir_all(a).unwrap();
+    }
+
+    #[tokio::test]
+    async fn untampered_fork_resumes() {
+        let a = test_root("untampered");
+        pilot(&a, 1, 3, 99).await.unwrap();
+        pilot(&a, 1, 4, 99).await.unwrap();
+        fs::remove_dir_all(a).unwrap();
+    }
+
+    #[tokio::test]
+    async fn lone_arm_at_fork_boundary_is_recreated() {
+        let a = test_root("lone-boundary");
+        let b = test_root("lone-clean");
+        let seed = a.join("seed-00000000000000000007");
+        fs::create_dir_all(&seed).unwrap();
+        create_parent(&seed.join("parent"), 7).unwrap();
+        // Simulates a kill after paired_forks published control but not treatment.
+        hiyal::research::fork_at_head(
+            seed.join("parent"),
+            seed.join("arms/control"),
+            "linear-feedback-v1",
+            "control",
+            serde_json::json!({}),
+            |_world: &mut Society| Ok(()),
+            OpportunityPolicy,
+            Arc::new(ScriptedBackend),
+        )
+        .unwrap();
+        pilot(&a, 1, 6, 7).await.unwrap();
+        pilot(&b, 1, 6, 7).await.unwrap();
+        assert_eq!(
+            fs::read(a.join("results.csv")).unwrap(),
+            fs::read(b.join("results.csv")).unwrap()
+        );
+        fs::remove_dir_all(a).unwrap();
+        fs::remove_dir_all(b).unwrap();
+    }
+
+    #[tokio::test]
+    async fn leftover_parent_staging_is_ignored() {
+        let a = test_root("parent-stage");
+        let b = test_root("parent-clean");
+        let seed = a.join("seed-00000000000000000008");
+        let stage = seed.join(format!(".parent.pending-{}", std::process::id()));
+        fs::create_dir_all(&stage).unwrap();
+        fs::write(stage.join("manifest.json"), b"partial").unwrap();
+        pilot(&a, 1, 6, 8).await.unwrap();
+        assert!(!stage.exists());
+        pilot(&b, 1, 6, 8).await.unwrap();
+        assert_eq!(
+            fs::read(a.join("results.csv")).unwrap(),
+            fs::read(b.join("results.csv")).unwrap()
+        );
+        fs::remove_dir_all(a).unwrap();
+        fs::remove_dir_all(b).unwrap();
+    }
+
+    #[tokio::test]
+    async fn lone_arm_with_events_is_not_discarded() {
+        let a = test_root("lone-advanced");
+        pilot(&a, 1, 3, 11).await.unwrap();
+        fs::remove_dir_all(a.join("seed-00000000000000000011/arms/treatment")).unwrap();
+        let error = pilot(&a, 1, 3, 11).await.unwrap_err();
+        assert!(error.contains("committed events"), "{error}");
+        fs::remove_dir_all(a).unwrap();
+    }
+
+    #[test]
+    fn summary_revision_matches_cargo_toml_pin() {
+        let manifest = include_str!("../Cargo.toml");
+        let rev = hiyal_revision().unwrap();
+        assert!(manifest.contains(&format!("rev = \"{rev}\"")));
+    }
+
+    #[tokio::test]
+    async fn oversized_runs_are_rejected_before_writing() {
+        let a = test_root("oversized");
+        assert!(pilot(&a, 500, 100_000, 0).await.is_err());
+        assert!(!a.exists());
     }
 }

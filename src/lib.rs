@@ -278,4 +278,18 @@ mod tests {
             }
         }
     }
+    #[test]
+    fn seeded_sampler_is_close_to_uniform() {
+        // 60,000 draws over 3 outcomes (sd ~115 per count): each count stays
+        // within 600 of 20,000 unless the sampler is materially biased.
+        let mut s = Streams::new("uniformity".into(), 7);
+        let mut counts = [0u32; 3];
+        for _ in 0..60_000 {
+            counts[unbiased_ticket(&mut s, "agent/0/opportunity", 3).unwrap() as usize] += 1;
+        }
+        assert!(
+            counts.iter().all(|c| c.abs_diff(20_000) < 600),
+            "{counts:?}"
+        );
+    }
 }
