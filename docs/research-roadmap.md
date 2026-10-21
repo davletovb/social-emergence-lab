@@ -1,15 +1,16 @@
 # Research roadmap
 
-Status: proposed, not executed.
+Status: Experiment 001 exploratory benchmark executed; no confirmatory study registered or run.
 
 ## Mission
 Investigate how macro-level social regularities emerge from individual interactions using explicit mechanisms, falsifiable hypotheses, and reproducible computational experiments. Hiyal is the simulation engine; this repository owns scientific models and interpretations.
 
 ## Research sequence
-1. **001 — Emergence of inequality**: determine whether stochastic differences persist under reinforcement, relative to a non-reinforcing control. Status: protocol design.
-2. **002 — Emergence of cooperation**: explore reciprocity, enforcement, group composition, and cooperation under controlled incentives. Status: candidate.
-3. **003 — Social norms and institutional persistence**: examine how conventions stabilize and survive actor turnover. Status: candidate.
-4. **004 — Polarization and information networks**: test how topology and selective exposure affect opinion distributions. Status: candidate.
+1. **001 — Emergence of inequality**: determine whether stochastic differences persist under reinforcement, relative to a non-reinforcing control. Status: exploratory benchmark completed (a known Pólya urn); confirmatory protocol in draft, not registered.
+2. **002 — Mistaken reputation and social lock-in**: test when noisy reputational signals lock in unequal access to opportunities, and whether correction can restore mobility. Status: [candidate concept note](../experiments/002-reputation-lock-in/research-question.md), not implemented.
+3. **003 — Emergence of cooperation**: explore reciprocity, enforcement, group composition, and cooperation under controlled incentives. Status: candidate.
+4. **004 — Social norms and institutional persistence**: examine how conventions stabilize and survive actor turnover. Status: candidate.
+5. **005 — Polarization and information networks**: test how topology and selective exposure affect opinion distributions. Status: candidate.
 
 Sequence after 001 depends on evidence and feasibility, not a fixed delivery promise.
 

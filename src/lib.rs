@@ -10,6 +10,8 @@ use hiyal::{
 };
 use serde::{Deserialize, Serialize};
 
+pub mod analytic;
+pub mod design;
 pub mod hiyal_study;
 pub mod mobility;
 pub mod reference;

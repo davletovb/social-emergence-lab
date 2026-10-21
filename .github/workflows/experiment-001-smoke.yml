@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'scripts/**'
+      # The design check reads archived pilot data that docs quote.
+      - 'experiments/001-emergence-of-inequality/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'rust-toolchain.toml'
@@ -49,6 +51,14 @@ jobs:
       - name: Check evidence scripts syntax
         run: bash -n scripts/replicate-001.sh scripts/verify-001.sh
 
+      - name: Check analytic prediction and exploratory sample-size calculator
+        run: |
+          cargo run --locked --bin design -- experiments/001-emergence-of-inequality/results/replicated-74000/hiyal-trajectories.csv | tee /tmp/design.json
+          # Sizes quoted in sample-size-and-registration.md and the confirmatory draft.
+          jq -e '.planning.pilot_societies == 10
+            and .planning.societies_for_95_ci_half_width == 80
+            and .planning.societies_for_90pct_power_two_sided_5pct == 55
+            and (.independent_urn_variance_benchmark.ratio - 720/221 | fabs) < 1e-12' /tmp/design.json
       - name: Test Rust model and Hiyal fork integration
         run: cargo test --locked
       - name: Tiny exploratory smoke

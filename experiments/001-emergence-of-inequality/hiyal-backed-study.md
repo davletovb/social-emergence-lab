@@ -12,27 +12,27 @@ The fixed exploratory parameter grid has 18 cells:
 - horizon **100, 500 accepted opportunities**;
 - up to **10 paired society seeds per cell**, with a total cap of 120,000 accepted events (shared controls plus treatments; the full 10-pair grid needs 72,000).
 
-To prevent expensive accidental runs, the grid is **manual-only** and not part of ordinary PR CI. A two-cell, one-pair smoke is the default PR integration. Use unique output directories per scientific plan. The runner creates immutable \`study-plan.json\` (its Hiyal revision is read from \`Cargo.lock\`); resuming a directory with a changed plan is refused.
+To prevent expensive accidental runs, the grid is **manual-only** and not part of ordinary PR CI. A two-cell, one-pair smoke is the default PR integration. Use unique output directories per scientific plan. The runner creates immutable `study-plan.json` (its Hiyal revision is read from `Cargo.lock`); resuming a directory with a changed plan is refused.
 
-Interrupted runs resume safely: parents are published atomically, a lone arm left at the fork boundary is discarded and re-forked (an arm with committed events is never replaced), a leftover \`study-plan.tmp\` is ignored, and arms that stopped part-way continue to the horizon with results identical to an uninterrupted run. Existing arms must descend from *this* seed's parent, so arms copied between seeds or cells are refused. Completed arms are only inspected, never reopened for writing.
+Interrupted runs resume safely: parents are published atomically, a lone arm left at the fork boundary is discarded and re-forked (an arm with committed events is never replaced), a leftover `study-plan.tmp` is ignored, and arms that stopped part-way continue to the horizon with results identical to an uninterrupted run. Existing arms must descend from *this* seed's parent, so arms copied between seeds or cells are refused. Completed arms are only inspected, never reopened for writing.
 
 ## Run
 
-\`\`\`sh
+```sh
 cargo test --locked
 cargo run --locked --bin hiyal-grid -- smoke /tmp/hiyal-studies-smoke 1 62000
 cargo run --locked --release --bin hiyal-grid -- grid /tmp/hiyal-studies-grid 10 63000
-\`\`\`
+```
 
 **Exploratory-only**: the grid's seed range, effect estimates, and statistical intervals are not held-out confirmatory tests. Running it does not register a hypothesis.
 
-Outputs: \`hiyal-trajectories.csv\`, \`hiyal-benchmarks.csv\`, \`hiyal-summary.csv\`, \`hiyal-study-report.json\` and an immutable \`study-plan.json\`. Every derived CSV includes an \`initial\` (starting wealth) column, since it is part of each cell's identity. The authoritative Hiyal journals/snapshots/fork bundles remain in per-cell and per-seed directories. Derived files are *recomputed from fully verified histories*, not treated as evidence of accepted steps.
+Outputs: `hiyal-trajectories.csv`, `hiyal-benchmarks.csv`, `hiyal-summary.csv`, `hiyal-study-report.json` and an immutable `study-plan.json`. Every derived CSV includes an `initial` (starting wealth) column, since it is part of each cell's identity. The authoritative Hiyal journals/snapshots/fork bundles remain in per-cell and per-seed directories. Derived files are *recomputed from fully verified histories*, not treated as evidence of accepted steps.
 
 ## Trajectories and mobility
 
 - Gini and top-quintile wealth share are measured at approximately 25%, 50%, and 100% of each horizon.
 - **Rank persistence** is a tie-aware Spearman correlation of each actor's midrank at the 25% baseline versus a later checkpoint. It is undefined when all actors tie at either checkpoint, represented by an empty CSV value.
-- **Rank movement** is mean absolute midrank change divided by \`n(n - 1)\`. This is a descriptive agent-level *summary within one society*, not a statistical sample of independent agents.
+- **Rank movement** is mean absolute midrank change divided by `n(n - 1)`. This is a descriptive agent-level *summary within one society*, not a statistical sample of independent agents.
 - The baseline checkpoint itself has rank persistence 1 if non-tied, otherwise undefined, and movement 0. All subsequent comparisons use the **same baseline**.
 - Rankings cannot be identified at initial equality, hence mobility is not measured from step zero.
 
@@ -40,13 +40,13 @@ These are descriptive properties of the artificial actors, not evidence of human
 
 ## Performance/retention experiment
 
-\`hiyal-benchmarks.csv\` is an **append-only log with one row per run segment**, written durably as soon as the segment is verified, so timings survive interruption and are never overwritten. A completed rerun adds no rows. Each row records:
-- \`start_step\` and \`new_accepted_steps\`: the logical step the segment started from and the opportunities it committed (a gap between segments means a run was killed before its row was written);
-- \`run_ms\`: wall-clock time to execute those new steps plus snapshot;
-- \`verification_ms\`: one full Hiyal ledger validation plus a single independent reference replay that also reconstructs the trajectory checkpoints;
-- \`journal_bytes\`, \`snapshot_bytes\`, \`state_json_bytes\`: on-disk event and snapshot sizes and serialized final state size.
+`hiyal-benchmarks.csv` is an **append-only log with one row per run segment**, written durably as soon as the segment is verified, so timings survive interruption and are never overwritten. A completed rerun adds no rows. Each row records:
+- `start_step` and `new_accepted_steps`: the logical step the segment started from and the opportunities it committed (a gap between segments means a run was killed before its row was written);
+- `run_ms`: wall-clock time to execute those new steps plus snapshot;
+- `verification_ms`: one full Hiyal ledger validation plus a single independent reference replay that also reconstructs the trajectory checkpoints;
+- `journal_bytes`, `snapshot_bytes`, `state_json_bytes`: on-disk event and snapshot sizes and serialized final state size.
 
-The default Hiyal durability is **EveryEvent**, intentionally left unchanged for crash safety. The measurements include local disk I/O and scheduler overhead. No peak RSS measurement is claimed; \`state_json_bytes\` is a serialization size, **not process memory**. These are machine-specific profiles, not comparisons to the original scalar counter benchmark.
+The default Hiyal durability is **EveryEvent**, intentionally left unchanged for crash safety. The measurements include local disk I/O and scheduler overhead. No peak RSS measurement is claimed; `state_json_bytes` is a serialization size, **not process memory**. These are machine-specific profiles, not comparisons to the original scalar counter benchmark.
 
 For longer horizons, journal validation and checkpoint economics should be benchmarked and assessed before increasing the grid cap. Wall time is diagnostic and cannot serve as a version-independent performance guarantee.
 
