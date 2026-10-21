@@ -25,21 +25,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.89.0
-      - name: Resolve dependency lockfile if not committed
+      - name: Resolve lockfile for first run
         run: |
           if [ ! -f Cargo.lock ]; then cargo generate-lockfile; fi
+      - name: Format model and runner
+        run: cargo fmt --all
       - name: Test Rust model and Hiyal fork integration
         run: cargo test --locked
-      - name: Tiny exploratory smoke pilot
-        run: cargo run --locked -- pilot /tmp/social-lab-smoke 2 15 42
-      - name: Preserve lockfile and smoke output
+      - name: Exploratory batch (not confirmatory research)
+        run: |
+          cargo run --locked -- pilot /tmp/social-lab-pilot 20 200 2000
+          awk -F, 'NR>1 {if ($2=="control") {c+=$5;n++} else if ($2=="treatment") {t+=$5}} END {printf "Exploratory terminal mean Gini: control=%0.6f treatment=%0.6f delta=%0.6f across %d paired societies\n", c/n, t/n, (t-c)/n, n}' /tmp/social-lab-pilot/results.csv
+      - name: Export resolved lock and formatted source for review
+        run: |
+          for file in Cargo.lock src/lib.rs src/main.rs; do
+            printf '\nBEGIN-REVIEW-FILE:%s\n' "$file"
+            cat "$file"
+            printf '\nEND-REVIEW-FILE:%s\n' "$file"
+          done
+      - name: Preserve lockfile and pilot outputs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: experiment-001-smoke
+          name: experiment-001-pilot
           if-no-files-found: warn
           retention-days: 7
           path: |
             Cargo.lock
-            /tmp/social-lab-smoke/results.csv
-            /tmp/social-lab-smoke/pilot-summary.json
+            /tmp/social-lab-pilot/results.csv
+            /tmp/social-lab-pilot/pilot-summary.json
