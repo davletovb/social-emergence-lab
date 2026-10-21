@@ -25,7 +25,7 @@
 | Simpson, Montgomery & Melamed (2023), *Reputations for Treatment of Outgroup Members Can Prevent the Emergence of Political Segregation in Cooperative Networks* (Nature Communications), https://doi.org/10.1038/s41467-023-43486-7 | Lab-network experiment with 1,073 people; disaggregated reputational information mitigated segregation in a politically divided setting | Very close intersection of information disclosure and evolving graph | Need direct comparison to differentiated information / tie restoration; our mechanism may overlap substantially |
 | Kas (2022), *The Effect of Online Reputation Systems on Intergroup Inequality*, https://doi.org/10.1016/j.socec.2021.101800 | Experimental reputation systems failed to eliminate intergroup inequality; early disparities mattered later | “Better reputation systems fix inequality” is not guaranteed | Intergroup inequity and our randomly assigned false priors are not equivalent |
 
-The scope and “not studied here” descriptions above reflect **what we verified in these sources**, not a claim that no other publication performed the same test. The 2021 network-cooperation paper is cited as Tsvetkova (2021) in the design review; confirm its authorship when it is next reviewed.
+The scope and “not studied here” descriptions above reflect **what we verified in these sources**, not a claim that no other publication performed the same test. The 2021 network-cooperation paper is Tsvetkova (2021), as checked in the [2026 review](scientific-review-2026.md).
 
 ### Leads from the earlier concept note, not yet reviewed
 
@@ -56,13 +56,30 @@ The first version of this experiment's research question listed two further sour
 | There exists a sharp timing/connectivity phase boundary for this contrast, robust to choice algorithms and signal quality | Hypothesis to investigate; **no evidence yet** |
 | The simulated disparity operates in actual labor markets, education or online platforms | Unsupported until empirical design/validation |
 
+
+## New sources identified in the 21 October 2026 critical review
+
+The original targeted list primarily covered pre-2024 publications. A broader search found several important newer studies. They reduce the plausibility of a broad novelty claim. See [full scientific assessment](scientific-review-2026.md) for their methodological relationship to the proposed estimands.
+
+| Published | Study | Relevance and limitation |
+| --- | --- | --- |
+| **2026**, FAccT proceedings (2025 preprint) | [Barnes et al., Edge interventions can mitigate demographic and prestige disparities in the computer science coauthorship network](https://doi.org/10.1145/3805689.3806762) | Edge repair to improve measured network disparities is already studied. Does not test late truthful correction of randomized false reputations. |
+| **2025**, EMNLP | [Qiao et al., Dynamic Simulation Framework for Disinformation Dissemination and Correction With Social Bots](https://doi.org/10.18653/v1/2025.findings-emnlp.252) | Agent-based network misinformation correction is prior art. Concerned with diffusion/attention outcomes rather than posttruth opportunity access. |
+| **2026**, January preprint | [Liu et al., Efficient Edge Rewiring Strategies for Enhancing PageRank Fairness](https://arxiv.org/abs/2602.02512) | Explicit network-edge rewiring designed to reduce unequal PageRank/exposure on real graphs. This further rules out treating structural repair of exposure as intrinsically novel. |
+| **May 2026**, ICWSM | [Holtz, Dow & Aral, Can Social Networks Substitute for Reputation Systems?](https://doi.org/10.1609/icwsm.v20i1.42680) | Marketplace field experiment found no average effect of introducing reputation ratings on behavior/activity/network structure over six months. A concrete negative prior against universally strong reputation feedback. |
+| **14 October 2026**, Nature | [Papamichalis et al., Educational intervention can rewire village social networks](https://doi.org/10.1038/s41586-026-11154-7) | Randomized health-education intervention in 110 villages (8,331 participants) led to lasting changes in directed social ties, including friendship and financial links; village-wide degree distribution can remain stable despite substantial rewiring. Strongest new constraint on claims of informational novelty. |
+
+**Dataset caveat:** Papamichalis et al.'s original individual/network data are **controlled-access** with a data-use agreement and ethical approval, despite publicly accessible analysis code ([Zenodo](https://doi.org/10.5281/zenodo.22004783)). MusicLab archive download may require registration. See [data access audit](empirical-alignment.md); no restricted data were downloaded or treated as open.
+
+**Updated candidate contribution:** recovery *trajectory* of opportunity access after truth correction, with an **inherited-link versus post-correction-link decomposition**, a **repair-without-correction contrast**, and an **exact degree/exposure versus belief-based selection decomposition**. This combination was not found as an exact empirical test in the sources checked, but **absence of discovery is not proof of novelty**. Independent human academic review and systematic forward citations are still required.
+
 ## Scope of this review and next scholarly work
 
-This was a targeted search of representative primary research from 2006–2023, not a PRISMA review, a citation graph, or a systematic forward-citation search through October 2026. In particular, we have **not** ruled out post-2023 studies on correction of misinformation combined with network access. Before positioning a paper as novel: run backward/forward citation tracing from Salganik & Watts (2008), van de Rijt (2019), Chu et al. (2020), Tsvetkova (2021) and Simpson et al. (2023); search adjacent algorithmic fairness, network formation, recommender systems, labor-market signaling, and belief updating literatures; record exclusion criteria and update this matrix.
+The original matrix was a targeted search of representative primary research from 2006–2023; the 21 October 2026 update above added 2025–2026 sources. Neither is a PRISMA review, a citation graph, or a systematic forward-citation search, so further post-2023 work on correction of misinformation combined with network access may exist. Before positioning a paper as novel: run backward/forward citation tracing from Salganik & Watts (2008), van de Rijt (2019), Chu et al. (2020), Tsvetkova (2021) and Simpson et al. (2023); search adjacent algorithmic fairness, network formation, recommender systems, labor-market signaling, and belief updating literatures; record exclusion criteria and update this matrix.
 
 ## Potential empirical alignment
 
-- **MusicLab (Salganik)** openly releases anonymized song choices for four experiments (27,267 participants in total): https://www.princeton.edu/~mjs3/data.shtml . Useful for social influence / incorrect-popularity mechanisms and measurement checks; **does not directly validate the proposed network repair counterfactual**, as it lacks friendship-tie manipulation.
+- **MusicLab (Salganik)** describes anonymized song choices for four experiments (27,267 participants in total); the archive currently requires registration for downloads ([data access audit](empirical-alignment.md)): https://www.princeton.edu/~mjs3/data.shtml . Useful for social influence / incorrect-popularity mechanisms and measurement checks; **does not directly validate the proposed network repair counterfactual**, as it lacks friendship-tie manipulation.
 - **Network experiments** analyzed in the 2018 inequality paper and the 2021 reputation paper may provide graph/earnings diagnostics where raw and ethically reusable data are available. Verify actual licensing, identities and access before claiming reproduction.
 - A prospective **incentivized experiment with consenting human participants**, where partner recommendations and correction/rewiring are randomized, is a more credible ultimate test of the specific claim. If deception about popularity or reputations is proposed, secure applicable ethical approval and debriefing first. No human-subject recruitment or manipulation is authorized by this computational plan.
 

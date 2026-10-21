@@ -19,7 +19,7 @@ All agents have **identical true quality**. Randomly give half artificially high
 | Network-only | No | Yes |
 | Both | Yes | Yes |
 
-For each fork measure `D`, the share of **post-τ** opportunity tokens reaching the randomly boosted half minus the share reaching the other half. The **candidate primary estimand** is `E[D_information-only]` across independently seeded preintervention societies: the gap in new opportunities that survives complete belief correction while rewiring continues, judged against its degree-only prediction and its late-window value. `D_both` is an exact-zero control (`E[D_both]=0` by label symmetry), and `E[D_sham − D_network-only]` is the repair contrast ([design decisions](design-review-and-tests.md#design-decisions-adopted)). Do not count actors or fork branches as independent samples.
+For each fork measure `D`, the share of **post-τ** opportunity tokens reaching the randomly boosted half minus the share reaching the other half. The **candidate primary estimand** is the information-only arm's late-window gap `E_parent[D_I^late]` at accepted steps 501–600, counted as lock-in only if it is not carried solely by links surviving from τ. Under stated exchangeability conditions `E[D_both]=0` in expectation over randomized societies, **not for every seed**, so the both arm is a control **and** enables a separate paired repair-after-truth intervention contrast `E_parent[D_I^late−D_both^late]`. Although under the exchangeability null both population means agree, the contrast asks a distinct causal question and can have different variance; no variance factor is assumed. Decompose each step's *expected* gap (its pre-event conditional expectation) into current-graph exposure, split into inherited and post-τ links, and reputation-based selection; `β=0` must eliminate the selection term. A realized gap also contains sampling noise, so it cannot be split exactly. The repair contrast is `E[D_sham − D_network-only]`, judged by magnitude. Do not count actors or fork branches as independent samples. See [October scientific review](scientific-review-2026.md).
 
 **Falsification is essential:** if correction alone removes the future opportunity gap, or structural repair does not help, the proposed mechanism is not supported for the tested parameter range. Negative controls must distinguish graph-induced exclusion from noisy belief updating and arbitrary allocation. Every parameter/outcome and inference rule remains a draft.
 
@@ -28,9 +28,11 @@ For each fork measure `D`, the share of **post-τ** opportunity tokens reaching 
 - [Targeted prior literature and explicit novelty veto](literature-review.md)
 - [Formal mechanism, causal graph, state transitions and four-arm intervention](formal-model.md)
 - [Design-review risks, reference checks, falsification matrix and implementation gates](design-review-and-tests.md)
+- [2026 scientific review and revised novelty verdict](scientific-review-2026.md)
+- [Empirical datasets and access/ethics audit](empirical-alignment.md)
 
 ## Scientific boundary
 
 False popularity becoming real, cumulative advantage, reputation changing inequality and network-driven access asymmetries are **all established ideas**. The proposed intervention contrast may be a useful mechanism-isolation or replication target, but newness has **not** been established. The present model is entirely agent based; no human participation, empirical calibration or prior ethical approval is implied.
 
-Only after independent review should we implement V0 as transparent deterministic Rust worlds using Hiyal's replay, fork and RNG facilities. Avoid LLM agents and heavyweight PR CI until there is a reason to add them.
+A critical automated desk review now supports a **small exploratory V0** after graph/RNG/estimand corrections, but **external independent academic review remains outstanding**. Implement V0 as transparent deterministic Rust worlds using Hiyal's replay, fork and RNG facilities. Avoid LLM agents and heavyweight PR CI until there is a reason to add them.
