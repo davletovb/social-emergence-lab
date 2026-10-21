@@ -272,7 +272,18 @@ async fn policy_draws_outside_agent_streams_are_rejected() {
 fn setup_draws_outside_setup_streams_are_rejected() {
     // A setup closure may draw only from `setup/…`; a flat graph stream, or
     // any engine stream, is refused before the trial directory exists.
-    for stream in ["initial_graph", "world", "agent/0/selection"] {
+    for (stream, expected) in [
+        (
+            "initial_graph",
+            "unauthorized RNG stream draw: initial_graph",
+        ),
+        ("world", "unauthorized RNG stream draw: world"),
+        (
+            "agent/0/selection",
+            "unauthorized RNG stream draw: agent/0/selection",
+        ),
+        ("scheduler", "scheduler stream modified outside scheduler"),
+    ] {
         let root = dir("setup-scope");
         let result: Result<Trial<Access, Select>, String> = Trial::create_with_setup(
             &root,
@@ -289,10 +300,7 @@ fn setup_draws_outside_setup_streams_are_rejected() {
             Scheduling::Random,
         );
         let error = result.err().unwrap();
-        assert!(
-            error.contains(&format!("unauthorized RNG stream draw: {stream}")),
-            "{stream}: {error}"
-        );
+        assert!(error.contains(expected), "{stream}: {error}");
         assert!(!root.exists(), "{stream}: a rejected setup created a trial");
     }
 }
