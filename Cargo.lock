@@ -127,7 +127,7 @@ checksum = "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a"
 [[package]]
 name = "hiyal"
 version = "0.1.0"
-source = "git+https://github.com/davletovb/hiyal?rev=c6f3d5d650457077eaff4e26a0060bc6cee5dbdd#c6f3d5d650457077eaff4e26a0060bc6cee5dbdd"
+source = "git+https://github.com/davletovb/hiyal?rev=4bb53aca5cffa6bc01b7558efbd690af7dbed79f#4bb53aca5cffa6bc01b7558efbd690af7dbed79f"
 dependencies = [
  "atomicwrites",
  "rand_chacha",
@@ -609,4 +609,3 @@ name = "zmij"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
-
