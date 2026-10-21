@@ -116,22 +116,6 @@ impl World for Society {
     }
 }
 
-/// Exact rejection sampling using multiplication-high (rather than modulo bias).
-/// One sampled ticket per decision, with very rare additional draws if rejected.
-pub fn unbiased_ticket(streams: &mut Streams, name: &str, bound: u64) -> Result<u64, String> {
-    if bound == 0 {
-        return Err("ticket bound is zero".into());
-    }
-    let threshold = bound.wrapping_neg() % bound;
-    loop {
-        let draw = streams.draw_u64(name)?;
-        let product = u128::from(draw) * u128::from(bound);
-        if (product as u64) >= threshold {
-            return Ok((product >> 64) as u64);
-        }
-    }
-}
-
 fn weights(obs: &Observation) -> Result<Vec<u64>, String> {
     obs.wealth
         .iter()
@@ -181,9 +165,11 @@ impl EffectPolicy<Society> for OpportunityPolicy {
             s.checked_add(*w)
                 .ok_or_else(|| "weight sum overflow".to_owned())
         })?;
-        let ticket = unbiased_ticket(rng, &format!("agent/{}/opportunity", actor.0), total)?;
+        // Hiyal's unbiased bounded sampler (rejection sampling, no modulo bias).
+        let bound = usize::try_from(total).map_err(|e| e.to_string())?;
+        let ticket = rng.uniform_index(&format!("agent/{}/opportunity", actor.0), bound)?;
         Ok(Allocate {
-            recipient: select_ticket(&values, ticket)?,
+            recipient: select_ticket(&values, ticket as u64)?,
         })
     }
 }
@@ -270,26 +256,33 @@ mod tests {
         assert_eq!(w, old);
     }
     #[test]
-    fn seeded_sampler_has_valid_support() {
-        let mut s = Streams::new("test".into(), 42);
-        for bound in [1, 2, 3, 20, 283, u64::MAX] {
-            for _ in 0..100 {
-                assert!(unbiased_ticket(&mut s, "agent/0/opportunity", bound).unwrap() < bound);
+    fn policy_draws_recipients_in_proportion_to_weights() {
+        // 60,000 draws per arm (sd <= ~123 per count): each count stays within
+        // 700 of its expectation unless weighting or sampling is biased.
+        for (feedback, expected) in [
+            (Feedback::Uniform, [20_000u32, 20_000, 20_000]),
+            (Feedback::Linear, [10_000, 20_000, 30_000]),
+        ] {
+            let obs = Observation {
+                wealth: vec![0, 1, 2],
+                feedback,
+                offset: 1,
+            };
+            let mut s = Streams::new("proportionality".into(), 7);
+            let mut counts = [0u32; 3];
+            for _ in 0..60_000 {
+                let pick = OpportunityPolicy
+                    .decide_with_streams(AgentId(0), &obs, &[], &mut s)
+                    .unwrap();
+                counts[pick.recipient] += 1;
             }
+            assert!(
+                counts
+                    .iter()
+                    .zip(expected)
+                    .all(|(c, e)| c.abs_diff(e) < 700),
+                "{feedback:?}: {counts:?}"
+            );
         }
-    }
-    #[test]
-    fn seeded_sampler_is_close_to_uniform() {
-        // 60,000 draws over 3 outcomes (sd ~115 per count): each count stays
-        // within 600 of 20,000 unless the sampler is materially biased.
-        let mut s = Streams::new("uniformity".into(), 7);
-        let mut counts = [0u32; 3];
-        for _ in 0..60_000 {
-            counts[unbiased_ticket(&mut s, "agent/0/opportunity", 3).unwrap() as usize] += 1;
-        }
-        assert!(
-            counts.iter().all(|c| c.abs_diff(20_000) < 600),
-            "{counts:?}"
-        );
     }
 }

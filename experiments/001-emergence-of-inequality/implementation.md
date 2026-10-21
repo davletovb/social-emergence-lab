@@ -9,7 +9,7 @@ This implementation is an integer-only, closed-population opportunity allocation
 - Control (uniform): each agent's weight is 1.
 - Treatment (linear reinforcement): agent weight equals current wealth + 1.
 
-The model uses exact multiply-high rejection sampling for a fair bounded integer ticket. Decisions draw from `agent/<scheduled-actor>/opportunity` in Hiyal's serialized named streams, and the resulting recipient is stored as a replayable action. Scheduled actors are simply proposal opportunities; their identities do **not** force them to receive tokens.
+The model draws a fair bounded integer ticket with Hiyal's unbiased `Streams::uniform_index` rejection sampler. Decisions draw from `agent/<scheduled-actor>/opportunity` in Hiyal's serialized named streams, and the resulting recipient is stored as a replayable action. Scheduled actors are simply proposal opportunities; their identities do **not** force them to receive tokens.
 
 Paired trials are created by `hiyal::research::paired_forks` from the same zero-event parent. Both arms share initial state and the source RNG domain but may use different bounded-ticket rejection patterns as their weights diverge. Do not claim perfect matched draws or independence of agents within the same society.
 
@@ -46,6 +46,8 @@ The command restarts matching existing pairs, reconstructs summaries from verifi
 
 ## First exploratory run (non-confirmatory)
 
-[GitHub Actions execution](https://github.com/davletovb/social-emergence-lab/actions/runs/39536537008) successfully ran 20 paired societies, 200 accepted opportunities per arm, starting at seed 2000. Descriptive terminal mean Gini was **0.087475** for uniform allocation and **0.119425** for linear reinforcement (paired mean difference **+0.031950**). This run has no predeclared inference threshold, confidence interval, or validation against human data. These results are *exploratory software output*, not evidence of a real-world causal process.
+20 paired societies, 200 accepted opportunities per arm, starting at seed 2000 (`pilot <dir> 20 200 2000`, the same batch as the manual workflow). Descriptive terminal mean Gini was **0.086188** for uniform allocation and **0.110688** for linear reinforcement (paired mean difference **+0.024500**).
+
+An earlier [GitHub Actions execution](https://github.com/davletovb/social-emergence-lab/actions/runs/39536537008) of the same batch used the crate's previous multiply-high sampler, which maps draws to tickets differently; its values (0.087475 vs 0.119425, +0.031950) are superseded and not reproducible with the current code. This run has no predeclared inference threshold, confidence interval, or validation against human data. These results are *exploratory software output*, not evidence of a real-world causal process.
 
 No paid model use; no live provider credentials required.
