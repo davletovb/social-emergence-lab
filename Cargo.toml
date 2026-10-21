@@ -7,7 +7,7 @@ rust-version = "1.89"
 publish = false
 
 [dependencies]
-hiyal = { git = "https://github.com/davletovb/hiyal", rev = "c6f3d5d650457077eaff4e26a0060bc6cee5dbdd" }
+hiyal = { git = "https://github.com/davletovb/hiyal", rev = "4bb53aca5cffa6bc01b7558efbd690af7dbed79f" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
