@@ -2,32 +2,35 @@
 //! Trials are event-sourced, fully verified, and resumed without overwriting
 //! existing arm histories. One society/seed is the statistical unit.
 use crate::{
-    Allocate, Feedback, OpportunityPolicy, Society, gini,
+    Allocate, Feedback, KIND, OpportunityPolicy, Society, gini,
     mobility::{mean_rank_movement, rank_persistence},
     reference,
+    runner::{create_parent_staged, discard_lone_arm, hiyal_revision, sync_dir, write_atomic},
     stats::{Pair, summarize},
     top_quintile_share,
 };
 use hiyal::{
-    core::{AgentId, TrialId},
+    core::TrialId,
     experiment::Trial,
-    research::{paired_forks, resume_fork, verify_fork},
+    research::{paired_forks, verify_fork},
     runtime::ScriptedBackend,
-    scheduler::Scheduling,
-    storage::Store,
+    storage::{ReadOnly, Store},
 };
 use serde::{Deserialize, Serialize};
 use std::{
+    collections::BTreeSet,
     fmt::Write as FmtWrite,
-    fs::{self, File},
-    io::{BufRead, BufReader, Read, Write},
+    fs::{self, OpenOptions},
+    io::{Read, Write},
     path::Path,
     sync::Arc,
     time::Instant,
 };
-const KIND: &str = "social-emergence-lab.inequality.v1";
-const HIYAL_REV: &str = "c6f3d5d650457077eaff4e26a0060bc6cee5dbdd";
 const MAX_STEPS: u64 = 120_000;
+const INTERVENTION: &str = "wealth-feedback-v1";
+const BENCHMARK_HEADER: &str = "actors,initial,offset,horizon,seed,arm,start_step,new_accepted_steps,run_ms,verification_ms,journal_bytes,snapshot_bytes,state_json_bytes\n";
+
+type ResearchTrial = Trial<Society, OpportunityPolicy>;
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Cell {
@@ -38,11 +41,14 @@ pub struct Cell {
 }
 impl Cell {
     fn validate(&self) -> Result<(), String> {
-        Society::new(self.actors, self.initial, self.offset, Feedback::Uniform)?;
+        self.society()?;
         if !(16..=1_000).contains(&self.horizon) {
             return Err("horizon outside 16..=1000".into());
         }
         Ok(())
+    }
+    fn society(&self) -> Result<Society, String> {
+        Society::new(self.actors, self.initial, self.offset, Feedback::Uniform)
     }
     fn identity(&self) -> String {
         format!(
@@ -61,11 +67,11 @@ pub struct StudyPlan {
     pub cells: Vec<Cell>,
 }
 impl StudyPlan {
-    pub fn small(first_seed: u64, pairs: usize) -> Self {
-        Self {
+    pub fn small(first_seed: u64, pairs: usize) -> Result<Self, String> {
+        Ok(Self {
             schema: 1,
             purpose: "exploratory_hiyal_smoke".into(),
-            hiyal_revision: HIYAL_REV.into(),
+            hiyal_revision: hiyal_revision()?.into(),
             first_seed,
             pairs,
             cells: vec![
@@ -82,9 +88,9 @@ impl StudyPlan {
                     horizon: 50,
                 },
             ],
-        }
+        })
     }
-    pub fn grid(first_seed: u64, pairs: usize) -> Self {
+    pub fn grid(first_seed: u64, pairs: usize) -> Result<Self, String> {
         let mut cells = Vec::new();
         for actors in [10, 20, 40] {
             for offset in [1, 10, 100] {
@@ -98,18 +104,18 @@ impl StudyPlan {
                 }
             }
         }
-        Self {
+        Ok(Self {
             schema: 1,
             purpose: "exploratory_hiyal_grid".into(),
-            hiyal_revision: HIYAL_REV.into(),
+            hiyal_revision: hiyal_revision()?.into(),
             first_seed,
             pairs,
             cells,
-        }
+        })
     }
     pub fn validate(&self) -> Result<(), String> {
         if self.schema != 1
-            || self.hiyal_revision != HIYAL_REV
+            || self.hiyal_revision != hiyal_revision()?
             || self.cells.is_empty()
             || self.cells.len() > 18
             || self.pairs == 0
@@ -140,54 +146,21 @@ impl StudyPlan {
         Ok(())
     }
 }
-#[derive(Debug, Serialize)]
 struct Trajectory {
-    actors: usize,
-    offset: u64,
-    horizon: u64,
-    seed: u64,
-    arm: String,
     step: u64,
     gini: f64,
     top_share: f64,
     rank_persistence: Option<f64>,
-    mean_rank_movement: Option<f64>,
+    mean_rank_movement: f64,
 }
-#[derive(Debug, Serialize)]
-struct RunBenchmark {
-    actors: usize,
-    offset: u64,
-    horizon: u64,
-    seed: u64,
-    arm: String,
-    new_accepted_steps: u64,
-    run_ms: u128,
-    verification_ms: u128,
-    journal_bytes: u64,
-    snapshot_bytes: u64,
-    state_json_bytes: usize,
-}
-#[derive(Debug, Serialize)]
 struct CellSummary {
-    actors: usize,
-    offset: u64,
-    horizon: u64,
+    cell: Cell,
     pairs: usize,
     control_mean_gini: f64,
     treatment_mean_gini: f64,
     mean_delta: f64,
     bootstrap_lo: Option<f64>,
     bootstrap_hi: Option<f64>,
-}
-
-fn save_atomic(path: &Path, bytes: &[u8]) -> Result<(), String> {
-    let temporary = path.with_extension("tmp");
-    let mut f = File::create(&temporary).map_err(|e| e.to_string())?;
-    f.write_all(bytes).map_err(|e| e.to_string())?;
-    f.sync_all().map_err(|e| e.to_string())?;
-    drop(f);
-    fs::rename(&temporary, path).map_err(|e| e.to_string())?;
-    Ok(())
 }
 
 fn enforce_plan(root: &Path, plan: &StudyPlan) -> Result<(), String> {
@@ -201,6 +174,12 @@ fn enforce_plan(root: &Path, plan: &StudyPlan) -> Result<(), String> {
             return Err("existing study directory belongs to a different plan".into());
         }
     } else {
+        // A crash while writing the plan leaves only its temporary file, and
+        // no evidence is ever created before the plan is durable.
+        let temporary = file.with_extension("tmp");
+        if temporary.exists() {
+            fs::remove_file(&temporary).map_err(|e| e.to_string())?;
+        }
         // Creation is exclusive. Refuse to adopt pre-existing unplanned evidence.
         if fs::read_dir(root)
             .map_err(|e| e.to_string())?
@@ -209,7 +188,7 @@ fn enforce_plan(root: &Path, plan: &StudyPlan) -> Result<(), String> {
         {
             return Err("study output exists without a study-plan.json".into());
         }
-        save_atomic(
+        write_atomic(
             &file,
             &serde_json::to_vec_pretty(plan).map_err(|e| e.to_string())?,
         )?;
@@ -217,106 +196,92 @@ fn enforce_plan(root: &Path, plan: &StudyPlan) -> Result<(), String> {
     Ok(())
 }
 
-fn initial_trial(parent: &Path, cell: &Cell, seed: u64) -> Result<(), String> {
-    let name = format!("inequality-study-{}-{}", cell.identity(), seed);
-    let trial = Trial::create(
-        parent,
-        &name,
-        seed,
-        KIND,
-        Society::new(cell.actors, cell.initial, cell.offset, Feedback::Uniform)?,
-        OpportunityPolicy,
-        Arc::new(ScriptedBackend),
-        (0..cell.actors).map(|id| AgentId(id as u64)).collect(),
-        Scheduling::RoundRobin,
-    )?;
-    trial.checkpoint()?;
-    Ok(())
+fn parent_name(cell: &Cell, seed: u64) -> String {
+    format!("inequality-study-{}-{}", cell.identity(), seed)
 }
-fn create_or_check_parent(parent: &Path, cell: &Cell, seed: u64) -> Result<(), String> {
+
+/// Returns the parent's trial ID and chain head, which every arm of this
+/// seed must descend from.
+fn create_or_check_parent(
+    parent: &Path,
+    cell: &Cell,
+    seed: u64,
+) -> Result<(String, String), String> {
     if !parent.exists() {
-        initial_trial(parent, cell, seed)?;
+        create_parent_staged(parent, &parent_name(cell, seed), seed, cell.society()?)?;
     }
     let ro = Store::<Society, Allocate>::inspect_read_only(parent)?;
-    if ro.genesis.trial_id
-        != TrialId::new(
-            &format!("inequality-study-{}-{}", cell.identity(), seed),
-            seed,
-        )
-        .0
+    if ro.genesis.trial_id != TrialId::new(&parent_name(cell, seed), seed).0
         || ro.genesis.world_kind != KIND
         || ro.logical_step != 0
-        || ro.world != Society::new(cell.actors, cell.initial, cell.offset, Feedback::Uniform)?
+        || ro.world != cell.society()?
     {
         return Err("existing parent does not match intended cell and seed".into());
     }
-    Ok(())
+    Ok((ro.genesis.trial_id, ro.chain_head))
 }
-fn pair(
+
+fn treatment_parameters(cell: &Cell) -> serde_json::Value {
+    serde_json::json!({"feedback":"linear","offset":cell.offset,"actors":cell.actors,"horizon":cell.horizon})
+}
+
+fn fork_pair(
     parent: &Path,
     arms: &Path,
     cell: &Cell,
-) -> Result<
-    (
-        Trial<Society, OpportunityPolicy>,
-        Trial<Society, OpportunityPolicy>,
-    ),
-    String,
-> {
-    let c = arms.join("control");
-    let t = arms.join("treatment");
-    let backend = Arc::new(ScriptedBackend);
-    let params = serde_json::json!({"feedback":"linear","offset":cell.offset,"actors":cell.actors,"horizon":cell.horizon});
-    let result = match (c.exists(), t.exists()) {
-        (false, false) => paired_forks(
-            parent,
-            arms,
-            "wealth-feedback-v1",
-            params.clone(),
-            || OpportunityPolicy,
-            |world: &mut Society| {
-                world.feedback = Feedback::Linear;
-                Ok(())
-            },
-            backend,
-        )?,
-        (true, true) => {
-            let ca = verify_fork::<Society>(&c)?;
-            let ta = verify_fork::<Society>(&t)?;
-            if ca.intervention != "wealth-feedback-v1"
-                || ta.intervention != "wealth-feedback-v1"
-                || ca.arm != "control"
-                || ta.arm != "treatment"
-                || ca.parameters != serde_json::json!({})
-                || ta.parameters != params
-                || ca.parent_id != ta.parent_id
-                || ca.parent_head != ta.parent_head
-            {
-                return Err("existing paired fork attribution differs from study plan".into());
-            }
-            (
-                resume_fork(&c, OpportunityPolicy, backend.clone(), false)?,
-                resume_fork(&t, OpportunityPolicy, backend, false)?,
-            )
-        }
-        _ => return Err("only one fork exists: refusing to discard or infer data".into()),
-    };
-    if result.0.store.world().feedback != Feedback::Uniform
-        || result.1.store.world().feedback != Feedback::Linear
-        || result.0.store.world().wealth.len() != cell.actors
-        || result.1.store.world().wealth.len() != cell.actors
-        || result.0.store.world().offset != cell.offset
-        || result.1.store.world().offset != cell.offset
+    backend: Arc<ScriptedBackend>,
+) -> Result<(ResearchTrial, ResearchTrial), String> {
+    paired_forks(
+        parent,
+        arms,
+        INTERVENTION,
+        treatment_parameters(cell),
+        || OpportunityPolicy,
+        |world: &mut Society| {
+            world.feedback = Feedback::Linear;
+            Ok(())
+        },
+        backend,
+    )
+}
+
+fn check_world(world: &Society, cell: &Cell, feedback: Feedback) -> Result<(), String> {
+    if world.feedback != feedback
+        || world.wealth.len() != cell.actors
+        || world.offset != cell.offset
     {
         return Err("existing fork world differs from expected cell".into());
     }
-    Ok(result)
+    Ok(())
 }
 
-async fn complete_arm(
-    trial: &mut Trial<Society, OpportunityPolicy>,
-    cell: &Cell,
-) -> Result<(u64, u128), String> {
+/// Ties an existing arm to this cell's intervention and to this seed's
+/// parent, so arms copied from another seed or cell are refused.
+fn check_attribution(
+    dir: &Path,
+    arm: &str,
+    parameters: &serde_json::Value,
+    parent: &(String, String),
+) -> Result<(), String> {
+    let meta = verify_fork::<Society>(dir)?;
+    if meta.intervention != INTERVENTION
+        || meta.arm != arm
+        || meta.parameters != *parameters
+        || meta.parent_id != parent.0
+        || meta.parent_head != parent.1
+        || meta.parent_logical_step != 0
+    {
+        return Err(
+            "existing paired fork attribution differs from study plan, seed or parent".into(),
+        );
+    }
+    Ok(())
+}
+
+/// Runs the remaining steps and returns (start step, new steps, run ms).
+/// Invariants are checked before checkpointing so a violating state never
+/// becomes the trusted snapshot.
+async fn complete_arm(trial: &mut ResearchTrial, cell: &Cell) -> Result<(u64, u64, u128), String> {
     let completed = trial.store.logical_step();
     if completed > cell.horizon {
         return Err("run progressed beyond intended horizon".into());
@@ -327,24 +292,20 @@ async fn complete_arm(
         return Err("not all opportunities were accepted".into());
     }
     trial.store.world().verify_accounting(cell.initial)?;
+    if trial.store.world().opportunities != cell.horizon {
+        return Err("opportunity counter differs from committed steps".into());
+    }
     trial.checkpoint()?;
-    Ok((remaining, start.elapsed().as_millis()))
+    Ok((completed, remaining, start.elapsed().as_millis()))
 }
 
-/// Hiyal verifies the ledger and ancestry; a *separate* vector reducer
-/// validates the terminal model state. A journal scan derives all trajectories,
-/// including earlier checkpoints after a previously interrupted run.
+/// Hiyal verifies the ledger (`ro`); a *separate* vector reducer validates the
+/// terminal model state and, in the same pass, derives all trajectories.
 fn verified_outcomes(
     dir: &Path,
+    ro: &ReadOnly<Society>,
     cell: &Cell,
-    seed: u64,
-    arm: &str,
-    new_steps: u64,
-    run_ms: u128,
-) -> Result<(Vec<Trajectory>, RunBenchmark, f64), String> {
-    let started = Instant::now();
-    verify_fork::<Society>(dir)?;
-    let ro = Store::<Society, Allocate>::inspect_read_only(dir)?;
+) -> Result<(Vec<Trajectory>, f64), String> {
     if ro.logical_step != cell.horizon
         || ro.world.opportunities != cell.horizon
         || ro.world.wealth.len() != cell.actors
@@ -353,91 +314,71 @@ fn verified_outcomes(
         return Err("terminal world/size/horizon mismatch".into());
     }
     ro.world.verify_accounting(cell.initial)?;
-    let verified = reference::replay(
+    let early = (cell.horizon / 4).max(1);
+    let checkpoints: BTreeSet<u64> = [early, (cell.horizon / 2).max(1), cell.horizon]
+        .into_iter()
+        .collect();
+    let mut rows = Vec::new();
+    let mut early_balances: Option<Vec<u64>> = None;
+    let verified = reference::replay_with(
         &dir.join("events.jsonl"),
         &ro.genesis.initial_world.wealth,
         ro.log_bytes,
+        |observed, state| {
+            if observed == early {
+                early_balances = Some(state.to_vec());
+            }
+            if checkpoints.contains(&observed) {
+                let prior = early_balances
+                    .as_ref()
+                    .ok_or("missing early ranking baseline")?;
+                rows.push(Trajectory {
+                    step: observed,
+                    gini: gini(state)?,
+                    top_share: top_quintile_share(state)?,
+                    rank_persistence: rank_persistence(prior, state)?,
+                    mean_rank_movement: mean_rank_movement(prior, state)?,
+                });
+            }
+            Ok(())
+        },
     )?;
-    if verified.opportunities != ro.logical_step || verified.wealth != ro.world.wealth {
+    if verified.opportunities != ro.logical_step
+        || verified.wealth != ro.world.wealth
+        || rows.len() != checkpoints.len()
+    {
         return Err("independent reference replay differs from Hiyal".into());
     }
-    let early = (cell.horizon / 4).max(1);
-    let checkpoints: std::collections::BTreeSet<u64> =
-        [early, (cell.horizon / 2).max(1), cell.horizon]
-            .into_iter()
-            .collect();
-    let mut state = ro.genesis.initial_world.wealth.clone();
-    let mut rows = Vec::new();
-    let mut observed = 0u64;
-    let mut early_balances = None;
-    let file = File::open(dir.join("events.jsonl")).map_err(|e| e.to_string())?;
-    let reader = BufReader::new(file.take(ro.log_bytes));
-    for record in reader.lines() {
-        let record = record.map_err(|e| e.to_string())?;
-        let value: serde_json::Value = serde_json::from_str(&record).map_err(|e| e.to_string())?;
-        let outcome = value.get("outcome").ok_or("event has no outcome")?;
-        match outcome
-            .get("outcome")
-            .and_then(|x| x.as_str())
-            .ok_or("event has no kind")?
-        {
-            "accepted" => {
-                let recipient = outcome
-                    .get("action")
-                    .and_then(|x| x.get("recipient"))
-                    .and_then(|x| x.as_u64())
-                    .ok_or("no action recipient")? as usize;
-                let w = state.get_mut(recipient).ok_or("out-of-range recipient")?;
-                *w = w.checked_add(1).ok_or("reducer overflow")?;
-                observed += 1;
-                if observed == early {
-                    early_balances = Some(state.clone());
-                }
-                if checkpoints.contains(&observed) {
-                    let prior = early_balances
-                        .as_ref()
-                        .ok_or("missing early ranking baseline")?;
-                    rows.push(Trajectory {
-                        actors: cell.actors,
-                        offset: cell.offset,
-                        horizon: cell.horizon,
-                        seed,
-                        arm: arm.into(),
-                        step: observed,
-                        gini: gini(&state)?,
-                        top_share: top_quintile_share(&state)?,
-                        rank_persistence: rank_persistence(prior, &state)?,
-                        mean_rank_movement: Some(mean_rank_movement(prior, &state)?),
-                    });
-                }
-            }
-            "control" | "rejected" => {}
-            _ => return Err("unexpected event outcome".into()),
-        }
+    Ok((rows, gini(&ro.world.wealth)?))
+}
+
+/// Appends one durable benchmark row per run segment, so timings survive
+/// interruption and are never overwritten by a later invocation. A torn final
+/// row from a crash mid-append is dropped first.
+fn append_benchmark(path: &Path, row: &str) -> Result<(), String> {
+    let mut file = OpenOptions::new()
+        .create(true)
+        .read(true)
+        .append(true)
+        .open(path)
+        .map_err(|e| e.to_string())?;
+    let mut existing = Vec::new();
+    file.read_to_end(&mut existing).map_err(|e| e.to_string())?;
+    if !existing.is_empty() && !existing.ends_with(b"\n") {
+        let keep = existing
+            .iter()
+            .rposition(|b| *b == b'\n')
+            .map_or(0, |i| i + 1);
+        file.set_len(keep as u64).map_err(|e| e.to_string())?;
+        existing.truncate(keep);
     }
-    if observed != cell.horizon || state != ro.world.wealth || rows.len() != checkpoints.len() {
-        return Err("trajectory projection did not match verified terminal state".into());
+    if existing.is_empty() {
+        file.write_all(BENCHMARK_HEADER.as_bytes())
+            .map_err(|e| e.to_string())?;
     }
-    let terminal_gini = gini(&state)?;
-    let verification_ms = started.elapsed().as_millis();
-    let benchmark = RunBenchmark {
-        actors: cell.actors,
-        offset: cell.offset,
-        horizon: cell.horizon,
-        seed,
-        arm: arm.into(),
-        new_accepted_steps: new_steps,
-        run_ms,
-        verification_ms,
-        journal_bytes: ro.log_bytes,
-        snapshot_bytes: fs::metadata(dir.join("snapshot.json"))
-            .map_err(|e| e.to_string())?
-            .len(),
-        state_json_bytes: serde_json::to_vec(&ro.world)
-            .map_err(|e| e.to_string())?
-            .len(),
-    };
-    Ok((rows, benchmark, terminal_gini))
+    file.write_all(row.as_bytes()).map_err(|e| e.to_string())?;
+    file.sync_all().map_err(|e| e.to_string())?;
+    sync_dir(path.parent().ok_or("benchmark path has no parent")?)
 }
 
 fn csv_option(value: Option<f64>) -> String {
@@ -445,50 +386,145 @@ fn csv_option(value: Option<f64>) -> String {
 }
 pub async fn run(root: &Path, plan: StudyPlan) -> Result<(), String> {
     enforce_plan(root, &plan)?;
-    let mut trajectories = Vec::new();
-    let mut benchmarks = Vec::new();
+    let backend = Arc::new(ScriptedBackend);
+    let mut trajectories = String::from(
+        "actors,initial,offset,horizon,seed,arm,step,gini,top_share,rank_persistence,mean_rank_movement\n",
+    );
     let mut summaries = Vec::new();
     for cell in &plan.cells {
+        let params = treatment_parameters(cell);
         let mut paired = Vec::new();
         for i in 0..plan.pairs {
             let seed = plan.first_seed + i as u64;
             let seed_root = root.join(cell.identity()).join(format!("seed-{seed:020}"));
             fs::create_dir_all(&seed_root).map_err(|e| e.to_string())?;
             let parent = seed_root.join("parent");
-            create_or_check_parent(&parent, cell, seed)?;
+            let parent_ref = create_or_check_parent(&parent, cell, seed)?;
             let arms = seed_root.join("arms");
-            let (mut control, mut treatment) = pair(&parent, &arms, cell)?;
-            let (csteps, cms) = complete_arm(&mut control, cell).await?;
-            let (tsteps, tms) = complete_arm(&mut treatment, cell).await?;
-            drop(control);
-            drop(treatment);
-            let (ct, cb, cg) =
-                verified_outcomes(&arms.join("control"), cell, seed, "control", csteps, cms)?;
-            let (tt, tb, tg) = verified_outcomes(
-                &arms.join("treatment"),
-                cell,
-                seed,
-                "treatment",
-                tsteps,
-                tms,
-            )?;
-            trajectories.extend(ct);
-            trajectories.extend(tt);
-            benchmarks.push(cb);
-            benchmarks.push(tb);
+            let control_dir = arms.join("control");
+            let treatment_dir = arms.join("treatment");
+            match (control_dir.exists(), treatment_dir.exists()) {
+                (true, false) => discard_lone_arm(&control_dir)?,
+                (false, true) => discard_lone_arm(&treatment_dir)?,
+                _ => {}
+            }
+            let (mut control, mut treatment) = if control_dir.exists() {
+                check_attribution(&control_dir, "control", &serde_json::json!({}), &parent_ref)?;
+                check_attribution(&treatment_dir, "treatment", &params, &parent_ref)?;
+                (None, None)
+            } else {
+                let (c, t) = fork_pair(&parent, &arms, cell, backend.clone())?;
+                (Some(c), Some(t))
+            };
+            let mut gini_by_arm = [0.0; 2];
+            for (index, (dir, arm, feedback, fresh)) in [
+                (&control_dir, "control", Feedback::Uniform, control.take()),
+                (
+                    &treatment_dir,
+                    "treatment",
+                    Feedback::Linear,
+                    treatment.take(),
+                ),
+            ]
+            .into_iter()
+            .enumerate()
+            {
+                // Complete arms are only inspected (once), never reopened for writing.
+                let mut complete = None;
+                let trial = match fresh {
+                    Some(trial) => Some(trial),
+                    None => {
+                        let ro = Store::<Society, Allocate>::inspect_read_only(dir)?;
+                        check_world(&ro.world, cell, feedback)?;
+                        if ro.logical_step < cell.horizon {
+                            Some(Trial::resume(
+                                dir,
+                                KIND,
+                                OpportunityPolicy,
+                                backend.clone(),
+                                false,
+                            )?)
+                        } else {
+                            complete = Some(ro);
+                            None
+                        }
+                    }
+                };
+                let segment = match trial {
+                    Some(mut trial) => {
+                        check_world(trial.store.world(), cell, feedback)?;
+                        let segment = complete_arm(&mut trial, cell).await?;
+                        drop(trial);
+                        Some(segment)
+                    }
+                    None => None,
+                };
+                let started = Instant::now();
+                let ro = match complete {
+                    Some(ro) => ro,
+                    None => Store::<Society, Allocate>::inspect_read_only(dir)?,
+                };
+                check_world(&ro.world, cell, feedback)?;
+                let (rows, terminal_gini) = verified_outcomes(dir, &ro, cell)?;
+                let verification_ms = started.elapsed().as_millis();
+                for x in &rows {
+                    writeln!(
+                        trajectories,
+                        "{},{},{},{},{},{},{},{:.12},{:.12},{},{:.12}",
+                        cell.actors,
+                        cell.initial,
+                        cell.offset,
+                        cell.horizon,
+                        seed,
+                        arm,
+                        x.step,
+                        x.gini,
+                        x.top_share,
+                        csv_option(x.rank_persistence),
+                        x.mean_rank_movement
+                    )
+                    .map_err(|e| e.to_string())?;
+                }
+                if let Some((start_step, new_steps, run_ms)) = segment {
+                    let snapshot_bytes = fs::metadata(dir.join("snapshot.json"))
+                        .map_err(|e| e.to_string())?
+                        .len();
+                    let state_json_bytes = serde_json::to_vec(&ro.world)
+                        .map_err(|e| e.to_string())?
+                        .len();
+                    append_benchmark(
+                        &root.join("hiyal-benchmarks.csv"),
+                        &format!(
+                            "{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
+                            cell.actors,
+                            cell.initial,
+                            cell.offset,
+                            cell.horizon,
+                            seed,
+                            arm,
+                            start_step,
+                            new_steps,
+                            run_ms,
+                            verification_ms,
+                            ro.log_bytes,
+                            snapshot_bytes,
+                            state_json_bytes
+                        ),
+                    )?;
+                }
+                gini_by_arm[index] = terminal_gini;
+            }
             paired.push(Pair {
                 seed,
                 horizon: cell.horizon,
-                control: cg,
-                treatment: tg,
+                control: gini_by_arm[0],
+                treatment: gini_by_arm[1],
             });
         }
         let stat = summarize(&paired, 2_000, 0x51_2026_001)?;
         let bounds = stat.bootstrap_percentile_95;
         summaries.push(CellSummary {
-            actors: cell.actors,
-            offset: cell.offset,
-            horizon: cell.horizon,
+            cell: cell.clone(),
             pairs: plan.pairs,
             control_mean_gini: stat.mean_control,
             treatment_mean_gini: stat.mean_treatment,
@@ -497,60 +533,23 @@ pub async fn run(root: &Path, plan: StudyPlan) -> Result<(), String> {
             bootstrap_hi: bounds.map(|b| b[1]),
         });
     }
-    // Derived CSV is regenerated from verified histories on every completed invocation.
-    let mut tr = String::from(
-        "actors,offset,horizon,seed,arm,step,gini,top_share,rank_persistence,mean_rank_movement\n",
-    );
-    for x in &trajectories {
-        writeln!(
-            tr,
-            "{},{},{},{},{},{},{:.12},{:.12},{},{}",
-            x.actors,
-            x.offset,
-            x.horizon,
-            x.seed,
-            x.arm,
-            x.step,
-            x.gini,
-            x.top_share,
-            csv_option(x.rank_persistence),
-            csv_option(x.mean_rank_movement)
-        )
-        .map_err(|e| e.to_string())?;
-    }
-    save_atomic(&root.join("hiyal-trajectories.csv"), tr.as_bytes())?;
-    let mut perf = String::from(
-        "actors,offset,horizon,seed,arm,new_accepted_steps,run_ms,verification_ms,journal_bytes,snapshot_bytes,state_json_bytes\n",
-    );
-    for b in &benchmarks {
-        writeln!(
-            perf,
-            "{},{},{},{},{},{},{},{},{},{},{}",
-            b.actors,
-            b.offset,
-            b.horizon,
-            b.seed,
-            b.arm,
-            b.new_accepted_steps,
-            b.run_ms,
-            b.verification_ms,
-            b.journal_bytes,
-            b.snapshot_bytes,
-            b.state_json_bytes
-        )
-        .map_err(|e| e.to_string())?;
-    }
-    save_atomic(&root.join("hiyal-benchmarks.csv"), perf.as_bytes())?;
+    // Derived CSVs are regenerated from verified histories on every completed
+    // invocation; the benchmark log above is append-only.
+    write_atomic(
+        &root.join("hiyal-trajectories.csv"),
+        trajectories.as_bytes(),
+    )?;
     let mut summary = String::from(
-        "actors,offset,horizon,pairs,control_mean_gini,treatment_mean_gini,paired_delta,bootstrap_95_lo,bootstrap_95_hi\n",
+        "actors,initial,offset,horizon,pairs,control_mean_gini,treatment_mean_gini,paired_delta,bootstrap_95_lo,bootstrap_95_hi\n",
     );
     for s in &summaries {
         writeln!(
             summary,
-            "{},{},{},{},{:.12},{:.12},{:.12},{},{}",
-            s.actors,
-            s.offset,
-            s.horizon,
+            "{},{},{},{},{},{:.12},{:.12},{:.12},{},{}",
+            s.cell.actors,
+            s.cell.initial,
+            s.cell.offset,
+            s.cell.horizon,
             s.pairs,
             s.control_mean_gini,
             s.treatment_mean_gini,
@@ -560,20 +559,29 @@ pub async fn run(root: &Path, plan: StudyPlan) -> Result<(), String> {
         )
         .map_err(|e| e.to_string())?;
     }
-    save_atomic(&root.join("hiyal-summary.csv"), summary.as_bytes())?;
+    write_atomic(&root.join("hiyal-summary.csv"), summary.as_bytes())?;
     let plan_hash = hiyal::storage::digest(&plan)?;
+    let actors = plan
+        .cells
+        .iter()
+        .map(|c| c.actors)
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .map(|n| n.to_string())
+        .collect::<Vec<_>>()
+        .join("/");
     let report = serde_json::json!({
         "status":"exploratory-only",
         "study_plan_digest":plan_hash,
-        "model":"20/10/40-agent integer wealth allocation; Hiyal-ChaCha20",
-        "hiyal_git_revision":HIYAL_REV,
+        "model":format!("{actors}-agent integer wealth allocation; Hiyal-ChaCha20"),
+        "hiyal_git_revision":plan.hiyal_revision,
         "cells":plan.cells.len(),"pairs_per_cell":plan.pairs,
         "scientific_unit":"one independently seeded society pair",
         "uncertainty":"paired percentile bootstrap 95%, 2000 draws, omitted for n<10",
-        "benchmark_scope":"wall-clock for newly accepted steps + checkpoint; separate full verification, on shared machine; no measured peak process RSS",
+        "benchmark_scope":"append-only log, one row per run segment: wall-clock for newly accepted steps + checkpoint, then full ledger and reference verification; on shared machine; no measured peak process RSS",
         "reporting":"all configured cells, null and negative effects retained",
     });
-    save_atomic(
+    write_atomic(
         &root.join("hiyal-study-report.json"),
         &serde_json::to_vec_pretty(&report).map_err(|e| e.to_string())?,
     )?;
@@ -582,30 +590,185 @@ pub async fn run(root: &Path, plan: StudyPlan) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    static NEXT: AtomicUsize = AtomicUsize::new(0);
+
+    fn test_root(label: &str) -> std::path::PathBuf {
+        let idx = NEXT.fetch_add(1, Ordering::Relaxed);
+        let root = std::env::temp_dir().join(format!(
+            "social-hiyal-grid-{label}-{}-{idx}",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&root);
+        root
+    }
+
+    fn derived(root: &Path) -> (Vec<u8>, Vec<u8>) {
+        (
+            fs::read(root.join("hiyal-trajectories.csv")).unwrap(),
+            fs::read(root.join("hiyal-summary.csv")).unwrap(),
+        )
+    }
+
+    fn seed_dir(root: &Path, cell: &Cell, seed: u64) -> std::path::PathBuf {
+        root.join(cell.identity()).join(format!("seed-{seed:020}"))
+    }
+
+    fn copy_dir(from: &Path, to: &Path) {
+        fs::create_dir_all(to).unwrap();
+        for entry in fs::read_dir(from).unwrap() {
+            let entry = entry.unwrap();
+            let target = to.join(entry.file_name());
+            if entry.file_type().unwrap().is_dir() {
+                copy_dir(&entry.path(), &target);
+            } else {
+                fs::copy(entry.path(), target).unwrap();
+            }
+        }
+    }
+
     #[test]
     fn plans_are_bounded_and_distinct() {
-        let a = StudyPlan::small(101, 2);
+        let a = StudyPlan::small(101, 2).unwrap();
         a.validate().unwrap();
-        let b = StudyPlan::grid(101, 10);
+        let b = StudyPlan::grid(101, 10).unwrap();
         b.validate().unwrap();
         assert_eq!(b.cells.len(), 18);
-        assert!(StudyPlan::grid(101, 11).validate().is_err());
-        assert!(StudyPlan::grid(u64::MAX, 2).validate().is_err());
+        assert!(StudyPlan::grid(101, 11).unwrap().validate().is_err());
+        assert!(StudyPlan::grid(u64::MAX, 2).unwrap().validate().is_err());
+        let mut stale = StudyPlan::small(101, 2).unwrap();
+        stale.hiyal_revision = "0000000000000000000000000000000000000000".into();
+        assert!(stale.validate().is_err());
     }
+
     #[tokio::test]
     async fn study_is_idempotent_and_rejects_changed_plan() {
-        let root =
-            std::env::temp_dir().join(format!("social-hiyal-grid-test-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&root);
-        let plan = StudyPlan::small(2026, 1);
+        let root = test_root("idempotent");
+        let plan = StudyPlan::small(2026, 1).unwrap();
         run(&root, plan.clone()).await.unwrap();
-        let first = fs::read(root.join("hiyal-trajectories.csv")).unwrap();
+        let first = derived(&root);
+        let benchmarks = fs::read(root.join("hiyal-benchmarks.csv")).unwrap();
+        assert_eq!(String::from_utf8_lossy(&benchmarks).lines().count(), 1 + 4);
+        let snapshot = seed_dir(&root, &plan.cells[0], 2026).join("arms/control/snapshot.json");
+        let modified = fs::metadata(&snapshot).unwrap().modified().unwrap();
         run(&root, plan.clone()).await.unwrap();
+        assert_eq!(first, derived(&root));
+        // A completed rerun adds no benchmark rows and does not rewrite evidence.
         assert_eq!(
-            first,
-            fs::read(root.join("hiyal-trajectories.csv")).unwrap()
+            benchmarks,
+            fs::read(root.join("hiyal-benchmarks.csv")).unwrap()
         );
-        assert!(run(&root, StudyPlan::small(2027, 1)).await.is_err());
+        assert_eq!(
+            modified,
+            fs::metadata(&snapshot).unwrap().modified().unwrap()
+        );
+        let report = fs::read_to_string(root.join("hiyal-study-report.json")).unwrap();
+        assert!(report.contains("10/20-agent"), "{report}");
+        assert!(
+            run(&root, StudyPlan::small(2027, 1).unwrap())
+                .await
+                .is_err()
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[tokio::test]
+    async fn interrupted_runs_resume_to_identical_results() {
+        let clean = test_root("clean");
+        let plan = StudyPlan::small(3030, 1).unwrap();
+        run(&clean, plan.clone()).await.unwrap();
+        let backend = Arc::new(ScriptedBackend);
+
+        // Lone control arm left by a kill between the two forks.
+        let lone = test_root("lone-arm");
+        enforce_plan(&lone, &plan).unwrap();
+        let cell = &plan.cells[0];
+        let seed = seed_dir(&lone, cell, 3030);
+        fs::create_dir_all(&seed).unwrap();
+        create_or_check_parent(&seed.join("parent"), cell, 3030).unwrap();
+        hiyal::research::fork_at_head(
+            seed.join("parent"),
+            seed.join("arms/control"),
+            INTERVENTION,
+            "control",
+            serde_json::json!({}),
+            |_world: &mut Society| Ok(()),
+            OpportunityPolicy,
+            backend.clone(),
+        )
+        .unwrap();
+        run(&lone, plan.clone()).await.unwrap();
+        assert_eq!(derived(&clean), derived(&lone));
+
+        // Arm stopped part-way through its horizon.
+        let partial = test_root("partial-arm");
+        enforce_plan(&partial, &plan).unwrap();
+        let seed = seed_dir(&partial, cell, 3030);
+        fs::create_dir_all(&seed).unwrap();
+        create_or_check_parent(&seed.join("parent"), cell, 3030).unwrap();
+        let (mut control, treatment) =
+            fork_pair(&seed.join("parent"), &seed.join("arms"), cell, backend).unwrap();
+        assert_eq!(control.run_attempts(5).await.unwrap(), 5);
+        control.checkpoint().unwrap();
+        drop((control, treatment));
+        run(&partial, plan.clone()).await.unwrap();
+        assert_eq!(derived(&clean), derived(&partial));
+        let log = fs::read_to_string(partial.join("hiyal-benchmarks.csv")).unwrap();
+        let resumed = log
+            .lines()
+            .find(|l| l.starts_with("10,10,1,30,3030,control,"))
+            .unwrap();
+        assert!(
+            resumed.starts_with("10,10,1,30,3030,control,5,25,"),
+            "{resumed}"
+        );
+
+        // Leftover plan temporary file and parent staging directory.
+        let staged = test_root("staged");
+        fs::create_dir_all(&staged).unwrap();
+        fs::write(staged.join("study-plan.tmp"), b"partial").unwrap();
+        enforce_plan(&staged, &plan).unwrap();
+        let seed = seed_dir(&staged, cell, 3030);
+        let stage = seed.join(format!(".parent.pending-{}", std::process::id()));
+        fs::create_dir_all(&stage).unwrap();
+        fs::write(stage.join("manifest.json"), b"partial").unwrap();
+        run(&staged, plan).await.unwrap();
+        assert!(!stage.exists());
+        assert_eq!(derived(&clean), derived(&staged));
+
+        for root in [clean, lone, partial, staged] {
+            fs::remove_dir_all(root).unwrap();
+        }
+    }
+
+    #[tokio::test]
+    async fn arms_copied_from_another_seed_are_refused() {
+        let root = test_root("copied");
+        let plan = StudyPlan::small(4040, 2).unwrap();
+        run(&root, plan.clone()).await.unwrap();
+        let cell = &plan.cells[0];
+        let target = seed_dir(&root, cell, 4041).join("arms");
+        fs::remove_dir_all(&target).unwrap();
+        copy_dir(&seed_dir(&root, cell, 4040).join("arms"), &target);
+        let error = run(&root, plan).await.unwrap_err();
+        assert!(error.contains("attribution"), "{error}");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn benchmark_log_drops_torn_row_and_appends() {
+        let root = test_root("benchmark-log");
+        fs::create_dir_all(&root).unwrap();
+        let log = root.join("hiyal-benchmarks.csv");
+        append_benchmark(&log, "a\n").unwrap();
+        let mut file = OpenOptions::new().append(true).open(&log).unwrap();
+        file.write_all(b"torn").unwrap();
+        drop(file);
+        append_benchmark(&log, "b\n").unwrap();
+        assert_eq!(
+            fs::read_to_string(&log).unwrap(),
+            format!("{BENCHMARK_HEADER}a\nb\n")
+        );
         fs::remove_dir_all(root).unwrap();
     }
 }

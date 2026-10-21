@@ -9,6 +9,8 @@ Evidence copied **verbatim from CI stdout** into:
 - [Per-arm runtime and on-disk storage](hiyal-grid-one-seed-64000-benchmarks.csv)
 - [Inequality trajectories and rank movement](hiyal-grid-one-seed-64000-trajectories.csv)
 
+**Column layout:** these files predate the \`initial\` column (every cell here starts at 10 tokens) and the append-only benchmark log; the benchmark file has one row per arm without \`start_step\`. Re-running the same invocation with the current code reproduces the same summary and trajectory values and identical journal sizes, in the current layout.
+
 Run invocation:
 ```sh
 cargo run --locked --release --bin hiyal-grid -- grid /tmp/hiyal-grid-profile 1 64000

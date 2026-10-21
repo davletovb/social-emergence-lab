@@ -12,7 +12,9 @@ The fixed exploratory parameter grid has 18 cells:
 - horizon **100, 500 accepted opportunities**;
 - up to **10 paired society seeds per cell**, with a total cap of 120,000 accepted events (across control + treatment).
 
-To prevent expensive accidental runs, the grid is **manual-only** and not part of ordinary PR CI. A two-cell, one-pair smoke is the default PR integration. Use unique output directories per scientific plan. The runner creates immutable \`study-plan.json\`; resuming a directory with a changed plan is refused.
+To prevent expensive accidental runs, the grid is **manual-only** and not part of ordinary PR CI. A two-cell, one-pair smoke is the default PR integration. Use unique output directories per scientific plan. The runner creates immutable \`study-plan.json\` (its Hiyal revision is read from \`Cargo.lock\`); resuming a directory with a changed plan is refused.
+
+Interrupted runs resume safely: parents are published atomically, a lone arm left at the fork boundary is discarded and re-forked (an arm with committed events is never replaced), a leftover \`study-plan.tmp\` is ignored, and arms that stopped part-way continue to the horizon with results identical to an uninterrupted run. Existing arms must descend from *this* seed's parent, so arms copied between seeds or cells are refused. Completed arms are only inspected, never reopened for writing.
 
 ## Run
 
@@ -24,7 +26,7 @@ cargo run --locked --release --bin hiyal-grid -- grid /tmp/hiyal-studies-grid 10
 
 **Exploratory-only**: the grid's seed range, effect estimates, and statistical intervals are not held-out confirmatory tests. Running it does not register a hypothesis.
 
-Outputs: \`hiyal-trajectories.csv\`, \`hiyal-benchmarks.csv\`, \`hiyal-summary.csv\`, \`hiyal-study-report.json\` and an immutable \`study-plan.json\`. The authoritative Hiyal journals/snapshots/fork bundles remain in per-cell and per-seed directories. Derived files are *recomputed from fully verified histories*, not treated as evidence of accepted steps.
+Outputs: \`hiyal-trajectories.csv\`, \`hiyal-benchmarks.csv\`, \`hiyal-summary.csv\`, \`hiyal-study-report.json\` and an immutable \`study-plan.json\`. Every derived CSV includes an \`initial\` (starting wealth) column, since it is part of each cell's identity. The authoritative Hiyal journals/snapshots/fork bundles remain in per-cell and per-seed directories. Derived files are *recomputed from fully verified histories*, not treated as evidence of accepted steps.
 
 ## Trajectories and mobility
 
@@ -38,10 +40,10 @@ These are descriptive properties of the artificial actors, not evidence of human
 
 ## Performance/retention experiment
 
-Every arm logs:
-- \`new_accepted_steps\`: only committed opportunities added in **this invocation**; zero after a completed rerun;
+\`hiyal-benchmarks.csv\` is an **append-only log with one row per run segment**, written durably as soon as the segment is verified, so timings survive interruption and are never overwritten. A completed rerun adds no rows. Each row records:
+- \`start_step\` and \`new_accepted_steps\`: the logical step the segment started from and the opportunities it committed (a gap between segments means a run was killed before its row was written);
 - \`run_ms\`: wall-clock time to execute those new steps plus snapshot;
-- \`verification_ms\`: complete fork/ledger validation, independent reference replay, and reconstruction of trajectory checkpoints;
+- \`verification_ms\`: one full Hiyal ledger validation plus a single independent reference replay that also reconstructs the trajectory checkpoints;
 - \`journal_bytes\`, \`snapshot_bytes\`, \`state_json_bytes\`: on-disk event and snapshot sizes and serialized final state size.
 
 The default Hiyal durability is **EveryEvent**, intentionally left unchanged for crash safety. The measurements include local disk I/O and scheduler overhead. No peak RSS measurement is claimed; \`state_json_bytes\` is a serialization size, **not process memory**. These are machine-specific profiles, not comparisons to the original scalar counter benchmark.
