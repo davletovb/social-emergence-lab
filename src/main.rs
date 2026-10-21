@@ -9,8 +9,8 @@ use hiyal::{
 };
 use serde::Serialize;
 use social_emergence_lab::{
-    ACTORS, Allocate, Feedback, INITIAL_WEALTH, KIND, OFFSET, OpportunityPolicy, Society,
-    gini, top_quintile_share,
+    ACTORS, Allocate, Feedback, INITIAL_WEALTH, KIND, OFFSET, OpportunityPolicy, Society, gini,
+    top_quintile_share,
 };
 use std::{
     env,
@@ -70,10 +70,14 @@ fn check_parent(dir: &Path, seed: u64) -> Result<(), String> {
 
 async fn advance(trial: &mut ResearchTrial, target: u64) -> Result<(), String> {
     let progress = trial.store.logical_step();
-    if progress > target { return Err("existing trial exceeds requested horizon".into()); }
+    if progress > target {
+        return Err("existing trial exceeds requested horizon".into());
+    }
     let remaining = target - progress;
     let accepted = trial.run_attempts(remaining).await?;
-    if accepted != remaining { return Err("unexpected rejection/no eligible actor".into()); }
+    if accepted != remaining {
+        return Err("unexpected rejection/no eligible actor".into());
+    }
     trial.checkpoint()?;
     trial.store.world().verify_accounting(INITIAL_WEALTH)?;
     if trial.store.world().opportunities != target {
@@ -104,24 +108,29 @@ fn row(dir: &Path, seed: u64, arm: &str) -> Result<ResultRow, String> {
 async fn one(root: &Path, seed: u64, target: u64) -> Result<Vec<ResultRow>, String> {
     fs::create_dir_all(root).map_err(|e| e.to_string())?;
     let parent = root.join("parent");
-    if !parent.exists() { create_parent(&parent,seed)?; }
-    check_parent(&parent,seed)?;
+    if !parent.exists() {
+        create_parent(&parent, seed)?;
+    }
+    check_parent(&parent, seed)?;
     let arms_dir = root.join("arms");
     let control_dir = arms_dir.join("control");
     let treatment_dir = arms_dir.join("treatment");
     let present = (control_dir.exists(), treatment_dir.exists());
     let backend = Arc::new(ScriptedBackend);
-    let (mut control,mut treatment) = match present {
-        (false,false) => paired_forks(
+    let (mut control, mut treatment) = match present {
+        (false, false) => paired_forks(
             &parent,
             &arms_dir,
             "linear-feedback-v1",
             serde_json::json!({"feedback":"linear", "offset":OFFSET}),
             || OpportunityPolicy,
-            |world: &mut Society| { world.feedback = Feedback::Linear; Ok(()) },
+            |world: &mut Society| {
+                world.feedback = Feedback::Linear;
+                Ok(())
+            },
             backend,
         )?,
-        (true,true) => (
+        (true, true) => (
             resume_fork(&control_dir, OpportunityPolicy, backend.clone(), false)?,
             resume_fork(&treatment_dir, OpportunityPolicy, backend, false)?,
         ),
@@ -134,17 +143,17 @@ async fn one(root: &Path, seed: u64, target: u64) -> Result<Vec<ResultRow>, Stri
     {
         return Err("existing fork arm configuration changed".into());
     }
-    advance(&mut control,target).await?;
-    advance(&mut treatment,target).await?;
+    advance(&mut control, target).await?;
+    advance(&mut treatment, target).await?;
     drop(control);
     drop(treatment);
 
-    let c = row(&control_dir,seed,"control")?;
-    let t = row(&treatment_dir,seed,"treatment")?;
+    let c = row(&control_dir, seed, "control")?;
+    let t = row(&treatment_dir, seed, "treatment")?;
     if c.opportunities != target || t.opportunities != target {
         return Err("unexpected number of steps".into());
     }
-    Ok(vec![c,t])
+    Ok(vec![c, t])
 }
 
 pub async fn pilot(root: &Path, pairs: usize, steps: u64, first_seed: u64) -> Result<(), String> {
@@ -154,18 +163,28 @@ pub async fn pilot(root: &Path, pairs: usize, steps: u64, first_seed: u64) -> Re
     let mut all = Vec::with_capacity(pairs * 2);
     for i in 0..pairs {
         let seed = first_seed.checked_add(i as u64).ok_or("seed overflow")?;
-        let results = one(&root.join(format!("seed-{seed:020}")),seed,steps).await?;
+        let results = one(&root.join(format!("seed-{seed:020}")), seed, steps).await?;
         all.extend(results);
     }
 
     // Published summary is nonauthoritative: restart can reconstruct from verified journals.
-    let mut csv = String::from("seed,arm,attempts,opportunities,gini,top_quintile_share,chain_head\n");
+    let mut csv =
+        String::from("seed,arm,attempts,opportunities,gini,top_quintile_share,chain_head\n");
     for result in &all {
-        writeln!(csv,"{},{},{},{},{:.12},{:.12},{}",
-            result.seed,result.arm,result.attempts,result.opportunities,
-            result.gini,result.top_quintile_share,result.chain_head).map_err(|e| e.to_string())?;
+        writeln!(
+            csv,
+            "{},{},{},{},{:.12},{:.12},{}",
+            result.seed,
+            result.arm,
+            result.attempts,
+            result.opportunities,
+            result.gini,
+            result.top_quintile_share,
+            result.chain_head
+        )
+        .map_err(|e| e.to_string())?;
     }
-    write_atomic(&root.join("results.csv"),csv.as_bytes())?;
+    write_atomic(&root.join("results.csv"), csv.as_bytes())?;
     let summary = serde_json::json!({
         "study": "001-emergence-of-inequality",
         "status": "exploratory-pilot",
@@ -179,8 +198,10 @@ pub async fn pilot(root: &Path, pairs: usize, steps: u64, first_seed: u64) -> Re
         "randomization": "paired_forks shared RNG domain; exact stream consumption may diverge",
         "results": all
     });
-    write_atomic(&root.join("pilot-summary.json"),
-        &serde_json::to_vec_pretty(&summary).map_err(|e|e.to_string())?)?;
+    write_atomic(
+        &root.join("pilot-summary.json"),
+        &serde_json::to_vec_pretty(&summary).map_err(|e| e.to_string())?,
+    )?;
     Ok(())
 }
 
@@ -208,50 +229,54 @@ async fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::atomic::{AtomicUsize,Ordering};
+    use std::sync::atomic::{AtomicUsize, Ordering};
     static NEXT: AtomicUsize = AtomicUsize::new(0);
 
     fn test_root(label: &str) -> PathBuf {
-        let idx = NEXT.fetch_add(1,Ordering::Relaxed);
+        let idx = NEXT.fetch_add(1, Ordering::Relaxed);
         std::env::temp_dir().join(format!("social-lab-{label}-{}-{idx}", std::process::id()))
     }
 
     #[tokio::test]
     async fn paired_trial_restart_and_reference_are_deterministic() {
-        let a=test_root("restart");
-        let b=test_root("uninterrupted");
+        let a = test_root("restart");
+        let b = test_root("uninterrupted");
         assert!(!a.exists() && !b.exists());
-        pilot(&a,2,9,420).await.unwrap();
+        pilot(&a, 2, 9, 420).await.unwrap();
         let first = fs::read_to_string(a.join("results.csv")).unwrap();
-        pilot(&a,2,9,420).await.unwrap();
-        assert_eq!(first,fs::read_to_string(a.join("results.csv")).unwrap());
-        pilot(&a,2,19,420).await.unwrap();
-        pilot(&b,2,19,420).await.unwrap();
-        assert_eq!(fs::read(a.join("results.csv")).unwrap(),fs::read(b.join("results.csv")).unwrap());
+        pilot(&a, 2, 9, 420).await.unwrap();
+        assert_eq!(first, fs::read_to_string(a.join("results.csv")).unwrap());
+        pilot(&a, 2, 19, 420).await.unwrap();
+        pilot(&b, 2, 19, 420).await.unwrap();
+        assert_eq!(
+            fs::read(a.join("results.csv")).unwrap(),
+            fs::read(b.join("results.csv")).unwrap()
+        );
 
         let c = a.join("seed-00000000000000000420/arms/control");
         let t = a.join("seed-00000000000000000420/arms/treatment");
         let ctrl = Store::<Society, Allocate>::inspect_read_only(&c).unwrap();
         let trt = Store::<Society, Allocate>::inspect_read_only(&t).unwrap();
-        assert_eq!(ctrl.world.opportunities,19);
-        assert_eq!(trt.world.opportunities,19);
-        assert_eq!(ctrl.world.feedback,Feedback::Uniform);
-        assert_eq!(trt.world.feedback,Feedback::Linear);
-        assert_eq!(ctrl.world.total().unwrap(),20*10+19);
-        assert_eq!(trt.world.total().unwrap(),20*10+19);
+        assert_eq!(ctrl.world.opportunities, 19);
+        assert_eq!(trt.world.opportunities, 19);
+        assert_eq!(ctrl.world.feedback, Feedback::Uniform);
+        assert_eq!(trt.world.feedback, Feedback::Linear);
+        assert_eq!(ctrl.world.total().unwrap(), 20 * 10 + 19);
+        assert_eq!(trt.world.total().unwrap(), 20 * 10 + 19);
         fs::remove_dir_all(a).unwrap();
         fs::remove_dir_all(b).unwrap();
     }
 
     #[tokio::test]
     async fn fork_tamper_is_detected_before_resume() {
-        let a=test_root("tamper");
-        pilot(&a,1,3,99).await.unwrap();
-        let p=a.join("seed-00000000000000000099/arms/control/ancestry/manifest.json");
-        let mut bytes=fs::read(&p).unwrap();
+        let a = test_root("tamper");
+        pilot(&a, 1, 3, 99).await.unwrap();
+        let p = a.join("seed-00000000000000000099/arms/control/ancestry/manifest.json");
+        let mut bytes = fs::read(&p).unwrap();
         bytes.push(b' ');
-        fs::write(p,bytes).unwrap();
-        assert!(pilot(&a,1,4,99).await.is_err());
+        fs::write(p, bytes).unwrap();
+        assert!(pilot(&a, 1, 4, 99).await.is_err());
         fs::remove_dir_all(a).unwrap();
     }
 }
+
