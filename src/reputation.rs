@@ -32,7 +32,12 @@ pub struct Config {
     pub rewire_every: u64,
     pub removal: Removal,
     pub graph_attempts: usize,
+    /// Development control: replace all selection links with a new balanced
+    /// permuted-circulant graph before each opportunity; never retain ties.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub annealed: bool,
 }
+fn is_false(v: &bool) -> bool { !*v }
 
 impl Config {
     pub fn default_for(actors: usize, degree: usize) -> Self {
@@ -48,13 +53,16 @@ impl Config {
             rewire_every: 10,
             removal: Removal::LowestBelief,
             graph_attempts: MAX_GRAPH_ATTEMPTS,
+            annealed: false,
         }
     }
     pub fn validate(&self) -> Result<(), String> {
         if !(6..=40).contains(&self.actors)
             || self.actors % 2 != 0
             || self.degree == 0
-            || self.degree >= self.actors.saturating_sub(1)
+            || self.degree >= self.actors
+            || (self.degree == self.actors - 1 && self.removal != Removal::None)
+            || (self.annealed && self.removal != Removal::None)
             || self.rewire_every == 0
             || !(1..=MAX_GRAPH_ATTEMPTS).contains(&self.graph_attempts)
         {
@@ -78,15 +86,19 @@ impl Config {
 
 /// Exact uniform sampling over simple directed d-in/d-out-regular graphs,
 /// conditioned on configuration-model rejection. Stop rather than loop forever.
-pub fn regular_graph(
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GraphSample { pub edges: Vec<Vec<usize>>, pub attempts: usize }
+
+/// Count every attempted uniform stub pairing, including rejected graphs.
+pub fn sample_regular_graph(
     config: &Config,
     streams: &mut Streams,
     name: &str,
-) -> Result<Vec<Vec<usize>>, String> {
+) -> Result<GraphSample, String> {
     config.validate()?;
     let n = config.actors;
     let d = config.degree;
-    for _ in 0..config.graph_attempts {
+    for attempt in 1..=config.graph_attempts {
         let mut targets: Vec<usize> = (0..n).flat_map(|i| std::iter::repeat_n(i, d)).collect();
         for k in (1..targets.len()).rev() {
             let index = streams.uniform_index(name, k + 1)?;
@@ -94,13 +106,36 @@ pub fn regular_graph(
         }
         let edges: Vec<Vec<usize>> = targets.chunks(d).map(<[usize]>::to_vec).collect();
         if validate_graph(&edges, n, d).is_ok() {
-            return Ok(edges);
+            return Ok(GraphSample { edges, attempts: attempt });
         }
     }
     Err(format!(
         "simple {d}-regular directed graph not found after {} bounded draws on {name}",
         config.graph_attempts
     ))
+}
+
+pub fn regular_graph(config: &Config, streams: &mut Streams, name: &str) -> Result<Vec<Vec<usize>>, String> {
+    Ok(sample_regular_graph(config, streams, name)?.edges)
+}
+
+/// Balanced but explicitly NONUNIFORM graph family for annealed-mixing null.
+/// Node permutation is freshly drawn from the acting agent stream every step.
+pub fn annealed_regular_graph(n: usize, d: usize, rng: &mut Streams, stream: &str) -> Result<Vec<Vec<usize>>, String> {
+    if n < 3 || d == 0 || d >= n { return Err("bad annealed graph dimensions".into()); }
+    let mut order: Vec<usize> = (0..n).collect();
+    for k in (1..n).rev() {
+        let j = rng.uniform_index(stream, k+1)?;
+        order.swap(k,j);
+    }
+    let mut edges = vec![Vec::with_capacity(d); n];
+    for k in 0..n {
+        for h in 1..=d {
+            edges[order[k]].push(order[(k+h)%n]);
+        }
+    }
+    validate_graph(&edges,n,d)?;
+    Ok(edges)
 }
 
 pub fn validate_graph(edges: &[Vec<usize>], n: usize, d: usize) -> Result<(), String> {
@@ -157,8 +192,12 @@ pub fn setup(config: &Config, rng: &mut Streams) -> Result<ReputationWorld, Stri
     for &i in &names[..n / 2] {
         boost[i] = true;
     }
-    let initial_graph = regular_graph(config, rng, "setup/initial_graph")?;
-    let repair_graph = regular_graph(config, rng, "setup/repair_graph")?;
+    let (initial_graph, repair_graph) = if config.degree == n - 1 {
+        let complete = (0..n).map(|j| (0..n).filter(|&i| i != j).collect::<Vec<_>>()).collect::<Vec<_>>();
+        (complete.clone(), complete)
+    } else {
+        (regular_graph(config, rng, "setup/initial_graph")?, regular_graph(config, rng, "setup/repair_graph")?)
+    };
     let priors: Vec<f64> = boost
         .iter()
         .map(|&b| 0.5 + if b { config.delta } else { -config.delta })
@@ -276,6 +315,9 @@ pub struct Action {
     pub success: bool,
     pub rewire: Option<Rewire>,
     pub pre_flow: Flow,
+    /// For the annealed null, record the freshly sampled ephemeral whole graph.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub annealed_graph: Option<Vec<Vec<usize>>>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StepTrace {
@@ -398,10 +440,23 @@ impl HiyalWorld for ReputationWorld {
         if j >= n {
             return Err("allocator out of range".into());
         }
-        if !self.graph[j].contains(&a.recipient) {
+        let mut pre = self.clone();
+        if let Some(ref new_graph) = a.annealed_graph {
+            if !pre.config.annealed { return Err("unexpected annealed graph".into()); }
+            validate_graph(new_graph,n,pre.config.degree)?;
+            pre.graph = new_graph.clone();
+            if let Some(ref mut surviving) = pre.surviving_edges {
+                for (row, links) in surviving.iter_mut().zip(&pre.graph) {
+                    row.retain(|i| links.contains(i));
+                }
+            }
+        } else if self.config.annealed {
+            return Err("annealed policy must provide a fresh graph".into());
+        }
+        if !pre.graph[j].contains(&a.recipient) {
             return Err("recipient not eligible".into());
         }
-        let now = flow(self)?;
+        let now = flow(&pre)?;
         for (v, x) in [
             (now.degree, a.pre_flow.degree),
             (now.inherited, a.pre_flow.inherited),
@@ -419,7 +474,7 @@ impl HiyalWorld for ReputationWorld {
             return Err("incorrect rewiring event timing".into());
         }
         // Stage all changes atomically, as Hiyal also stages its own world.
-        let mut w = self.clone();
+        let mut w = pre;
         w.wealth[a.recipient] = w.wealth[a.recipient]
             .checked_add(1)
             .ok_or("wealth overflow")?;
@@ -490,10 +545,22 @@ impl EffectPolicy<ReputationWorld> for ReputationPolicy {
         if j >= world.config.actors {
             return Err("unknown allocator".into());
         }
-        let pre_flow = flow(world)?;
+        let mut pre = world.clone();
+        let annealed_graph = if world.config.annealed {
+            let stream = format!("agent/{j}/annealed");
+            let edges = annealed_regular_graph(world.config.actors,world.config.degree,rng,&stream)?;
+            pre.graph = edges.clone();
+            if let Some(ref mut surviving) = pre.surviving_edges {
+                for (row, links) in surviving.iter_mut().zip(&pre.graph) {
+                    row.retain(|i| links.contains(i));
+                }
+            }
+            Some(edges)
+        } else { None };
+        let pre_flow = flow(&pre)?;
         let sel = format!("agent/{j}/selection");
-        let index = choose(&selection_probs(world, j)?, rng, &sel)?;
-        let recipient = world.graph[j][index];
+        let index = choose(&selection_probs(&pre, j)?, rng, &sel)?;
+        let recipient = pre.graph[j][index];
         let sig = format!("agent/{j}/performance");
         let success = rng.draw_u64(&sig)? & 1 == 0;
         let step = world.step.checked_add(1).ok_or("step overflow")?;
@@ -552,6 +619,7 @@ impl EffectPolicy<ReputationWorld> for ReputationPolicy {
             success,
             rewire,
             pre_flow,
+            annealed_graph,
         })
     }
 }
