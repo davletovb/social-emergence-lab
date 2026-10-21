@@ -10,13 +10,23 @@ fn root()->PathBuf {
     std::env::temp_dir().join(format!("reputation-prior-pair-{}-{}",std::process::id(),COUNTER.fetch_add(1,Ordering::Relaxed)))
 }
 #[test]
-fn empty_effect_observation_does_not_mutate_replay_state() {
+fn compact_policy_observation_excludes_growing_trace_and_preserves_input() {
     let mut rng=Streams::new("v2-observe".into(),8101);
-    let w=setup(&Config::default_for(6,2),&mut rng).unwrap();
-    let before=serde_json::to_vec(&w).unwrap();
-    assert_eq!(w.observe(AgentId(0)).unwrap(),());
-    assert_eq!(w.observe(AgentId(1)).unwrap(),());
-    assert_eq!(before,serde_json::to_vec(&w).unwrap());
+    let mut w=setup(&Config::default_for(6,2),&mut rng).unwrap();
+    let original=serde_json::to_vec(&w).unwrap();
+    let view=w.observe(AgentId(0)).unwrap();
+    assert_eq!(view.step,w.step);
+    assert_eq!(view.graph,w.graph);
+    assert_eq!(view.beliefs,w.beliefs);
+    assert_eq!(view.boost,w.boost);
+    assert_eq!(view.public,w.public);
+    assert_eq!(original,serde_json::to_vec(&w).unwrap());
+    // A large recorded trace never travels through observe().
+    // The transient type contains no trace at all.
+    w.trace.reserve(1000);
+    let observed=w.observe(AgentId(1)).unwrap();
+    assert_eq!(observed.step,w.step);
+    assert_eq!(observed.surviving_edges,w.surviving_edges);
 }
 #[tokio::test]
 async fn same_seed_false_prior_and_zero_prior_share_genesis_but_not_history() {
