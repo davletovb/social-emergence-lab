@@ -258,21 +258,25 @@ pub struct Flow {
 
 /// Pre-event expectation, averaged over a uniformly scheduled allocator.
 pub fn flow(world: &ReputationWorld) -> Result<Flow, String> {
-    let n = world.config.actors;
-    let d = world.config.degree;
+    flow_from(&world.config, &world.boost, &world.graph, &world.beliefs, world.surviving_edges.as_ref())
+}
+
+/// Shared mathematical implementation for serializable worlds and compact
+/// policy observations. This preserves the exact addition/summation order
+/// used by V0 and V1's hash-verified event actions.
+fn flow_from(config: &Config, boost: &[bool], graph: &[Vec<usize>], beliefs: &[Vec<f64>], surviving_edges: Option<&Vec<Vec<usize>>>) -> Result<Flow, String> {
+    let n = config.actors;
+    let d = config.degree;
     let mut deg = 0f64;
     let mut inherited = 0f64;
     let mut selected = 0f64;
     for j in 0..n {
-        let row = &world.graph[j];
-        let p = selection_probs(world, j)?;
+        let row = &graph[j];
+        let p = selection_probs_fields(config, graph, beliefs, j)?;
         for (k, &i) in row.iter().enumerate() {
-            let sign = if world.boost[i] { 1.0 } else { -1.0 };
+            let sign = if boost[i] { 1.0 } else { -1.0 };
             deg += sign / (n * d) as f64;
-            if world
-                .surviving_edges
-                .as_ref()
-                .is_none_or(|base| base[j].contains(&i))
+            if surviving_edges.is_none_or(|base| base[j].contains(&i))
             {
                 inherited += sign / (n * d) as f64;
             }
@@ -303,17 +307,15 @@ fn softmax(values: &[f64], temperature: f64) -> Result<Vec<f64>, String> {
     Ok(weights.iter().map(|x| x / total).collect())
 }
 fn selection_probs(w: &ReputationWorld, j: usize) -> Result<Vec<f64>, String> {
-    let values = w
-        .graph
-        .get(j)
-        .ok_or("invalid allocator")?
-        .iter()
-        .map(|&i| w.beliefs[j][i])
-        .collect::<Vec<_>>();
-    let mut p = softmax(&values, w.config.beta)?;
+    selection_probs_fields(&w.config, &w.graph, &w.beliefs, j)
+}
+fn selection_probs_fields(config: &Config, graph: &[Vec<usize>], beliefs: &[Vec<f64>], j: usize) -> Result<Vec<f64>, String> {
+    let values = graph.get(j).ok_or("invalid allocator")?.iter()
+        .map(|&i| beliefs[j][i]).collect::<Vec<_>>();
+    let mut p = softmax(&values, config.beta)?;
     let d = p.len() as f64;
     for x in &mut p {
-        *x = w.config.epsilon / d + (1.0 - w.config.epsilon) * (*x);
+        *x = config.epsilon / d + (1.0 - config.epsilon) * (*x);
     }
     Ok(p)
 }
@@ -480,13 +482,35 @@ impl ReputationWorld {
         self.verify()
     }
 }
+/// Transient policy input; the expensive world trace and replay journal are
+/// deliberately NOT observations. Each field is sufficient for exactly the
+/// same action probabilities and rewiring decisions as the full world.
+#[derive(Clone, Debug)]
+pub struct ReputationObservation {
+    pub config: Config,
+    pub boost: Vec<bool>,
+    pub graph: Vec<Vec<usize>>,
+    pub beliefs: Vec<Vec<f64>>,
+    pub public: Vec<f64>,
+    pub step: u64,
+    pub surviving_edges: Option<Vec<Vec<usize>>>,
+}
+
 impl HiyalWorld for ReputationWorld {
     type Action = Action;
     // EffectPolicy receives the world directly; the empty effect-request
     // path does not need a cloned, ever-growing step trace as an observation.
-    type Observation = ();
+    type Observation = ReputationObservation;
     fn observe(&self, _: AgentId) -> Result<Self::Observation, String> {
-        Ok(())
+        Ok(ReputationObservation {
+            config: self.config.clone(),
+            boost: self.boost.clone(),
+            graph: self.graph.clone(),
+            beliefs: self.beliefs.clone(),
+            public: self.public.clone(),
+            step: self.step,
+            surviving_edges: self.surviving_edges.clone(),
+        })
     }
     fn apply(&mut self, actor: AgentId, a: Action) -> Result<(), String> {
         let j = usize::try_from(actor.0).map_err(|e| e.to_string())?;
@@ -581,13 +605,13 @@ impl HiyalWorld for ReputationWorld {
 
 pub struct ReputationPolicy;
 impl EffectPolicy<ReputationWorld> for ReputationPolicy {
-    fn decide(&self, _: AgentId, _: &ReputationWorld, _: &[Receipt]) -> Result<Action, String> {
+    fn decide(&self, _: AgentId, _: &ReputationObservation, _: &[Receipt]) -> Result<Action, String> {
         Err("randomized reputation decisions require trial-owned streams".into())
     }
     fn decide_with_streams(
         &self,
         actor: AgentId,
-        world: &ReputationWorld,
+        world: &ReputationObservation,
         _: &[Receipt],
         rng: &mut Streams,
     ) -> Result<Action, String> {
@@ -597,7 +621,7 @@ impl EffectPolicy<ReputationWorld> for ReputationPolicy {
         }
         // Borrow the original world in the common persistent-graph case;
         // only the annealed control needs an owned, ephemeral replacement.
-        let (pre, annealed_graph): (Cow<'_, ReputationWorld>, Option<Vec<Vec<usize>>>) =
+        let (pre, annealed_graph): (Cow<'_, ReputationObservation>, Option<Vec<Vec<usize>>>) =
             if world.config.annealed {
                 let stream = format!("agent/{j}/annealed");
                 let edges =
@@ -613,9 +637,9 @@ impl EffectPolicy<ReputationWorld> for ReputationPolicy {
             } else {
                 (Cow::Borrowed(world), None)
             };
-        let pre_flow = flow(pre.as_ref())?;
+        let pre_flow = flow_from(&pre.config, &pre.boost, &pre.graph, &pre.beliefs, pre.surviving_edges.as_ref())?;
         let sel = format!("agent/{j}/selection");
-        let index = choose(&selection_probs(pre.as_ref(), j)?, rng, &sel)?;
+        let index = choose(&selection_probs_fields(&pre.config, &pre.graph, &pre.beliefs, j)?, rng, &sel)?;
         let recipient = pre.graph[j][index];
         let sig = format!("agent/{j}/performance");
         let success = rng.draw_u64(&sig)? & 1 == 0;
