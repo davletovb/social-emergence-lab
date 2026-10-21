@@ -36,14 +36,15 @@ This update targeted empirical field/lab studies on reputation, manipulated popu
 
 ## 2. Critical design issues found
 
-### A. The primary estimand: the late posttruth gap, not a paired I–IS contrast
+### A. Persistence versus intervention estimands and paired precision
 
-*Revised after review of this pull request.* An earlier version of this section called the merged protocol's "about twice the variance" statement unjustified and recommended the paired contrast `θ = E_parent[D_I^late − D_IS^late]` as primary. That recommendation is withdrawn:
+**Resolved after final review:** the primary *candidate persistence quantity* remains `E_parent[D_I^late]` over a declared late window. It asks whether the falsely boosted group's opportunity advantage persists after truthful correction, with an explicit requirement to distinguish inherited edges from newly created opportunities.
 
-- Under the explicit exchangeability null `E[D_IS]=0`, so `E[D_I^late − D_IS^late] = E[D_I^late]`. The paired contrast adds no estimand beyond the persistence quantity itself; reporting it as a separate "effect of repair" would count one result twice.
-- `Var(D_I−D_IS)=Var(D_I)+Var(D_IS)−2Cov(D_I,D_IS)` holds, but here the covariance is near zero: after the fork IS runs on an independent `A*` with reset beliefs, and the arms share only per-agent random draws, which map to different recipients once neighborhoods differ. The paired difference therefore has about twice the variance of `D_I^late` alone, so the original statement was approximately right.
+The paired comparison `E_parent[D_I^late − D_IS^late]` answers a **different causal question inside the model**: the effect of adding graph repair when both arms receive truthful information, measured against the same preintervention parent society. Under the separate *exchangeability assumption* `E[D_IS^late]=0`, the two population means happen to be equal algebraically. That does **not** make the intervention contrast redundant: it estimates a different treatment comparison and remains informative if the symmetry assumption fails.
 
-**Recommendation:** primary `E_parent[D_I^late]` over a predeclared late window, counted as lock-in only if the late gap is not carried solely by links surviving from τ (see B and F). IS stays an exchangeability control. Repair is assessed by the non-degenerate contrast `E_parent[D_U − D_S]` (repair without correction), judged by magnitude. Full-window `E[D_I]` and its components are diagnostics, not co-primary. **Do not fix a null-testing procedure or decision rule yet.**
+**No variance ranking can be asserted before pilot measurement.** Exactly, `Var(D_I−D_IS)=Var(D_I)+Var(D_IS)−2Cov(D_I,D_IS)`, applied to the **same time window** for both variables. Independently constructing the repair graph does **not** make the realized outcomes independent: they share their parent history, pseudorandom-stream positions and sometimes actions. Nor is `Var(D_IS)=Var(D_I)` guaranteed. The previous “about twice the variance” claim was unsupported and is withdrawn.
+
+**Decision for the pilot:** retain `E_parent[D_I^late]` as the candidate *primary persistence estimand*. Report `E_parent[D_I^late−D_IS^late]` as a **secondary paired repair-after-truth intervention estimand**, alongside `E_parent[D_U−D_S]` for repair without correction. Precommit whether each contrast uses the late or full post-intervention window, and report empirical variance/covariance over independent parent societies before deciding which contrast, if any, should be primary in a later confirmatory protocol. Do not promote a contrast post hoc because its interval is favorable.
 
 ### B. Separate exact graph exposure from belief-mediated selection at every step
 
