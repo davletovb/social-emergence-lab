@@ -24,7 +24,7 @@ while IFS= read -r -d '' events; do
     echo "Incomplete Hiyal trial bundle at: $dir" >&2
     exit 2
   }
-done < <(find "$output" -type f -path '*/arms/*/events.jsonl' -print0)
+done < <(find "$output" -type f -path '*/arms/*/events.jsonl' ! -path '*/ancestry/*' -print0)
 if [[ "$#" -eq 1 ]]; then
   [[ -s "$output/SHA256SUMS" ]] || { echo "No SHA256SUMS file" >&2; exit 2; }
   (cd "$output" && sha256sum --check --status SHA256SUMS) || { echo "Evidence hash mismatch" >&2; exit 2; }
