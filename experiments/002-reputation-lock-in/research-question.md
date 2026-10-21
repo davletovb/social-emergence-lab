@@ -1,48 +1,36 @@
-# Candidate Experiment 002 — When do mistaken reputations become self-fulfilling?
+# Experiment 002 — Can truthful reputation correction restore opportunity access?
 
-**Status:** concept note, not coded, registered, or established as a research gap.
+**Status:** scoped, falsifiable computational study **proposed**. Not implemented, simulated or preregistered; literature differentiation is preliminary. No claim of a discovered sociological law.
 
-## Research question
+## Core problem
 
-When individuals initially have identical abilities but other agents observe *noisy signals* of their past success, under what conditions can early false reputational rankings lock in persistently unequal access to opportunities? Can a correctly designed information-correction intervention restore mobility, or do persistent network structures make reputational correction ineffective once opportunity histories diverge?
+An arbitrary, false early reputational ranking can affect who receives opportunities, but also *who becomes connected to whom*. After that structural history, broadcasting the truth may fix everyone's beliefs while leaving unequal opportunities for future interaction. Does correcting the beliefs alone restore access, or is additional independent restoration of the network needed?
 
-This is a more substantive test of **belief-mediated stratification and intervention timing**, not a generic rerun of preferential attachment.
+The **candidate claim** is about the postcorrection flow of *new* opportunities, not accumulated wealth, ability, a generic Matthew effect, or simply whether false signals influence decisions. The original version is too close to established work by Salganik & Watts (2008), van de Rijt (2019) and network reputation experiments.
 
-## Nested experimental contrasts (planned)
+## Primary causal test
 
-| Mechanism | What changes? | Why it matters |
+All agents have **identical true quality**. Randomly give half artificially high and half artificially low starting reputation labels. Let reputations (private beliefs and a shared public reputation) affect selection and endogenous outgoing social links, before and after checkpoint τ. From an identical preintervention history, fork four interventions:
+
+| Arm | Correct false beliefs? | Independently repair opportunity links? |
 | --- | --- | --- |
-| A. Uniform opportunity | No reinforcement | Same symmetric baseline as Experiment 001 |
-| B. Resource-only feedback | Probability depends on current wealth | Known Pólya-urn benchmark |
-| C. Reputation-only feedback | Probability depends on perceived, fallible success signal | Tests information-mediated selection |
-| D. Belief correction | At a frozen checkpoint, observers receive unbiased ability/performance information | Tests whether reputational errors reverse |
-| E. Network constraint | Agents see only fixed or rewired local neighborhoods | Tests whether network structure moderates correction |
+| Sham | No | No |
+| Information-only | Yes | No |
+| Network-only | No | Yes |
+| Both | Yes | Yes |
 
-**Do not** conflate reputation with innate ability or make noisy reputation simply a rescaled resource-weight. Specify signal generation, how observers update beliefs, memory horizon, possible signal errors and update schedules explicitly.
+For each fork measure `D`, the share of **post-τ** opportunity tokens reaching the randomly boosted half minus the share reaching the other half. The **candidate primary estimand** is `E[D_information-only]` across independently seeded preintervention societies: the gap in new opportunities that survives complete belief correction while rewiring continues, judged against its degree-only prediction and its late-window value. `D_both` is an exact-zero control (`E[D_both]=0` by label symmetry), and `E[D_sham − D_network-only]` is the repair contrast ([design decisions](design-review-and-tests.md#design-decisions-adopted)). Do not count actors or fork branches as independent samples.
 
-## Candidate mechanism-level falsification
+**Falsification is essential:** if correction alone removes the future opportunity gap, or structural repair does not help, the proposed mechanism is not supported for the tested parameter range. Negative controls must distinguish graph-induced exclusion from noisy belief updating and arbitrary allocation. Every parameter/outcome and inference rule remains a draft.
 
-- If public information correction removes reputational inequality under complete mixing but not under persistent network segmentation, the difference may be attributed *inside the model* to network-limited access after control comparisons.
-- If correction restores parity in every treatment, the hypothesized lock-in condition is falsified for those parameters.
-- If early mistakes never matter when direct ability is identical, the reputation mechanism may be redundant.
-- Predefine a primary mobility/correction estimand between matched counterfactual forks, plus robustness checks varying signal reliability and intervention timing.
+## Working documents
 
-A true literature gap remains **unverified**. Prior studies already connect reputation, networks, and inequality; novelty may require a precise mechanism and either a new phase-boundary result or a prediction testable on accessible empirical data.
+- [Targeted prior literature and explicit novelty veto](literature-review.md)
+- [Formal mechanism, causal graph, state transitions and four-arm intervention](formal-model.md)
+- [Design-review risks, reference checks, falsification matrix and implementation gates](design-review-and-tests.md)
 
-## Closely related prior research to examine
+## Scientific boundary
 
-- DiPrete & Eirich, cumulative advantage: https://doi.org/10.1146/annurev.soc.32.061604.123127
-- Reputation effects on inequality in network cooperation games: https://pmc.ncbi.nlm.nih.gov/articles/PMC8487746/
-- Network structure and institutions in inequality experiments: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0200965
-- Agent-based computational models of reputation and status: https://doi.org/10.1093/oxfordhb/9780190494087.013.13
-- Co-evolution of social classes, mobility, wealth, and learning: https://www.sciencedirect.com/science/article/pii/S016726812300210X
+False popularity becoming real, cumulative advantage, reputation changing inequality and network-driven access asymmetries are **all established ideas**. The proposed intervention contrast may be a useful mechanism-isolation or replication target, but newness has **not** been established. The present model is entirely agent based; no human participation, empirical calibration or prior ethical approval is implied.
 
-## Readiness gates
-
-- [ ] Literature matrix of mechanisms, data sources, tested moderators, and genuinely missing predictions.
-- [ ] Formal state-transition equations, causal graph and explicit alternative explanations.
-- [ ] Model identification with nonredundant controlled interventions and matching seed domains.
-- [ ] Accessible external behavioral/network datasets or a feasible human-subject experimental test.
-- [ ] Scientific protocol, equivalence/baseline checks, outcome definitions and preregistration.
-
-Do not scale to expensive agents or LLMs unless simpler transparent agents fail to test the scientific question.
+Only after independent review should we implement V0 as transparent deterministic Rust worlds using Hiyal's replay, fork and RNG facilities. Avoid LLM agents and heavyweight PR CI until there is a reason to add them.
