@@ -83,7 +83,7 @@ No agent ability variation is allowed in V0, so selecting and observing performa
 
 ### E. Exact-zero claims require stated symmetry assumptions
 
-`E[D_IS]=0` is an **expectation under exchangeability**, not a promise that any seed yields exactly zero realized gap. The claim assumes the repaired graph and future transition/RNG law are B-independent, equal quality, no wealth→selection path, no hidden label-index-based tie-breaks, and proper symmetric randomization. Validate both exact per-state identities (when appropriate) and Monte Carlo tests with prechosen tolerances. Per-seed deviations are expected, but a mean across parents outside the prechosen tolerance invalidates the run as an implementation or setup error; it is not evidence of a mechanism.
+`E[D_IS]=0` is an **expectation under exchangeability**, not a promise that any seed yields exactly zero realized gap. The claim assumes the repaired graph and future transition/RNG law are B-independent, equal quality, no wealth→selection path, no hidden label-index-based tie-breaks, and proper symmetric randomization. Validate both exact per-state identities (when appropriate) and Monte Carlo tests with prechosen tolerances. Per-seed deviations are expected, and even a correct Monte Carlo null may rarely exceed a prechosen threshold. Such exceedances trigger an audit of setup randomness, symmetry and reference calculations; they do **not** automatically invalidate or exclude runs. Independent deterministic/invariant failures are a distinct, valid reason to stop an analysis.
 
 Likewise `E[D_I]=0` under no rewiring and corrected belief is a model-conditional expectation, not a finite-run identity. Unequal realized rewards are normal.
 
