@@ -67,7 +67,7 @@ This decomposition is essential: a positive `D_I` could be *nothing more than in
 
 ### C. Graph initialization: keep the exact uniform sampler
 
-*Revised after review of this pull request.* An earlier version of this section argued that configuration pairing with rejection lacked a correctness argument and "may be astronomically inefficient", and replaced it with a permuted circulant. Both points were wrong:
+*Revised after review of this pull request.* An earlier version questioned configuration pairing and substituted a permuted circulant. The uniformity objection was resolved mathematically; **runtime concerns remain unverified** until the sampler is benchmarked, so the earlier blanket claim that both objections were wrong was too strong:
 
 - **Correctness:** with d labelled out-stubs and d labelled in-stubs per agent, every simple directed d-in/d-out-regular graph arises from exactly `(d!)^{2N}` stub pairings, so conditioning a uniformly random pairing on simplicity gives an exactly uniform simple graph.
 - **Computational feasibility is separate from correctness:** rejection sampling may require many discarded pairings; informal acceptance-rate and timing figures are not accepted as a verified benchmark. Measure the acceptance probability, runtime and tail behavior at N=20, d=4; impose a documented maximum-attempt failure rather than relying on unbounded attempts for production pilots.
