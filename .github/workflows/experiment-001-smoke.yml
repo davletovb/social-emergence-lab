@@ -32,12 +32,14 @@ concurrency:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.89.0
       - name: Check Rust formatting
         run: cargo fmt --all -- --check
+      - name: Check evidence scripts syntax
+        run: bash -n scripts/replicate-001.sh scripts/verify-001.sh
 
       - name: Test Rust model and Hiyal fork integration
         run: cargo test --locked
@@ -58,35 +60,6 @@ jobs:
           cargo run --locked --bin hiyal-grid -- smoke /tmp/hiyal-grid-smoke 1 62000
           cat /tmp/hiyal-grid-smoke/hiyal-summary.csv
           cat /tmp/hiyal-grid-smoke/hiyal-benchmarks.csv
-      - name: One-time full 10-pair replicated Hiyal evidence generation
-        run: |
-          bash scripts/replicate-001.sh /tmp/hiyal-replicated-74000 74000
-          echo 'BEGIN-RESEARCH-CSV:summary'
-          cat /tmp/hiyal-replicated-74000/hiyal-summary.csv
-          echo 'END-RESEARCH-CSV:summary'
-          echo 'BEGIN-RESEARCH-CSV:trajectories'
-          cat /tmp/hiyal-replicated-74000/hiyal-trajectories.csv
-          echo 'END-RESEARCH-CSV:trajectories'
-          echo 'BEGIN-RESEARCH-CSV:benchmarks'
-          cat /tmp/hiyal-replicated-74000/hiyal-benchmarks.csv
-          echo 'END-RESEARCH-CSV:benchmarks'
-          echo 'BEGIN-RESEARCH-JSON:study-plan'
-          cat /tmp/hiyal-replicated-74000/study-plan.json
-          echo 'END-RESEARCH-JSON:study-plan'
-          echo 'BEGIN-RESEARCH-JSON:report'
-          cat /tmp/hiyal-replicated-74000/hiyal-study-report.json
-          echo 'END-RESEARCH-JSON:report'
-          echo 'BEGIN-RESEARCH-JSON:provenance'
-          cat /tmp/hiyal-replicated-74000/reproducibility-manifest.json
-          echo 'END-RESEARCH-JSON:provenance'
-      - name: Preserve all original Hiyal journals, snapshots and fork ancestry
-        uses: actions/upload-artifact@v4
-        with:
-          name: experiment-001-10pair-full-evidence
-          if-no-files-found: error
-          retention-days: 30
-          compression-level: 6
-          path: /tmp/hiyal-replicated-74000/
       - name: Optional Hiyal 18-cell exploratory grid
         if: github.event_name == 'workflow_dispatch' && inputs.hiyal_grid
         run: |

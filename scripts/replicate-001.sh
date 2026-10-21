@@ -22,6 +22,8 @@ command -v git >/dev/null
   exit 2
 }
 revision="$(git rev-parse HEAD)"
+# PR checkout may be a synthetic merge; pin the authored source separately.
+source_revision="$(git rev-parse HEAD^2 2>/dev/null || git rev-parse HEAD)"
 hiyal="$(awk '/^\[\[package\]\]/{in_hiyal=0} /^name = "hiyal"$/{in_hiyal=1} in_hiyal && /^source =/{print;exit}' Cargo.lock | sed -E 's/.*#([0-9a-f]{40})".*/\1/')"
 [[ "$hiyal" =~ ^[0-9a-f]{40}$ ]] || {
   echo "Could not determine exact Hiyal SHA from Cargo.lock" >&2
@@ -39,14 +41,14 @@ rustc="$(rustc --version --verbose)"
 jq -n \
   --arg protocol "experiment-001-exploratory-replicated-v1" \
   --arg start "$start" --arg finish "$finish" \
-  --arg lab_revision "$revision" --arg hiyal_revision "$hiyal" \
+  --arg lab_revision "$revision" --arg lab_source_revision "$source_revision" --arg hiyal_revision "$hiyal" \
   --arg cargo_lock_sha256 "$(sha256sum Cargo.lock | cut -d' ' -f1)" \
   --arg rustc "$rustc" --arg os "$os" --arg cpu "$cpu" \
   --argjson first_seed "$seed" \
   '{
     schema: 1, scientific_status: "exploratory_not_preregistered",
     experiment: $protocol, started_utc: $start, completed_utc: $finish,
-    lab_git_sha: $lab_revision, hiyal_git_sha: $hiyal_revision,
+    lab_git_sha: $lab_revision, lab_source_sha: $lab_source_revision, hiyal_git_sha: $hiyal_revision,
     cargo_lock_sha256: $cargo_lock_sha256, rust_toolchain: $rustc,
     os: $os, cpu_model: $cpu, first_seed: $first_seed, paired_societies_per_cell: 10,
     note: "Original journals, fork ancestry, RNG state, configuration and SHA256SUMS are archived. The archive is only retained for the GitHub Actions artifact retention period; no external empirical validation."
