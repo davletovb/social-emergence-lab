@@ -39,10 +39,12 @@ The command restarts matching existing pairs, reconstructs summaries from verifi
 - [x] GitHub Actions compilation/tests and a 2-pair smoke run; [verified run](https://github.com/davletovb/social-emergence-lab/actions/runs/39536247553).
 - [x] Commit resolved `Cargo.lock` for the pinned Hiyal Git revision.
 - [ ] Record the lab Git SHA and exact protocol/config hash in each exported run manifest.
-- [ ] Add independent reference model, labeled permutation/symmetry tests, empirical sampler sanity and trajectory-level metrics.
+- [x] Add independently written action replay/metric formulas, label-permutation tests, and reference-model parameter sensitivity (see [validation](validation-and-sensitivity.md)).
+- [ ] Add trajectory-level metrics and Hiyal-backed model-parameter sweeps.
 - [ ] Benchmark 20-actor histories including memory, event/snapshot storage and execution cost.
 - [ ] Freeze the confirmatory protocol, held-out seeds, horizons and analysis rules.
-- [ ] Compute confidence intervals and sensitivity results across independent **societies**, not across agents or time steps.
+- [x] Implement paired-society percentile bootstrap uncertainty (exploratory, not a confirmatory hypothesis test).
+- [ ] Benchmark and freeze held-out confirmatory replication count with precision justification.
 
 ## First exploratory run (non-confirmatory)
 
