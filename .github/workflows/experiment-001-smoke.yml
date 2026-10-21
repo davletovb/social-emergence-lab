@@ -1,0 +1,45 @@
+name: Experiment 001 smoke
+
+on:
+  pull_request:
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+      - 'src/**'
+      - 'tests/**'
+      - '.github/workflows/experiment-001-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: experiment001-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.89.0
+      - name: Resolve dependency lockfile if not committed
+        run: |
+          if [ ! -f Cargo.lock ]; then cargo generate-lockfile; fi
+      - name: Test Rust model and Hiyal fork integration
+        run: cargo test --locked
+      - name: Tiny exploratory smoke pilot
+        run: cargo run --locked -- pilot /tmp/social-lab-smoke 2 15 42
+      - name: Preserve lockfile and smoke output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: experiment-001-smoke
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            Cargo.lock
+            /tmp/social-lab-smoke/results.csv
+            /tmp/social-lab-smoke/pilot-summary.json
