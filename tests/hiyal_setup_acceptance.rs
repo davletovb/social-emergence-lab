@@ -3,8 +3,9 @@
 //! sampled d-regular digraphs (initial and repair) drawn from the trial's own
 //! `setup/labels`, `setup/initial_graph` and `setup/repair_graph` streams, a
 //! preintervention history, four forks (sham, correction, repair, both),
-//! resume, and every audit Hiyal offers. The world is a minimal stand-in, not
-//! the Experiment 002 model.
+//! resume, every audit Hiyal offers, and rejection of setup or policy draws
+//! outside their stream families. The world is a minimal stand-in, not the
+//! Experiment 002 model.
 use hiyal::{
     core::{AgentId, World},
     experiment::{EffectPolicy, Trial, verify_setup},
@@ -26,6 +27,7 @@ use std::{
 const ACTORS: usize = 8;
 const DEGREE: usize = 2;
 const KIND: &str = "social-emergence-lab.setup-acceptance.v1";
+const GRAPH_ATTEMPTS: usize = 1_000;
 
 fn dir(tag: &str) -> PathBuf {
     static NEXT: AtomicUsize = AtomicUsize::new(0);
@@ -97,9 +99,16 @@ fn flat(_: AgentId) -> String {
     "selection".into()
 }
 
-/// Uniform simple d-in/d-out digraph by configuration pairing with rejection.
-fn regular_digraph(streams: &mut Streams, stream: &str) -> Result<Vec<Vec<usize>>, String> {
-    loop {
+/// Uniform simple d-in/d-out digraph by configuration pairing with rejection,
+/// failing closed after `attempts` pairings instead of looping forever. The
+/// budget only suits this N=8, d=2 stand-in; Experiment 002 must size and
+/// benchmark its own.
+fn regular_digraph(
+    streams: &mut Streams,
+    stream: &str,
+    attempts: usize,
+) -> Result<Vec<Vec<usize>>, String> {
+    for _ in 0..attempts {
         let mut targets: Vec<usize> = (0..ACTORS).flat_map(|i| [i; DEGREE]).collect();
         for k in (1..targets.len()).rev() {
             let j = streams.uniform_index(stream, k + 1)?;
@@ -113,6 +122,9 @@ fn regular_digraph(streams: &mut Streams, stream: &str) -> Result<Vec<Vec<usize>
             return Ok(rows);
         }
     }
+    Err(format!(
+        "no simple {DEGREE}-regular digraph on {stream} after {attempts} pairings"
+    ))
 }
 
 fn setup(streams: &mut Streams) -> Result<Access, String> {
@@ -128,8 +140,8 @@ fn setup(streams: &mut Streams) -> Result<Access, String> {
     Ok(Access {
         reputation: boosted.iter().map(|&b| if b { 7 } else { 3 }).collect(),
         boosted,
-        graph: regular_digraph(streams, "setup/initial_graph")?,
-        repair: regular_digraph(streams, "setup/repair_graph")?,
+        graph: regular_digraph(streams, "setup/initial_graph", GRAPH_ATTEMPTS)?,
+        repair: regular_digraph(streams, "setup/repair_graph", GRAPH_ATTEMPTS)?,
         tokens: vec![0; ACTORS],
     })
 }
@@ -165,6 +177,10 @@ async fn setup_streams_survive_history_forks_and_resume() {
         }
         assert!(in_degree.iter().all(|&k| k == DEGREE));
     }
+    // An exhausted budget is an error, never a silent spin.
+    let mut spare = Streams::new("budget".into(), 0);
+    let error = regular_digraph(&mut spare, "setup/initial_graph", 0).unwrap_err();
+    assert!(error.contains("after 0 pairings"), "{error}");
     let recorded = parent.store.genesis().initial_streams.positions.clone();
     let names: Vec<_> = recorded.keys().cloned().collect();
     assert_eq!(
@@ -250,4 +266,33 @@ async fn policy_draws_outside_agent_streams_are_rejected() {
     );
     drop(trial);
     std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn setup_draws_outside_setup_streams_are_rejected() {
+    // A setup closure may draw only from `setup/…`; a flat graph stream, or
+    // any engine stream, is refused before the trial directory exists.
+    for stream in ["initial_graph", "world", "agent/0/selection"] {
+        let root = dir("setup-scope");
+        let result: Result<Trial<Access, Select>, String> = Trial::create_with_setup(
+            &root,
+            "setup-acceptance",
+            2026,
+            KIND,
+            |streams: &mut Streams| {
+                regular_digraph(streams, stream, GRAPH_ATTEMPTS)?;
+                setup(streams)
+            },
+            Select { stream: scoped },
+            Arc::new(ScriptedBackend),
+            (0..ACTORS as u64).map(AgentId).collect(),
+            Scheduling::Random,
+        );
+        let error = result.err().unwrap();
+        assert!(
+            error.contains(&format!("unauthorized RNG stream draw: {stream}")),
+            "{stream}: {error}"
+        );
+        assert!(!root.exists(), "{stream}: a rejected setup created a trial");
+    }
 }
