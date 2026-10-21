@@ -59,7 +59,7 @@ One independent *paired society seed* is the unit of analysis. Per-cell differen
 - [x] Hiyal-executed exploratory parameters, independent replay validation and frozen plan per directory.
 - [x] Trajectory-level Gini, top share, rank persistence and rank movement.
 - [x] Per-arm runtime, Hiyal journal/snapshot size and verification-cost measurements.
-- [x] Green GitHub CI and a 1-pair-per-cell 18-cell Hiyal grid with derived results retained; [source and caveats](results/hiyal-grid-one-seed-64000-README.md).
+- [x] Green GitHub CI and a 1-pair-per-cell 18-cell Hiyal grid (shared controls, schema 2) with derived results retained; [source and caveats](results/hiyal-grid-one-seed-64000-README.md).
 - [ ] Full replicated 18-cell Hiyal grid (10 paired societies/cell), with authoritative journals and run-level provenance preserved.
 - [ ] Machine/CPU/disk provenance, compiler/toolchain + lab Git SHA in each run manifest; explicit process RSS profiling.
 - [ ] Valid power/precision calculation, held-out seeds, pre-specified terminal contrast/decision rule, error handling and stopping criteria.
