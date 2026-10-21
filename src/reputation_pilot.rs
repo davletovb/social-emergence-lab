@@ -106,7 +106,7 @@ pub async fn run(
         verify_fork::<ReputationWorld>(&path)?;
         let ro = Store::<ReputationWorld, crate::reputation::Action>::inspect_read_only(&path)?;
         ro.world.verify()?;
-        if ro.world.step != total || ro.logical_step != total {
+        if ro.world.step != total || ro.logical_step != total - checkpoint {
             return Err("final world/ledger step mismatch".into());
         }
         let last = total.saturating_sub(99).max(checkpoint + 1);
@@ -130,7 +130,7 @@ pub async fn run(
             late: window(&ro.world, last, total)?,
             quarters,
             final_tokens: ro.world.wealth,
-            all_events: ro.logical_step,
+            all_events: ro.world.step,
         });
     }
     let info = reports
