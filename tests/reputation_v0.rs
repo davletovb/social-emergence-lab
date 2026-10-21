@@ -79,6 +79,7 @@ fn exact_exposure_identity_and_zero_beta_selection() {
         recipient: w.graph[0][1],
         success: true,
         pre_flow: flow(&w).unwrap(),
+            annealed_graph: None,
         rewire: Some(Rewire {
             allocator: 0,
             removed,
@@ -107,6 +108,7 @@ fn valid_policy_actions_preserve_conservation_and_invalid_actions_do_not_mutate(
         success: true,
         rewire: None,
         pre_flow: flow(&w).unwrap(),
+            annealed_graph: None,
     };
     assert!(w.apply(AgentId(0), bad).is_err());
     assert_eq!(w, prior);
@@ -151,6 +153,13 @@ fn negative_control_variants_are_explicit() {
     let churn = control_config(10, 2, "random-churn").unwrap();
     assert_eq!(churn.removal, Removal::Uniform);
     assert_eq!(churn.kappa, 0.0);
+    let annealed=control_config(20,4,"annealed-mixing").unwrap();
+    assert!(annealed.annealed);
+    assert_eq!(annealed.removal,Removal::None);
+    let complete=control_config(20,4,"full-mixing").unwrap();
+    assert_eq!(complete.degree,19);
+    assert_eq!(complete.removal,Removal::None);
+    assert_eq!(control_config(20,4,"rewire-every-2").unwrap().rewire_every,2);
     assert!(control_config(20, 19, "default").is_err());
     let mut rng = Streams::new("reputation-test".into(), 5);
     let symmetric = setup(&null, &mut rng).unwrap();
@@ -243,6 +252,7 @@ fn removed_then_readded_checkpoint_edge_is_not_counted_as_inherited() {
             recipient: w.graph[0][1],
             success: true,
             pre_flow: flow(&w).unwrap(),
+            annealed_graph: None,
             rewire: Some(Rewire {
                 allocator: 0,
                 removed: remove,
