@@ -59,7 +59,10 @@ pub async fn run(
     parent.checkpoint()?;
     parent.store.world().verify()?;
     drop(parent);
-    verify_setup(&parent_dir,move |rng|setup(&config,rng))?;
+    verify_setup(&parent_dir,{
+        let setup_config=config.clone();
+        move |rng|setup(&setup_config,rng)
+    })?;
     Store::<ReputationWorld,crate::reputation::Action>::inspect_read_only(&parent_dir)?;
     let mut reports=Vec::new();
     for arm in Arm::ALL {
