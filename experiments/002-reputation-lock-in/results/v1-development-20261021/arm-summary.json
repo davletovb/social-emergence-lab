@@ -1,0 +1,148 @@
+{
+  "scientific_status": "exploratory_only_no_inferential_claim",
+  "groups": [
+    {
+      "actors": 20,
+      "degree": 4,
+      "removal": "lowest_belief",
+      "delta": 0.0,
+      "beta": 4.0,
+      "kappa": 6.0,
+      "rewire_every": 10,
+      "annealed": false,
+      "checkpoint": 200,
+      "total_steps": 600,
+      "full_window": [
+        201,
+        600
+      ],
+      "late_window": [
+        501,
+        600
+      ],
+      "parents": 2,
+      "seeds": [
+        91100,
+        91101
+      ],
+      "arms": {
+        "sham": {
+          "full_gap": -0.0475,
+          "late_gap": 0.02,
+          "late_degree": 0.036250000000000115,
+          "late_inherited": -0.0018750000000000364,
+          "late_added": 0.03812500000000001,
+          "late_selection": 0.028821694975552963,
+          "late_innovation": -0.04507169497555308,
+          "full_rewire_events": 40,
+          "late_surviving_edge_fraction": 0.6812499999999999
+        },
+        "information": {
+          "full_gap": 0.05,
+          "late_gap": 0.21,
+          "late_degree": 0.1249999999999998,
+          "late_inherited": -0.0025000000000000022,
+          "late_added": 0.12749999999999992,
+          "late_selection": 0.03120189254122138,
+          "late_innovation": 0.053798107458778804,
+          "full_rewire_events": 40,
+          "late_surviving_edge_fraction": 0.6743125000000003
+        },
+        "structure": {
+          "full_gap": -0.05,
+          "late_gap": -0.010000000000000009,
+          "late_degree": 0.009999999999999981,
+          "late_inherited": -0.023750000000000014,
+          "late_added": 0.033749999999999974,
+          "late_selection": 0.013258971154508048,
+          "late_innovation": -0.033258971154508044,
+          "full_rewire_events": 40,
+          "late_surviving_edge_fraction": 0.16112499999999996
+        },
+        "both": {
+          "full_gap": 0.0275,
+          "late_gap": 0.16,
+          "late_degree": 0.08749999999999994,
+          "late_inherited": -0.028750000000000046,
+          "late_added": 0.11625000000000002,
+          "late_selection": 0.004247159229692949,
+          "late_innovation": 0.06825284077030712,
+          "full_rewire_events": 40,
+          "late_surviving_edge_fraction": 0.15349999999999997
+        }
+      }
+    },
+    {
+      "actors": 20,
+      "degree": 4,
+      "removal": "lowest_belief",
+      "delta": 0.2,
+      "beta": 4.0,
+      "kappa": 6.0,
+      "rewire_every": 10,
+      "annealed": false,
+      "checkpoint": 200,
+      "total_steps": 600,
+      "full_window": [
+        201,
+        600
+      ],
+      "late_window": [
+        501,
+        600
+      ],
+      "parents": 3,
+      "seeds": [
+        91000,
+        91001,
+        91002
+      ],
+      "arms": {
+        "sham": {
+          "full_gap": 0.7583333333333333,
+          "late_gap": 0.8266666666666668,
+          "late_degree": 0.5816666666666662,
+          "late_inherited": 0.4483333333333331,
+          "late_added": 0.13333333333333305,
+          "late_selection": 0.18089117279302025,
+          "late_innovation": 0.06410882720698018,
+          "full_rewire_events": 40,
+          "late_surviving_edge_fraction": 0.6776249999999996
+        },
+        "information": {
+          "full_gap": 0.26,
+          "late_gap": 0.22666666666666668,
+          "late_degree": 0.18166666666666673,
+          "late_inherited": 0.2095833333333332,
+          "late_added": -0.027916666666666645,
+          "late_selection": 0.0054141250084620285,
+          "late_innovation": 0.03958587499153793,
+          "full_rewire_events": 40,
+          "late_surviving_edge_fraction": 0.6464583333333332
+        },
+        "structure": {
+          "full_gap": 0.535,
+          "late_gap": 0.5666666666666668,
+          "late_degree": 0.37000000000000033,
+          "late_inherited": 0.09250000000000007,
+          "late_added": 0.27750000000000014,
+          "late_selection": 0.2518710963845155,
+          "late_innovation": -0.05520442971784916,
+          "full_rewire_events": 40,
+          "late_surviving_edge_fraction": 0.13575000000000004
+        },
+        "both": {
+          "full_gap": -0.006666666666666667,
+          "late_gap": -0.06666666666666667,
+          "late_degree": 0.019999999999999966,
+          "late_inherited": 0.051250000000000025,
+          "late_added": -0.03124999999999996,
+          "late_selection": 0.015390166629212406,
+          "late_innovation": -0.10205683329587904,
+          "full_rewire_events": 40,
+          "late_surviving_edge_fraction": 0.11945833333333321
+        }
+      }
+    }
+  ]
+}
