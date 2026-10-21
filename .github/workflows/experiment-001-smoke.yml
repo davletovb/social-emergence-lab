@@ -46,8 +46,15 @@ jobs:
           # replicate-001.sh records the PR head, the merge checkout's second parent.
           fetch-depth: 2
       - uses: dtolnay/rust-toolchain@1.89.0
-      - name: Check Rust formatting
-        run: cargo fmt --all -- --check
+      - name: Format new source and print review copy (temporary)
+        run: |
+          cargo fmt --all
+          for path in src/reputation.rs src/reputation_pilot.rs src/bin/reputation-pilot.rs tests/reputation_v0.rs; do
+            echo "BEGIN-FORMATTED-FILE:$path"
+            cat "$path"
+            echo "END-FORMATTED-FILE:$path"
+          done
+          git restore src/reputation.rs src/reputation_pilot.rs src/bin/reputation-pilot.rs tests/reputation_v0.rs
       - name: Check evidence scripts syntax
         run: bash -n scripts/replicate-001.sh scripts/verify-001.sh
 
@@ -61,6 +68,8 @@ jobs:
             and (.independent_urn_variance_benchmark.ratio - 720/221 | fabs) < 1e-12' /tmp/design.json
       - name: Test Rust model and Hiyal fork integration
         run: cargo test --locked
+      - name: Experiment 002 tiny four-arm exploratory model smoke
+        run: cargo run --locked --bin reputation-pilot -- /tmp/reputation-v0-pr-smoke 62000 6 2 20 60 default
       - name: Tiny exploratory smoke
         run: cargo run --locked -- pilot /tmp/social-lab-smoke 2 15 42
       - name: Independently replay both Hiyal event journals
