@@ -70,7 +70,7 @@ This decomposition is essential: a positive `D_I` could be *nothing more than in
 *Revised after review of this pull request.* An earlier version of this section argued that configuration pairing with rejection lacked a correctness argument and "may be astronomically inefficient", and replaced it with a permuted circulant. Both points were wrong:
 
 - **Correctness:** with d labelled out-stubs and d labelled in-stubs per agent, every simple directed d-in/d-out-regular graph arises from exactly `(d!)^{2N}` stub pairings, so conditioning a uniformly random pairing on simplicity gives an exactly uniform simple graph.
-- **Cost:** at N=20, d=4 about 1 in 9,000 pairings is simple, roughly 0.25 s per graph in a Python check and milliseconds in Rust.
+- **Computational feasibility is separate from correctness:** rejection sampling may require many discarded pairings; informal acceptance-rate and timing figures are not accepted as a verified benchmark. Measure the acceptance probability, runtime and tail behavior at N=20, d=4; impose a documented maximum-attempt failure rather than relying on unbounded attempts for production pilots.
 - **The circulant's cost:** a permuted circulant `π(C)` with independent random labels has the same distribution as the fixed lattice `C` with relabelled labels, so every parent society would share one vertex-transitive topology with no reciprocal ties, and between-seed variance would omit topology entirely.
 
 **Recommendation for V0:** configuration pairing with rejection for both the initial graph and `A*`, from separate setup substreams. Report reciprocity and clustering across seeds; add other graph families (for example degree-preserving edge swaps, with stated mixing limitations) as declared robustness variants.
