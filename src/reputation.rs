@@ -258,13 +258,25 @@ pub struct Flow {
 
 /// Pre-event expectation, averaged over a uniformly scheduled allocator.
 pub fn flow(world: &ReputationWorld) -> Result<Flow, String> {
-    flow_from(&world.config, &world.boost, &world.graph, &world.beliefs, world.surviving_edges.as_ref())
+    flow_from(
+        &world.config,
+        &world.boost,
+        &world.graph,
+        &world.beliefs,
+        world.surviving_edges.as_ref(),
+    )
 }
 
 /// Shared mathematical implementation for serializable worlds and compact
 /// policy observations. This preserves the exact addition/summation order
 /// used by V0 and V1's hash-verified event actions.
-fn flow_from(config: &Config, boost: &[bool], graph: &[Vec<usize>], beliefs: &[Vec<f64>], surviving_edges: Option<&Vec<Vec<usize>>>) -> Result<Flow, String> {
+fn flow_from(
+    config: &Config,
+    boost: &[bool],
+    graph: &[Vec<usize>],
+    beliefs: &[Vec<f64>],
+    surviving_edges: Option<&Vec<Vec<usize>>>,
+) -> Result<Flow, String> {
     let n = config.actors;
     let d = config.degree;
     let mut deg = 0f64;
@@ -276,8 +288,7 @@ fn flow_from(config: &Config, boost: &[bool], graph: &[Vec<usize>], beliefs: &[V
         for (k, &i) in row.iter().enumerate() {
             let sign = if boost[i] { 1.0 } else { -1.0 };
             deg += sign / (n * d) as f64;
-            if surviving_edges.is_none_or(|base| base[j].contains(&i))
-            {
+            if surviving_edges.is_none_or(|base| base[j].contains(&i)) {
                 inherited += sign / (n * d) as f64;
             }
             selected += sign * (p[k] - 1.0 / d as f64) / n as f64;
@@ -306,9 +317,18 @@ fn softmax(values: &[f64], temperature: f64) -> Result<Vec<f64>, String> {
     }
     Ok(weights.iter().map(|x| x / total).collect())
 }
-fn selection_probs_fields(config: &Config, graph: &[Vec<usize>], beliefs: &[Vec<f64>], j: usize) -> Result<Vec<f64>, String> {
-    let values = graph.get(j).ok_or("invalid allocator")?.iter()
-        .map(|&i| beliefs[j][i]).collect::<Vec<_>>();
+fn selection_probs_fields(
+    config: &Config,
+    graph: &[Vec<usize>],
+    beliefs: &[Vec<f64>],
+    j: usize,
+) -> Result<Vec<f64>, String> {
+    let values = graph
+        .get(j)
+        .ok_or("invalid allocator")?
+        .iter()
+        .map(|&i| beliefs[j][i])
+        .collect::<Vec<_>>();
     let mut p = softmax(&values, config.beta)?;
     let d = p.len() as f64;
     for x in &mut p {
@@ -602,7 +622,12 @@ impl HiyalWorld for ReputationWorld {
 
 pub struct ReputationPolicy;
 impl EffectPolicy<ReputationWorld> for ReputationPolicy {
-    fn decide(&self, _: AgentId, _: &ReputationObservation, _: &[Receipt]) -> Result<Action, String> {
+    fn decide(
+        &self,
+        _: AgentId,
+        _: &ReputationObservation,
+        _: &[Receipt],
+    ) -> Result<Action, String> {
         Err("randomized reputation decisions require trial-owned streams".into())
     }
     fn decide_with_streams(
@@ -634,9 +659,19 @@ impl EffectPolicy<ReputationWorld> for ReputationPolicy {
             } else {
                 (Cow::Borrowed(world), None)
             };
-        let pre_flow = flow_from(&pre.config, &pre.boost, &pre.graph, &pre.beliefs, pre.surviving_edges.as_ref())?;
+        let pre_flow = flow_from(
+            &pre.config,
+            &pre.boost,
+            &pre.graph,
+            &pre.beliefs,
+            pre.surviving_edges.as_ref(),
+        )?;
         let sel = format!("agent/{j}/selection");
-        let index = choose(&selection_probs_fields(&pre.config, &pre.graph, &pre.beliefs, j)?, rng, &sel)?;
+        let index = choose(
+            &selection_probs_fields(&pre.config, &pre.graph, &pre.beliefs, j)?,
+            rng,
+            &sel,
+        )?;
         let recipient = pre.graph[j][index];
         let sig = format!("agent/{j}/performance");
         let success = rng.draw_u64(&sig)? & 1 == 0;
