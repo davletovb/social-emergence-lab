@@ -9,7 +9,7 @@ Reproducible Rust agent-based research on social emergence, built as a **separat
 - [Exact mathematical baseline](experiments/001-emergence-of-inequality/analytical-baseline.md) — Pólya urn and Dirichlet–multinomial moments.
 - [Conservative paired-society precision planning](experiments/001-emergence-of-inequality/sample-size-and-registration.md) — primary pilot variance and candidate sample size.
 - [Candidate confirmatory protocol](experiments/001-emergence-of-inequality/confirmatory-protocol-draft.md) — **not registered, not executed**.
-- [Candidate Experiment 002: reputation correction vs opportunity-network repair](experiments/002-reputation-lock-in/research-question.md) — [targeted literature review](experiments/002-reputation-lock-in/literature-review.md), [formal model and paired 2×2 correction/repair design](experiments/002-reputation-lock-in/formal-model.md), [validation and novelty gates](experiments/002-reputation-lock-in/design-review-and-tests.md). **Conceptual work only; no simulation or confirmatory claim.**
+- [Candidate Experiment 002: reputation correction vs opportunity-network repair](experiments/002-reputation-lock-in/research-question.md) — [targeted literature review](experiments/002-reputation-lock-in/literature-review.md), [formal model and paired 2×2 correction/repair design](experiments/002-reputation-lock-in/formal-model.md), [validation and novelty gates](experiments/002-reputation-lock-in/design-review-and-tests.md), [2026 scientific desk review](experiments/002-reputation-lock-in/scientific-review-2026.md) and [empirical-data feasibility](experiments/002-reputation-lock-in/empirical-alignment.md). **Conceptual work only; no Experiment 002 simulations or confirmatory claim.**
 
 ## Run and verify
 
