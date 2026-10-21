@@ -24,22 +24,22 @@
 - [ ] Check whether another study already tests belief correction × *structural* tie repair after self-fulfilling reputations; forward-/backward-cite Salganik & Watts (2008), van de Rijt (2019), Chu et al. (2020), Tsvetkova (2021), Simpson et al. (2023).
 - [ ] Confirm substantive theory: define "access" as an opportunity gate, distinguish it from performance or trust, and justify why a graph is the relevant social institution.
 - [ ] Validate the conditional-independence and exclusion statements under the graph/reputation dynamic.
-- [ ] Derive analytically the **degree-only** expected postallocation advantage when β=0 and the graph is held fixed (`removal=none`; with rewiring, apply it step by step to the current graph): for uniformly sampled allocator j with d outgoing links, expected share for recipient i is `in_degree(i)/(N*d)`. Therefore `E[D]` can be written in terms of randomized-boost group in-degree sums. Use it as a **known mathematical structural benchmark**, not a novel social law.
+- [x] **Formal derived identity, implementation pending:** for arbitrary current graph and uniform allocator with d links, exposure-only signed expectation is `g_deg=(Σ_i B_i in_degree(i))/(N*d)`; belief-selection residual is `g_sel=(1/N)Σ_jΣ_{i∈E_j} B_i (p_ji−1/d)`; `g=g_deg+g_sel`, and `β=0` forces `g_sel=0` in every pre-event state. A code-level independent reference test is still required; see [critical review](scientific-review-2026.md).
 - [ ] Document whether independent graph repair is intrinsically desirable, whether it removes useful connections, and what social costs are omitted.
 - [ ] Validate whether time τ and opportunity horizon produce enough rewiring to create *meaningfully varying* graphs without forcing a desired outcome.
 - [ ] Decide how to handle attempts whose updater has no valid alternative candidate (finite complete neighborhoods, repeated links, overflows).
-- [ ] Ensure the repair graph is genuinely independent of randomized B and performance, and identical across repaired arms for the same parent seed.
-- [ ] Confirm inferential method, null and minimum meaningful **postopportunity flow** difference; **do not reuse Gini variance/power estimates from Experiment 001**, because it is a different estimand/model.
-- [ ] Match at least one model prediction to an externally observable quantity, with a source and scope of empirical validation.
+- [ ] Ensure the repair graph is independent of randomized B/performance and identical across repaired arms; build **explicit, reproducible balanced graphs** using independently named setup streams rather than claiming an unimplemented uniform sampler over all regular graphs.
+- [ ] Confirm inferential method, null and minimum meaningful **postopportunity flow** difference; **do not reuse Gini variance/power estimates from Experiment 001**. Pilot precision must be estimated on per-parent `D_I^late−D_IS^late` and assessed for sensitivity to graph families and signal update rules.
+- [ ] Match at least one model prediction to externally observable behavioral or graph quantities, with a source and scope of validation; the 2026 Honduras village microdata is **controlled-access**, not freely usable. See [data audit](empirical-alignment.md).
 
 ## Candidate falsification tests, *all* must be reportable
 
 | Design test | Predicted/allowed result | How model would be falsified or criticized |
 | --- | --- | --- |
 | Identical priors δ=0 + balanced fixed graph | Boost label must have zero association with expected reward flow | Systematic nonzero label dependence suggests RNG/order/graph bug |
-| No rewiring + full correction | **Exact identity:** the post-τ process is independent of B, so `E[D]=0`; check the mean across seeds within a Monte Carlo tolerance | A stable gap is an implementation error: the model has no other persistence channel |
+| No rewiring + full correction | **Expected symmetry** over B-randomized independent societies: `E[D_I]=0` if graph/transition is B-independent after correction; finite-seed deviations are allowed | A stable gap calls for tests of assumptions, RNG setup, hidden state and statistical precision |
 | No preferential allocation (β=0) + regular fixed graph | Uniform choice within eligible neighbors | Any state-dependence fails a probability invariant |
-| Correction + independent repaired regular graph | **Exact identity:** beliefs and public reputations reset and `A*` independent of B give `E[D_IS]=0` with no mixing assumption, including under continued rewiring; Monte Carlo tolerance as above | A stable gap is an implementation error (for example `A*` depending on B) |
+| Correction + independent repaired regular graph | **Exchangeability null:** beliefs and public reputations reset and `A*` is independently generated from B; expected signed gap `E[D_IS]=0` over randomized societies **if** future transitions do not access B/legacy wealth and RNG is exchangeable. Individual seed effects need not be zero | A stable gap first triggers tests of exchangeability, RNG setup and Monte Carlo precision; it is not evidence of network lock-in |
 | Original false reputation + no correction | May favor boosted candidates, **not guaranteed** in finite paths | Null/negative outcome is a genuine negative result, not a reason to filter |
 | Repair without correction (U vs S, same prehistory) | `E[D_U − D_S]` may be positive, zero or negative; quantify uncertainty | Interpret by magnitude, not sign: repair helps only if `abs(E[D_S]) < abs(E[D_U])`. A negative `D_U` (boosted actors under-served) that repair removes is a repair benefit |
 | Correction with continued rewiring (arm I) | `D_I` by post-τ sub-window may decay toward 0 (self-correction) or persist | Decay to zero within the window rejects H1 for those parameters; report the full profile and the degree-only residual |
@@ -70,10 +70,19 @@ Do not represent a person with a low noisy rating as less intrinsically able. In
 The first draft left five choices open. Each was resolved as below and the [formal model](formal-model.md) updated to match; the alternatives remain available as declared variants.
 
 - **D1 — rewiring continues after τ in every arm.** Freezing the graph at τ made `E[D_I]>0` follow from the in-degree inherited at τ, ruled out the self-correction alternative, and was itself an intervention on all arms. With rewiring continuing, lock-in must survive ongoing rewiring and U is a true sham. The frozen-graph design survives only as a Phase C alternative.
-- **D2 — primary estimand `E[D_I]`, with IS as an exact-zero control.** `E[D_IS]=0` by label symmetry, so `E[D_I − D_IS]` would just restate `E[D_I]` at about twice the variance. The non-degenerate repair contrast is `E[D_U − D_S]` (repair without belief correction). Persistence is judged by late-window and degree-residual measures, since part of a full-window gap is inherited mechanically.
+- **D2 — amended after 2026 critical review: paired repair-after-truth contrast.** Primary *candidate* `θ = E_parent[D_I^late − D_IS^late]` in steps 501–600. The information-only `E[D_I]` describes persistence, while the paired I–IS contrast directly estimates the within-model structural intervention when truth is already corrected. The previous assertion that pairing has “about twice the variance” was false: `Var(I−IS)=Var(I)+Var(IS)−2Cov(I,IS)`. `E[D_U−D_S]` remains a distinct secondary repair-without-correction contrast. All outcomes/inference are unregistered drafts.
 - **D3 — a public reputation drives link additions.** With private beliefs only, beliefs about non-neighbors never updated, so additions preferred boosted actors about 11:1 regardless of evidence. Every observed signal now updates a shared public reputation `P_i`, which weights additions; private beliefs still drive selection and removal.
 - **D4 — a separate removal rule.** `removal∈{lowest_belief, uniform, none}` is independent of κ, which weights only additions, so the removal and addition channels can be varied separately; `removal=none` is the no-rewiring baseline.
 - **D5 — a d-matched no-network baseline.** The primary no-network baseline resamples d distinct non-self eligible candidates uniformly each step (same choice-set size d and ε floor, no persistent edges; this is not a globally d-regular graph); the complete graph is kept as a secondary baseline with its three-factor confound stated.
+
+
+### Additional review-derived invariants (before implementation)
+
+- [ ] **Genetic construction equivalent?** No: the V0 initial/repair graphs are independently permuted directed circulant graphs, *not* uniform over all simple d-regular graphs. Validate in/outdegree, reproducibility, permutation invariance, and sample diversity. Document topology-family sensitivity before confirmatory claims.
+- [ ] **Recorded setup RNG:** because `Trial::create` creates new streams after receiving a constructed world, pregenesis setup must use a custom Hiyal `Genesis` and persist consumed setup positions through `Trial::create_from_genesis`. Verify fork/resume preservation and forbid world reducer RNG use.
+- [ ] **Exact selection/exposure decomposition:** at every accepted event, independently recompute `g_deg` and `g_sel` from the *pre-event* adjacency/belief state; test `β=0 → g_sel=0` within floating-point tolerance, and `E[b_recipient−g]=0` across independent societies.
+- [ ] **Late-window fairness contrast:** recompute `D_I^late−D_IS^late` in a separate reference analyzer on steps 501–600, after a shared τ=200 parent; older full-window statistics remain exploratory.
+- [ ] **Policy tradeoff gate:** V0 assumes free graph rewiring and equal latent ability. Do not interpret an improvement in simulated fairness as an optimal real intervention.
 
 ## Decision before code implementation
 
