@@ -52,7 +52,7 @@ pub async fn run(
         move |rng|setup(&config_for_genesis,rng),
         ReputationPolicy,backend.clone(),agent_ids,Scheduling::Random,
     )?;
-    let attempts=usize::try_from(checkpoint).map_err(|e|e.to_string())?;
+    let attempts=checkpoint;
     if parent.run_attempts(attempts).await.map_err(|e|e.to_string())? !=attempts{
         return Err("parent did not commit all opportunities".into());
     }
@@ -76,7 +76,7 @@ pub async fn run(
         if trial.store.world().step!=checkpoint{
             return Err("fork does not start at checkpoint".into());
         }
-        let post=usize::try_from(total-checkpoint).map_err(|e|e.to_string())?;
+        let post=total-checkpoint;
         if trial.run_attempts(post).await.map_err(|e|e.to_string())?!=post{
             return Err("fork did not commit all post-intervention opportunities".into());
         }
