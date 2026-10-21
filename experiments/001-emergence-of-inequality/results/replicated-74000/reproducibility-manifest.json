@@ -1,16 +1,18 @@
 {
-  "schema": 1,
+  "schema": 2,
   "scientific_status": "exploratory_not_preregistered",
   "experiment": "experiment-001-exploratory-replicated-v1",
-  "started_utc": "2026-10-21T05:18:19Z",
-  "completed_utc": "2026-10-21T05:19:03Z",
-  "lab_git_sha": "bd0a75bb4be49838ff16b9da02e627a540be93ee",
+  "plan_mode": "grid",
+  "started_utc": "2026-10-21T06:13:04Z",
+  "completed_utc": "2026-10-21T06:13:30Z",
+  "lab_git_sha": "9848f0983d16b334a064046dcd29d5800da3e26a",
+  "lab_source_sha": "9848f0983d16b334a064046dcd29d5800da3e26a",
   "hiyal_git_sha": "c6f3d5d650457077eaff4e26a0060bc6cee5dbdd",
   "cargo_lock_sha256": "4df39214021c27ad67d2e1fee6f9dba06e29d9840dad3542746e9d18f3a3e809",
   "rust_toolchain": "rustc 1.89.0 (29483883e 2025-08-04)\nbinary: rustc\ncommit-hash: 29483883eed69d5fb4db01964cdf2af4d86e9cb2\ncommit-date: 2025-08-04\nhost: x86_64-unknown-linux-gnu\nrelease: 1.89.0\nLLVM version: 20.1.7",
-  "os": "Linux 6.17.0-1022-azure x86_64",
-  "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+  "os": "Linux 7.0.0-1017-azure x86_64",
+  "cpu_model": "AMD EPYC 9V74 80-Core Processor",
   "first_seed": 74000,
   "paired_societies_per_cell": 10,
-  "note": "Original journals, fork ancestry, RNG state, configuration and SHA256SUMS are archived. The archive is only retained for the GitHub Actions artifact retention period; no external empirical validation."
+  "note": "Original journals, fork ancestry, RNG state, configuration and SHA256SUMS are archived. No external empirical validation."
 }
