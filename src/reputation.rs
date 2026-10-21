@@ -335,12 +335,18 @@ impl ReputationWorld {
         }
         if let Some(ref base) = self.preintervention_graph {
             check_rows(base, n, self.config.degree)?;
-            let surviving = self.surviving_edges.as_ref().ok_or("missing link survival audit")?;
+            let surviving = self
+                .surviving_edges
+                .as_ref()
+                .ok_or("missing link survival audit")?;
             if surviving.len() != n {
                 return Err("wrong link survival row count".into());
             }
             for (j, row) in surviving.iter().enumerate() {
-                if row.iter().any(|i| !base[j].contains(i) || !self.graph[j].contains(i)) {
+                if row
+                    .iter()
+                    .any(|i| !base[j].contains(i) || !self.graph[j].contains(i))
+                {
                     return Err("invalid uninterrupted-link survival attribution".into());
                 }
             }

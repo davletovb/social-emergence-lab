@@ -22,6 +22,18 @@ Replace the final word with no-false-prior, no-selection-bias, fixed-graph, or r
 
 For more informative *manual* exploratory pilots, explore N=6,d=2; N=10,d=3; N=20,d=4 with the declared 200/600-event schedule and independent exploratory parent seeds. Benchmark setup-sampler acceptance before using N=20,d=4. Keep broad grids out of automatic PR CI and publish all negative/null cases.
 
+
+## First fixed-seed development batch (21 October 2026)
+
+The initial 12-parent development batch passed. Its [complete derived summary](results/dev-v0-20261021/batch-summary.json), [study plan](results/dev-v0-20261021/batch-plan.json) and [archive details](results/dev-v0-20261021/README.md) are retained in Git. The full parent/child Hiyal evidence bundle is a **temporary** GitHub Actions artifact; archive it permanently before expiry if needed for future study provenance.
+
+| Development configuration | Independent parents | Information-only signed late opportunity gap | Truth + repair difference in late gap |
+| --- | ---: | ---: | ---: |
+| N=6,d=2, default reputation mechanism | 4 | +0.1000 | +0.3250 |
+| N=10,d=3, default reputation mechanism | 4 | +0.0625 | +0.0125 |
+
+The four negative-control configurations were each run for **one seed only**; they cannot estimate a null distribution or establish significance. With just 40 postintervention events per branch, large random signed gaps are possible even under null mechanisms. These numbers are descriptive within-model outputs and do not support a scientific discovery or causal claim about humans. They are not from the canonical 20-actor, 200/600-step design.
+
 ## Limitations and open gates
 
 - Graph generator's 200,000-attempt ceiling can fail; failed seeds must be reported and not silently excluded.

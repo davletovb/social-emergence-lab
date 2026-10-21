@@ -5,8 +5,8 @@ use hiyal::{
     rng::Streams,
 };
 use social_emergence_lab::reputation::{
-    Action, Arm, Config, Removal, Rewire, ReputationPolicy, ReputationWorld, flow, regular_graph, setup,
-    validate_graph, window,
+    Action, Arm, Config, Removal, ReputationPolicy, ReputationWorld, Rewire, flow, regular_graph,
+    setup, validate_graph, window,
 };
 use social_emergence_lab::reputation_pilot::{control_config, run};
 use std::{
@@ -174,17 +174,30 @@ fn removed_then_readded_checkpoint_edge_is_not_counted_as_inherited() {
             recipient: w.graph[0][1],
             success: true,
             pre_flow: flow(&w).unwrap(),
-            rewire: Some(Rewire { allocator: 0, removed: remove, added: insert }),
+            rewire: Some(Rewire {
+                allocator: 0,
+                removed: remove,
+                added: insert,
+            }),
         };
         w.apply(AgentId(0), action).unwrap();
     }
     assert!(w.graph[0].contains(&old), "the original edge was re-added");
-    assert!(!w.surviving_edges.as_ref().unwrap()[0].contains(&old),
-        "re-added edges must never be called uninterrupted inheritance");
+    assert!(
+        !w.surviving_edges.as_ref().unwrap()[0].contains(&old),
+        "re-added edges must never be called uninterrupted inheritance"
+    );
     w.verify().unwrap();
     let measurement = flow(&w).unwrap();
-    let reference_inherited = w.surviving_edges.as_ref().unwrap().iter().flat_map(|row|row.iter())
-        .map(|&i| if w.boost[i] { 1.0 } else { -1.0 }).sum::<f64>() / 12.0;
+    let reference_inherited = w
+        .surviving_edges
+        .as_ref()
+        .unwrap()
+        .iter()
+        .flat_map(|row| row.iter())
+        .map(|&i| if w.boost[i] { 1.0 } else { -1.0 })
+        .sum::<f64>()
+        / 12.0;
     assert!((measurement.inherited - reference_inherited).abs() < 1e-12);
     assert!((measurement.inherited + measurement.added - measurement.degree).abs() < 1e-12);
 }

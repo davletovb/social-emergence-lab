@@ -1,0 +1,9 @@
+{
+  "scientific_status": "exploratory_model_development_NOT_preregistered",
+  "source_commit": "bc870fe5ca75ad627421838b24fb1375eceaffdb",
+  "hiyal_commit": "4bb53aca5cffa6bc01b7558efbd690af7dbed79f",
+  "purpose": "Testing simulation behavior, not evidence about real societies",
+  "started_from_fixed_seeds": true,
+  "specification": "n6,d2 and n10,d3 each four independent parents (tau20,total60), plus one parent for each named n6 negative control",
+  "limitations": "Four societies per configuration; do not report confidence intervals, significance, reproducibility across settings, or novel causal laws"
+}
