@@ -1,0 +1,142 @@
+{
+  "protocol": "experiment-002-v3-20261022",
+  "stage": "B",
+  "rule": "v3-decision-002-amendment-1.jq",
+  "source_revision": "defb96ee73f4fe8a5258fc7178166e7bc7961b49",
+  "hiyal_revision": "e38419f857afbb53428284a312b0eb926a2320e2",
+  "no_regeneration_under_either_rule": true,
+  "cells": [
+    {
+      "cell": 0,
+      "rewire_every": 2,
+      "mechanism": "random-turnover",
+      "classification": "slow_relaxation",
+      "frozen_rule_classification": "slow_relaxation",
+      "median_classification": "inconclusive",
+      "robust": false,
+      "new_link_plus_selection": [
+        -0.038987743239667104,
+        0.014548796987181721
+      ],
+      "structural_excess": [
+        -0.04581857704516756,
+        0.010423553196052312
+      ],
+      "regeneration_exceeds_margin": false,
+      "compensation_exceeds_margin": false,
+      "null_symmetry_flag": false,
+      "null_symmetry_flag_t": false,
+      "sha256sums_sha256": "75d1eee90e6e88651580c0f4cf9e05ecf0619bff647534fd24cde7f7651e5cc0"
+    },
+    {
+      "cell": 1,
+      "rewire_every": 2,
+      "mechanism": "belief-deletion",
+      "classification": "compensation",
+      "frozen_rule_classification": "inconclusive",
+      "median_classification": "compensation",
+      "robust": true,
+      "new_link_plus_selection": [
+        -0.06930149049795815,
+        -0.02300431236201037
+      ],
+      "structural_excess": [
+        -0.07449477622029856,
+        -0.02420104883558316
+      ],
+      "regeneration_exceeds_margin": false,
+      "compensation_exceeds_margin": false,
+      "null_symmetry_flag": false,
+      "null_symmetry_flag_t": false,
+      "sha256sums_sha256": "47ec0e8c9510aa78a444b9a1240755383ad81a45cf23a651d1fe707bf1ace847"
+    },
+    {
+      "cell": 3,
+      "rewire_every": 10,
+      "mechanism": "random-turnover",
+      "classification": "slow_relaxation",
+      "frozen_rule_classification": "slow_relaxation",
+      "median_classification": "inconclusive",
+      "robust": false,
+      "new_link_plus_selection": [
+        -0.017906495806756087,
+        0.026193080145124073
+      ],
+      "structural_excess": [
+        -0.030801376403238902,
+        0.026660336358925913
+      ],
+      "regeneration_exceeds_margin": false,
+      "compensation_exceeds_margin": false,
+      "null_symmetry_flag": false,
+      "null_symmetry_flag_t": false,
+      "sha256sums_sha256": "90e1b06b6b3a421487ed3dca3973c7d50261e23a8af3f3d553d8bc0d5a18aea6"
+    },
+    {
+      "cell": 4,
+      "rewire_every": 10,
+      "mechanism": "belief-deletion",
+      "classification": "slow_relaxation",
+      "frozen_rule_classification": "slow_relaxation",
+      "median_classification": "slow_relaxation",
+      "robust": true,
+      "new_link_plus_selection": [
+        -0.0356317761439963,
+        0.0023656256596592054
+      ],
+      "structural_excess": [
+        -0.04650308214185139,
+        -0.0006922349911570591
+      ],
+      "regeneration_exceeds_margin": false,
+      "compensation_exceeds_margin": false,
+      "null_symmetry_flag": false,
+      "null_symmetry_flag_t": false,
+      "sha256sums_sha256": "498803a38dc8a82c6a3086409940b636834291f2b38f850d1e7bf68bcacb453f"
+    },
+    {
+      "cell": 6,
+      "rewire_every": 20,
+      "mechanism": "random-turnover",
+      "classification": "slow_relaxation",
+      "frozen_rule_classification": "slow_relaxation",
+      "median_classification": "slow_relaxation",
+      "robust": true,
+      "new_link_plus_selection": [
+        -0.013640628500165695,
+        0.020361641696618415
+      ],
+      "structural_excess": [
+        -0.01883839454524445,
+        0.017093963249484322
+      ],
+      "regeneration_exceeds_margin": false,
+      "compensation_exceeds_margin": false,
+      "null_symmetry_flag": false,
+      "null_symmetry_flag_t": false,
+      "sha256sums_sha256": "4990fccad7ace0b49ed2f9d3da15b24bfdcd47ee6c988f54355ddf13cb88709b"
+    },
+    {
+      "cell": 7,
+      "rewire_every": 20,
+      "mechanism": "belief-deletion",
+      "classification": "slow_relaxation",
+      "frozen_rule_classification": "slow_relaxation",
+      "median_classification": "slow_relaxation",
+      "robust": true,
+      "new_link_plus_selection": [
+        -0.016158362592127287,
+        0.014953058826504006
+      ],
+      "structural_excess": [
+        -0.018870458035104506,
+        0.020479459398046653
+      ],
+      "regeneration_exceeds_margin": false,
+      "compensation_exceeds_margin": false,
+      "null_symmetry_flag": false,
+      "null_symmetry_flag_t": false,
+      "sha256sums_sha256": "e620eeee6927dc9fc95477ffac7efdfd63a37fbaf0ad111bd24b4d6ac77be668"
+    }
+  ]
+}

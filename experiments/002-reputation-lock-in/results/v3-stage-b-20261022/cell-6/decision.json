@@ -1,0 +1,207 @@
+{
+  "status": "EXPLORATORY_V3_DECISION_RULE_AMENDMENT_1",
+  "mechanism": "random-turnover",
+  "rewire_every": 20,
+  "parents": 48,
+  "seeds": [
+    130600,
+    130601,
+    130602,
+    130603,
+    130604,
+    130605,
+    130606,
+    130607,
+    130608,
+    130609,
+    130610,
+    130611,
+    130612,
+    130613,
+    130614,
+    130615,
+    130616,
+    130617,
+    130618,
+    130619,
+    130620,
+    130621,
+    130622,
+    130623,
+    130624,
+    130625,
+    130626,
+    130627,
+    130628,
+    130629,
+    130630,
+    130631,
+    130632,
+    130633,
+    130634,
+    130635,
+    130636,
+    130637,
+    130638,
+    130639,
+    130640,
+    130641,
+    130642,
+    130643,
+    130644,
+    130645,
+    130646,
+    130647
+  ],
+  "critical_t": 2.011741,
+  "margin": 0.05,
+  "late_gap": {
+    "mean": 0.01708333333333333,
+    "sd": 0.11403542438288375,
+    "interval_95": [
+      -0.016029110262569115,
+      0.05019577692923577
+    ]
+  },
+  "new_link_plus_selection": {
+    "mean": 0.00336050659822636,
+    "sd": 0.05854994211830956,
+    "interval_95": [
+      -0.013640628500165695,
+      0.020361641696618415
+    ]
+  },
+  "structural_excess": {
+    "mean": -0.0008722156478800638,
+    "sd": 0.06187344129906764,
+    "interval_95": [
+      -0.01883839454524445,
+      0.017093963249484322
+    ]
+  },
+  "classification": "slow_relaxation",
+  "frozen_rule_classification": "slow_relaxation",
+  "regeneration_exceeds_margin": false,
+  "compensation_exceeds_margin": false,
+  "robustness": {
+    "new_link_plus_selection": {
+      "median": 0.02135145746722608,
+      "interval_95": [
+        -0.01985281732074945,
+        0.034587792549043844
+      ],
+      "order_statistics": [
+        17,
+        32
+      ],
+      "coverage": 0.9706950532794707,
+      "sign_test": {
+        "positive": 27,
+        "negative": 21,
+        "p_two_sided": 0.4708790136217118
+      }
+    },
+    "structural_excess": {
+      "median": 0.012697996428742206,
+      "interval_95": [
+        -0.0032112511624113986,
+        0.030121425322376418
+      ],
+      "order_statistics": [
+        17,
+        32
+      ],
+      "coverage": 0.9706950532794707
+    },
+    "median_classification": "slow_relaxation",
+    "agrees": true,
+    "null_adjusted_new_link_plus_selection": {
+      "coefficient": 1,
+      "mean": 0,
+      "se": 0,
+      "interval_95": [
+        0,
+        0
+      ]
+    },
+    "windows": [
+      {
+        "from": 201,
+        "through": 300,
+        "new_link_plus_selection": {
+          "mean": 0.00020386027621930575,
+          "sd": 0.017057542154360995,
+          "interval_95": [
+            -0.004749134861279244,
+            0.005156855413717854
+          ]
+        }
+      },
+      {
+        "from": 301,
+        "through": 400,
+        "new_link_plus_selection": {
+          "mean": -0.0002520266713731828,
+          "sd": 0.03181008681870462,
+          "interval_95": [
+            -0.00948871528164694,
+            0.008984661938900573
+          ]
+        }
+      },
+      {
+        "from": 401,
+        "through": 500,
+        "new_link_plus_selection": {
+          "mean": 0.000372900929596929,
+          "sd": 0.04005079916151375,
+          "interval_95": [
+            -0.011256641691770253,
+            0.012002443550964113
+          ]
+        }
+      },
+      {
+        "from": 501,
+        "through": 600,
+        "new_link_plus_selection": {
+          "mean": 0.00336050659822636,
+          "sd": 0.05854994211830956,
+          "interval_95": [
+            -0.013640628500165695,
+            0.020361641696618415
+          ]
+        }
+      }
+    ]
+  },
+  "null_control": {
+    "new_link_plus_selection": {
+      "mean": 0.00336050659822636,
+      "sd": 0.05854994211830956,
+      "interval_95": [
+        -0.013640628500165695,
+        0.020361641696618415
+      ]
+    },
+    "median": {
+      "median": 0.02135145746722608,
+      "interval_95": [
+        -0.01985281732074945,
+        0.034587792549043844
+      ],
+      "order_statistics": [
+        17,
+        32
+      ],
+      "coverage": 0.9706950532794707
+    },
+    "sign_test": {
+      "positive": 27,
+      "negative": 21,
+      "p_two_sided": 0.4708790136217118
+    },
+    "symmetry_flag": false,
+    "symmetry_flag_t": false
+  }
+}

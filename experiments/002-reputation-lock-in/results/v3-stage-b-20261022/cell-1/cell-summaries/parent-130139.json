@@ -1,0 +1,152 @@
+{
+  "status": "EXPLORATORY_FIXED_SEED_FEASIBILITY_NOT_CONFIRMATORY",
+  "mechanism": "belief-deletion",
+  "rewire_every": 2,
+  "parent_seed": 130139,
+  "hiyal_revision": "e38419f857afbb53428284a312b0eb926a2320e2",
+  "information_only": {
+    "delta_0_2": {
+      "late": {
+        "from": 501,
+        "through": 600,
+        "signed_gap": 0.1,
+        "inherited_exposure": 0.1545,
+        "new_link_exposure": -0.10699999999999993,
+        "conditional_selection": -0.003913045102403604,
+        "new_link_plus_selection": -0.11091304510240353,
+        "realized_innovation": 0.056413045102403594,
+        "surviving_fraction": 0.20862500000000003,
+        "inherited_per_surviving_edge": 0.7405632115038944,
+        "rewires": 50
+      },
+      "windows": [
+        {
+          "from": 201,
+          "through": 300,
+          "signed_gap": 0.38,
+          "inherited_exposure": 0.4450000000000001,
+          "new_link_exposure": -0.013999999999999978,
+          "conditional_selection": 0.004195597948203554,
+          "new_link_plus_selection": -0.009804402051796423,
+          "realized_innovation": -0.05519559794820393,
+          "surviving_fraction": 0.7576249999999999,
+          "inherited_per_surviving_edge": 0.587361821481604,
+          "rewires": 50
+        },
+        {
+          "from": 301,
+          "through": 400,
+          "signed_gap": 0.22,
+          "inherited_exposure": 0.26850000000000046,
+          "new_link_exposure": -0.06900000000000008,
+          "conditional_selection": 0.031066585872854487,
+          "new_link_plus_selection": -0.037933414127145584,
+          "realized_innovation": -0.010566585872854414,
+          "surviving_fraction": 0.4532499999999998,
+          "inherited_per_surviving_edge": 0.5923883066740222,
+          "rewires": 50
+        },
+        {
+          "from": 401,
+          "through": 500,
+          "signed_gap": 0.36,
+          "inherited_exposure": 0.19375000000000017,
+          "new_link_exposure": -0.018250000000000002,
+          "conditional_selection": 0.03178426257280083,
+          "new_link_plus_selection": 0.013534262572800826,
+          "realized_innovation": 0.15271573742719907,
+          "surviving_fraction": 0.326875,
+          "inherited_per_surviving_edge": 0.5927342256214154,
+          "rewires": 50
+        },
+        {
+          "from": 501,
+          "through": 600,
+          "signed_gap": 0.1,
+          "inherited_exposure": 0.1545,
+          "new_link_exposure": -0.10699999999999993,
+          "conditional_selection": -0.003913045102403604,
+          "new_link_plus_selection": -0.11091304510240353,
+          "realized_innovation": 0.056413045102403594,
+          "surviving_fraction": 0.20862500000000003,
+          "inherited_per_surviving_edge": 0.7405632115038944,
+          "rewires": 50
+        }
+      ]
+    },
+    "delta_0": {
+      "late": {
+        "from": 501,
+        "through": 600,
+        "signed_gap": 0.08,
+        "inherited_exposure": 0.006749999999999995,
+        "new_link_exposure": -0.025250000000000022,
+        "conditional_selection": -0.0011925012542483879,
+        "new_link_plus_selection": -0.02644250125424841,
+        "realized_innovation": 0.09969250125424839,
+        "surviving_fraction": 0.20149999999999998,
+        "inherited_per_surviving_edge": 0.033498759305210894,
+        "rewires": 50
+      },
+      "windows": [
+        {
+          "from": 201,
+          "through": 300,
+          "signed_gap": -0.22,
+          "inherited_exposure": -0.0030000000000000087,
+          "new_link_exposure": 0.028000000000000004,
+          "conditional_selection": -0.011129174658944524,
+          "new_link_plus_selection": 0.01687082534105548,
+          "realized_innovation": -0.23387082534105547,
+          "surviving_fraction": 0.7576249999999999,
+          "inherited_per_surviving_edge": -0.0039597426167299245,
+          "rewires": 50
+        },
+        {
+          "from": 301,
+          "through": 400,
+          "signed_gap": -0.1,
+          "inherited_exposure": -0.005000000000000005,
+          "new_link_exposure": -0.028499999999999984,
+          "conditional_selection": -0.009372450881512713,
+          "new_link_plus_selection": -0.0378724508815127,
+          "realized_innovation": -0.05712754911848729,
+          "surviving_fraction": 0.4537500000000005,
+          "inherited_per_surviving_edge": -0.011019283746556474,
+          "rewires": 50
+        },
+        {
+          "from": 401,
+          "through": 500,
+          "signed_gap": 0.04,
+          "inherited_exposure": -0.00925,
+          "new_link_exposure": -0.023250000000000003,
+          "conditional_selection": 0.013085689752410715,
+          "new_link_plus_selection": -0.010164310247589289,
+          "realized_innovation": 0.059414310247589294,
+          "surviving_fraction": 0.3232500000000001,
+          "inherited_per_surviving_edge": -0.028615622583139974,
+          "rewires": 50
+        },
+        {
+          "from": 501,
+          "through": 600,
+          "signed_gap": 0.08,
+          "inherited_exposure": 0.006749999999999995,
+          "new_link_exposure": -0.025250000000000022,
+          "conditional_selection": -0.0011925012542483879,
+          "new_link_plus_selection": -0.02644250125424841,
+          "realized_innovation": 0.09969250125424839,
+          "surviving_fraction": 0.20149999999999998,
+          "inherited_per_surviving_edge": 0.033498759305210894,
+          "rewires": 50
+        }
+      ]
+    }
+  },
+  "late_false_prior_minus_null": {
+    "signed_gap": 0.020000000000000004,
+    "new_link_plus_selection": -0.08447054384815512
+  },
+  "interpretation": "One independently seeded society per cell. No statistical inference; do not declare reputation lock-in from a positive total gap."
+}
