@@ -1,0 +1,207 @@
+{
+  "status": "EXPLORATORY_V3_DECISION_RULE_AMENDMENT_1",
+  "mechanism": "random-turnover",
+  "rewire_every": 2,
+  "parents": 48,
+  "seeds": [
+    130000,
+    130001,
+    130002,
+    130003,
+    130004,
+    130005,
+    130006,
+    130007,
+    130008,
+    130009,
+    130010,
+    130011,
+    130012,
+    130013,
+    130014,
+    130015,
+    130016,
+    130017,
+    130018,
+    130019,
+    130020,
+    130021,
+    130022,
+    130023,
+    130024,
+    130025,
+    130026,
+    130027,
+    130028,
+    130029,
+    130030,
+    130031,
+    130032,
+    130033,
+    130034,
+    130035,
+    130036,
+    130037,
+    130038,
+    130039,
+    130040,
+    130041,
+    130042,
+    130043,
+    130044,
+    130045,
+    130046,
+    130047
+  ],
+  "critical_t": 2.011741,
+  "margin": 0.05,
+  "late_gap": {
+    "mean": 0.010416666666666666,
+    "sd": 0.13195676811926801,
+    "interval_95": [
+      -0.02789959396104992,
+      0.04873292729438325
+    ]
+  },
+  "new_link_plus_selection": {
+    "mean": -0.012219473126242691,
+    "sd": 0.09218682497832195,
+    "interval_95": [
+      -0.038987743239667104,
+      0.014548796987181721
+    ]
+  },
+  "structural_excess": {
+    "mean": -0.017697511924557627,
+    "sd": 0.09684569445440429,
+    "interval_95": [
+      -0.04581857704516756,
+      0.010423553196052312
+    ]
+  },
+  "classification": "slow_relaxation",
+  "frozen_rule_classification": "slow_relaxation",
+  "regeneration_exceeds_margin": false,
+  "compensation_exceeds_margin": false,
+  "robustness": {
+    "new_link_plus_selection": {
+      "median": -0.013035586694621796,
+      "interval_95": [
+        -0.06461753895741645,
+        0.012778701992065211
+      ],
+      "order_statistics": [
+        17,
+        32
+      ],
+      "coverage": 0.9706950532794707,
+      "sign_test": {
+        "positive": 17,
+        "negative": 31,
+        "p_two_sided": 0.05946337525377032
+      }
+    },
+    "structural_excess": {
+      "median": -0.02069487811574284,
+      "interval_95": [
+        -0.05042806772202715,
+        0.015492390318818097
+      ],
+      "order_statistics": [
+        17,
+        32
+      ],
+      "coverage": 0.9706950532794707
+    },
+    "median_classification": "inconclusive",
+    "agrees": false,
+    "null_adjusted_new_link_plus_selection": {
+      "coefficient": 1,
+      "mean": 0,
+      "se": 0,
+      "interval_95": [
+        0,
+        0
+      ]
+    },
+    "windows": [
+      {
+        "from": 201,
+        "through": 300,
+        "new_link_plus_selection": {
+          "mean": -0.0076273350126956135,
+          "sd": 0.03676309241585149,
+          "interval_95": [
+            -0.01830222687738135,
+            0.0030475568519901233
+          ]
+        }
+      },
+      {
+        "from": 301,
+        "through": 400,
+        "new_link_plus_selection": {
+          "mean": -0.003950692781065787,
+          "sd": 0.07475403252341607,
+          "interval_95": [
+            -0.025657006401532328,
+            0.017755620839400754
+          ]
+        }
+      },
+      {
+        "from": 401,
+        "through": 500,
+        "new_link_plus_selection": {
+          "mean": -0.013320792783000893,
+          "sd": 0.0957536603070709,
+          "interval_95": [
+            -0.04112476416450248,
+            0.014483178598500695
+          ]
+        }
+      },
+      {
+        "from": 501,
+        "through": 600,
+        "new_link_plus_selection": {
+          "mean": -0.012219473126242691,
+          "sd": 0.09218682497832195,
+          "interval_95": [
+            -0.038987743239667104,
+            0.014548796987181721
+          ]
+        }
+      }
+    ]
+  },
+  "null_control": {
+    "new_link_plus_selection": {
+      "mean": -0.012219473126242691,
+      "sd": 0.09218682497832195,
+      "interval_95": [
+        -0.038987743239667104,
+        0.014548796987181721
+      ]
+    },
+    "median": {
+      "median": -0.013035586694621796,
+      "interval_95": [
+        -0.06461753895741645,
+        0.012778701992065211
+      ],
+      "order_statistics": [
+        17,
+        32
+      ],
+      "coverage": 0.9706950532794707
+    },
+    "sign_test": {
+      "positive": 17,
+      "negative": 31,
+      "p_two_sided": 0.05946337525377032
+    },
+    "symmetry_flag": false,
+    "symmetry_flag_t": false
+  }
+}
