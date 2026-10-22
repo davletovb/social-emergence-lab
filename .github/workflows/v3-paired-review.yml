@@ -1,0 +1,38 @@
+name: Independent V3 paired-summary audit
+
+on:
+  pull_request:
+    paths:
+      - 'docs/review/v3_independent_paired_audit.py'
+      - 'docs/review/experiment-002-v3-critical-reanalysis-20261022.md'
+      - '.github/workflows/v3-paired-review.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  independent-arithmetic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Recompute all 432 synthetic parent summaries without Hiyal or jq
+        run: |
+          python3 docs/review/v3_independent_paired_audit.py > /tmp/v3-independent-paired.json
+          python3 - <<'PY'
+          import json, math
+          r=json.load(open("/tmp/v3-independent-paired.json",encoding="utf-8"))
+          cells=r["cells"]
+          assert len(cells)==9 and sum(c["independent_parents"] for c in cells)==432
+          for i in (0,3,6):
+              assert abs(cells[i]["paired_nps"]["mean"]) < 1e-12
+              assert abs(cells[i]["paired_gap"]["mean"]) < 1e-12
+          # Independently calculated post hoc reference values, *not* discovery thresholds.
+          checks={1:-0.032624813236699905,2:-0.07467631408418554,4:-0.018626129232844922,
+                  5:0.010723085500099915,7:-0.007744023345922931,8:0.004511849445892842}
+          for i,mean in checks.items():
+              assert math.isclose(cells[i]["paired_nps"]["mean"],mean,abs_tol=1e-10,rel_tol=0)
+          assert abs(cells[2]["paired_sign_test"]["holm_adjusted_p"]-0.04963681336950999)<1e-10
+          print("432 parent summaries checked; paired NPS arithmetic and exact sign Holm checks passed")
+          print("EXPLORATORY POST HOC: not external human review or raw journal replay")
+          PY
