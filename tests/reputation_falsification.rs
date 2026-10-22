@@ -1,8 +1,14 @@
 //! Experiment 002 falsification/identification tests. These demonstrate
 //! counterexamples to claims that a positive late gap requires ongoing
 //! misinformation or belief selection.
-use hiyal::{core::{AgentId, World}, experiment::EffectPolicy, rng::Streams};
-use social_emergence_lab::reputation::{Arm, Config, Removal, ReputationPolicy, flow, setup, window};
+use hiyal::{
+    core::{AgentId, World},
+    experiment::EffectPolicy,
+    rng::Streams,
+};
+use social_emergence_lab::reputation::{
+    Arm, Config, Removal, ReputationPolicy, flow, setup, window,
+};
 
 #[test]
 fn a_positive_gap_can_persist_with_zero_reputation_selection_and_no_rewiring() {
@@ -15,8 +21,7 @@ fn a_positive_gap_can_persist_with_zero_reputation_selection_and_no_rewiring() {
     let mut change = None;
     for j in 0..w.config.actors {
         let old = w.graph[j].iter().position(|&i| !w.boost[i]);
-        let new = (0..w.config.actors)
-            .find(|&i| i != j && w.boost[i] && !w.graph[j].contains(&i));
+        let new = (0..w.config.actors).find(|&i| i != j && w.boost[i] && !w.graph[j].contains(&i));
         if let (Some(index), Some(target)) = (old, new) {
             change = Some((j, index, target));
             break;
@@ -90,8 +95,12 @@ fn combined_repair_erases_initial_reputation_difference_from_access_state() {
     let mut d1 = Streams::new("matched-prior-decisions".into(), 4052);
     for t in 0..30 {
         let actor = AgentId((t % 10) as u64);
-        let aa = ReputationPolicy.decide_with_streams(actor, &a.observe(actor).unwrap(), &[], &mut d0).unwrap();
-        let ab = ReputationPolicy.decide_with_streams(actor, &b.observe(actor).unwrap(), &[], &mut d1).unwrap();
+        let aa = ReputationPolicy
+            .decide_with_streams(actor, &a.observe(actor).unwrap(), &[], &mut d0)
+            .unwrap();
+        let ab = ReputationPolicy
+            .decide_with_streams(actor, &b.observe(actor).unwrap(), &[], &mut d1)
+            .unwrap();
         a.apply(actor, aa).unwrap();
         b.apply(actor, ab).unwrap();
     }
