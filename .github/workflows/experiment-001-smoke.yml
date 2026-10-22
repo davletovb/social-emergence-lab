@@ -10,6 +10,8 @@ on:
       - 'Cargo.lock'
       - 'rust-toolchain.toml'
       - 'src/**'
+      - 'tests/**'
+      - 'experiments/002-reputation-lock-in/**'
       - '.github/workflows/experiment-001-smoke.yml'
   workflow_dispatch:
     inputs:
@@ -49,7 +51,7 @@ jobs:
       - name: Check Rust formatting
         run: cargo fmt --all -- --check
       - name: Check evidence scripts syntax
-        run: bash -n scripts/replicate-001.sh scripts/verify-001.sh scripts/pilot-002.sh scripts/verify-002.sh scripts/pilot-v1-002.sh scripts/pilot-v1-002-fallback.sh scripts/pilot-paired-002.sh scripts/benchmark-reputation-v2.sh scripts/pilot-paired-002-shard.sh scripts/aggregate-paired-002.sh
+        run: bash -n scripts/replicate-001.sh scripts/verify-001.sh scripts/pilot-002.sh scripts/verify-002.sh scripts/pilot-v1-002.sh scripts/pilot-v1-002-fallback.sh scripts/pilot-paired-002.sh scripts/benchmark-reputation-v2.sh scripts/pilot-paired-002-shard.sh scripts/aggregate-paired-002.sh scripts/check-h1-falsification-002.sh
 
       - name: Check analytic prediction and exploratory sample-size calculator
         run: |
@@ -59,6 +61,12 @@ jobs:
             and .planning.societies_for_95_ci_half_width == 80
             and .planning.societies_for_90pct_power_two_sided_5pct == 55
             and (.independent_urn_variance_benchmark.ratio - 720/221 | fabs) < 1e-12' /tmp/design.json
+      # Checks that the committed 36-parent files agree with each other; it
+      # deliberately does not assert which way the result came out.
+      - name: Reconcile the committed 36-parent H1 decomposition
+        run: |
+          bash scripts/check-h1-falsification-002.sh | tee /tmp/experiment-002-h1-review.json
+          jq -e '.independent_parent_seeds == 36' /tmp/experiment-002-h1-review.json
       - name: Test Rust model and Hiyal fork integration
         run: cargo test --locked
       - name: Experiment 002 tiny four-arm exploratory model smoke

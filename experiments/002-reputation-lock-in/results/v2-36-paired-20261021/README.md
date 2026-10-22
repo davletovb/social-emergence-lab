@@ -43,7 +43,7 @@ bash scripts/aggregate-paired-002.sh /absolute/directory/with/three/extracted-sh
 
 This recomputes per-seed means and uncertainty, and now also `arm-summary.json` and `h1-decomposition.json`, from the original **checksum-covered** report files. Values compare exactly; the aggregate `SHA256SUMS` digest above is only reproducible with the same jq, because jq versions differ on whether an unchanged `0.0` prints as `0.0` or `0` (the verification scripts compare values, not this spelling). For full verification, use `scripts/verify-002.sh` on *each shard* with its exact source revision and Hiyal dependency; unlike aggregation, that performs independent Hiyal parent+fork journal replay. A user-controlled durable archive is still outstanding.
 
-**Review reproduction (2026-10-22):** running `scripts/pilot-paired-002-shard.sh` for all three shards at `057dbec` (Linux x86-64, Rust 1.89.0) and aggregating gave every one of the 36 per-seed records and every summary statistic with identical values; each reproduced shard passed `verify-002.sh`. The committed `arm-summary.json` and `h1-decomposition.json` were computed from those reproduced reports.
+**Review reproduction (2026-10-22):** running `scripts/pilot-paired-002-shard.sh` for all three shards at `057dbec` (Linux x86-64, Rust 1.89.0) and aggregating gave every one of the 36 per-seed records and every summary statistic with identical values; each reproduced shard passed `verify-002.sh`. The committed `arm-summary.json`, `h1-decomposition.json` and `h1-quarters.json` (the same decomposition in the four 100-event windows after τ) were computed from those reproduced reports.
 
 ## Performance finding
 
