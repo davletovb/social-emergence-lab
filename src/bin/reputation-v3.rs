@@ -11,14 +11,24 @@ const USAGE: &str = "usage: reputation-v3 run <NEW-ABS-DIR> <seed> <period:2|10|
 async fn execute(args: &[String]) -> Result<(), String> {
     let report = match args {
         [command, dir] if command == "verify" => verify_pair(Path::new(dir))?,
-        [command, dir, seed, period, mechanism, actors, degree, checkpoint, total]
-            if command == "run" =>
-        {
+        [
+            command,
+            dir,
+            seed,
+            period,
+            mechanism,
+            actors,
+            degree,
+            checkpoint,
+            total,
+        ] if command == "run" => {
             if !Path::new(dir).is_absolute() {
                 return Err("V3 evidence output must be an absolute path".into());
             }
             let parse = |value: &String| {
-                value.parse::<u64>().map_err(|_| format!("invalid nonnegative integer: {value}"))
+                value
+                    .parse::<u64>()
+                    .map_err(|_| format!("invalid nonnegative integer: {value}"))
             };
             let size = |value: &String| usize::try_from(parse(value)?).map_err(|e| e.to_string());
             let mode = Mechanism::parse(mechanism)?;
