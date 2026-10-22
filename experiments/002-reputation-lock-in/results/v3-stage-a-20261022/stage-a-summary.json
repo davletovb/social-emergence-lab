@@ -1,0 +1,53 @@
+{
+  "protocol": "experiment-002-v3-20261022",
+  "stage": "A",
+  "source_revision": "3b6ddb43bc451f7b708fca6202eb2b087675e7fe",
+  "hiyal_revision": "e38419f857afbb53428284a312b0eb926a2320e2",
+  "cells": [
+    {
+      "cell": 2,
+      "rewire_every": 2,
+      "classification": "inconclusive",
+      "new_link_plus_selection": [
+        -0.07197958196358045,
+        -0.0028024704202098336
+      ],
+      "structural_excess": [
+        -0.06488490055994331,
+        0.0061404651256122544
+      ],
+      "null_symmetry_flag": true,
+      "sha256sums_sha256": "d0037ac3e583b9597969ac7e96d5790d1897eb749f29d1180528d1fca86144d0"
+    },
+    {
+      "cell": 5,
+      "rewire_every": 10,
+      "classification": "slow_relaxation",
+      "new_link_plus_selection": [
+        -0.034119902537228845,
+        0.006358840034593331
+      ],
+      "structural_excess": [
+        -0.03754103598602649,
+        0.011073079103734068
+      ],
+      "null_symmetry_flag": true,
+      "sha256sums_sha256": "979dd9c1b96b559cf6efa14d67682b6a374710ce1058a07eeb461d4b6e106366"
+    },
+    {
+      "cell": 8,
+      "rewire_every": 20,
+      "classification": "slow_relaxation",
+      "new_link_plus_selection": [
+        -0.02326310181268011,
+        0.009944695708060527
+      ],
+      "structural_excess": [
+        -0.022042988991110662,
+        0.017236547391789463
+      ],
+      "null_symmetry_flag": false,
+      "sha256sums_sha256": "29dcc642e29f945ceb43513da953185c50669e6131d1b5904b3bcac2391ccf25"
+    }
+  ]
+}
