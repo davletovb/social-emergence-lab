@@ -21,6 +21,63 @@ pub fn main_grid_seed(cell: usize, index: usize) -> Result<u64, String> {
     Ok(FIRST_MAIN_GRID_SEED + 100 * cell as u64 + index as u64)
 }
 
+/// Engineering dry run of the grid runner: same model settings, three
+/// parents per cell on seeds outside every frozen range. Not evidence.
+pub const SMOKE_PARENTS_PER_CELL: usize = 3;
+pub const FIRST_SMOKE_SEED: u64 = 140_000;
+/// t quantile for the smoke run's df = 2.
+pub const SMOKE_CRITICAL_T: f64 = 4.302653;
+
+/// Rewire period and mechanism of row-major `cell` (0..9).
+pub fn cell_design(cell: usize) -> Result<(u64, Mechanism), String> {
+    let n = Mechanism::ALL.len();
+    if cell >= PERIODS.len() * n {
+        return Err("V3 cell must be 0..9".into());
+    }
+    Ok((PERIODS[cell / n], Mechanism::ALL[cell % n]))
+}
+
+/// The frozen design of one main-grid cell (or its smoke dry run), as the
+/// grid scripts write and verify it.
+pub fn main_grid_plan(cell: usize, smoke: bool) -> Result<serde_json::Value, String> {
+    let (period, mechanism) = cell_design(cell)?;
+    let (parents, first, t, status) = if smoke {
+        (
+            SMOKE_PARENTS_PER_CELL,
+            FIRST_SMOKE_SEED,
+            SMOKE_CRITICAL_T,
+            "ENGINEERING_SMOKE_NOT_EVIDENCE",
+        )
+    } else {
+        (
+            MAIN_GRID_PARENTS_PER_CELL,
+            FIRST_MAIN_GRID_SEED,
+            DECISION_CRITICAL_T,
+            "EXPLORATORY_V3_MAIN_GRID_FROZEN_2026_10_22",
+        )
+    };
+    let seeds: Vec<u64> = (0..parents)
+        .map(|i| first + 100 * cell as u64 + i as u64)
+        .collect();
+    Ok(serde_json::json!({
+        "protocol": "experiment-002-v3-20261022",
+        "scientific_status": status,
+        "smoke": smoke,
+        "stage": if mechanism == Mechanism::FullFeedback { "A" } else { "B" },
+        "cell": cell,
+        "rewire_every": period,
+        "mechanism": mechanism.name(),
+        "parents": parents,
+        "seeds": seeds,
+        "actors": 20,
+        "degree": 4,
+        "checkpoint": 200,
+        "total": 600,
+        "critical_t": t,
+        "margin": DECISION_MARGIN,
+    }))
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Mechanism {
     RandomTurnover,
