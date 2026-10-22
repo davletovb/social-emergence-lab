@@ -1,0 +1,36 @@
+{
+  "original": [
+    {
+      "id": 12384879513,
+      "name": "experiment-002-v2-paired-shard-0",
+      "bytes": 12713866,
+      "digest": "sha256:512163890c38dfbde6c4e30e4f06e4daa668ed55002cc211b4d150f01c41ee4e",
+      "expires_at": "2027-01-19T22:02:00Z"
+    },
+    {
+      "id": 12385740853,
+      "name": "experiment-002-v2-paired-shard-1",
+      "bytes": 12747060,
+      "digest": "sha256:b9a1193b3030720fc793153953ca5f8b5be14acb676d36f457b04933eae3581f",
+      "expires_at": "2027-01-19T22:02:00Z"
+    },
+    {
+      "id": 12385029088,
+      "name": "experiment-002-v2-paired-shard-2",
+      "bytes": 12748157,
+      "digest": "sha256:c8545d99b8fabbf7036c7d3cd5f0713108d1cf82bf0e262f5ac35e3c1f669a55",
+      "expires_at": "2027-01-19T22:02:00Z"
+    }
+  ],
+  "aggregate": {
+    "id": 12385139502,
+    "name": "experiment-002-v2-36-pairs-aggregate",
+    "bytes": 3720,
+    "digest": "sha256:ee0b54a8e9b028dde7142d61876076f7af8baf25d7a9c43b0828b15493c8a98f",
+    "expires_at": "2027-01-19T22:13:15Z"
+  },
+  "seals": {
+    "benchmark_sha256sums_sha256": "ac19e6de8917272b175ec8d438b76631e28f66db38641de0d64641f2a1e1cb00",
+    "aggregate_sha256sums_sha256": "4e3c1bcf16a59cc242b6cdc64998f3de39423d40f056a4565363028002628c81"
+  }
+}
