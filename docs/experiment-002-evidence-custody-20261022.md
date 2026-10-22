@@ -2,7 +2,7 @@
 
 **This is a provenance record, not a statement that all research archives have permanent custody.** See [V0 issue #12](https://github.com/davletovb/social-emergence-lab/issues/12), [V1 #14](https://github.com/davletovb/social-emergence-lab/issues/14), [V2 #17](https://github.com/davletovb/social-emergence-lab/issues/17), [V3 #21](https://github.com/davletovb/social-emergence-lab/issues/21) and [Experiment 001 #6](https://github.com/davletovb/social-emergence-lab/issues/6).
 
-## V0 — original GitHub Actions ZIP retrieved, byte-verified and backed up
+## V0 — original GitHub Actions ZIP archived, replay-verified and restored
 
 - Upstream action artifact: workflow **39602086513**, artifact **12347080662**, exact original filename **`experiment-002-v0-dev-batch-original.zip`**.
 - Archive size: **862,502 bytes**, outer SHA-256 **`ec8b1b15cbfaec6f3263025421f31ca3de423c533da36392f37aa20323912fab`**.
@@ -10,20 +10,23 @@
 - Verified **398/398** listed evidence files. The original ZIP contains **519 file members**: 398 sealed evidence files, one `SHA256SUMS`, and **120** zero-byte writer-lock markers expressly excluded from the seal. Exact file inventory excluding those markers matches the signed list.
 - Original lab source **`bc870fe5ca75ad627421838b24fb1375eceaffdb`**, Hiyal **`4bb53aca5cffa6bc01b7558efbd690af7dbed79f`**.
 - A second copy plus a machine-readable provenance JSON were saved in the owner's **private ChatGPT Library** under `/Sociology Research/Evidence/Experiment 002/V0/`. That Library copy was separately retrieved and found **byte-for-byte identical** to the original archive, with the same SHA-256.
-- **Original GitHub Actions artifact expires 2026-11-04 12:46:41 UTC.** A retrieved Library copy is a recoverability improvement but does not establish a DOI, public durable URL, independently specified retention policy, or an off-platform user-controlled archival backup.
+- **Original GitHub Actions artifact expires 2026-11-04 12:46:41 UTC.** On 2026-10-22, the original unchanged ZIP was published as a public [GitHub Release asset](https://github.com/davletovb/social-emergence-lab/releases/download/experiment-002-v0-raw-evidence-20261022/experiment-002-v0-dev-batch-original.zip), under the owner-controlled repository. The GitHub-reported release size and SHA-256 match the original archive exactly. Release assets are retained while the release and repository exist and remain accessible under GitHub's service terms; **they are not DOI-backed, externally guaranteed permanent archival storage**. A byte-identical private Library copy provides an additional backup.
 
-### Remaining V0 acceptance tests
+### Completed original V0 replay and restored-asset verification
 
-From a clean checkout of `main`, using Rust 1.89, Cargo, `jq` and `sha256sum`, extract the archived ZIP into a fresh folder. Verify the original ZIP digest before unpacking. Run:
+A dedicated [GitHub Actions recovery job, run 39794492499](https://github.com/davletovb/social-emergence-lab/actions/runs/39794492499) succeeded on **2026-10-22** using Rust **1.89.0**. It re-downloaded the *original* Actions ZIP from artifact `12347080662`, verified the outer digest before extracting it, then checked the internal `SHA256SUMS` digest and executed from clean `main`:
 
 ```bash
-sha256sum experiment-002-v0-dev-batch-original.zip
-bash scripts/verify-002.sh /ABSOLUTE/PATH/TO/EXTRACTED-V0 80666d6f9329b9e332078d57cdd7fddfea5619948a759e9f5d16c5a6fe12d8ec
+bash scripts/verify-002.sh /ABSOLUTE/EXTRACTED-V0 80666d6f9329b9e332078d57cdd7fddfea5619948a759e9f5d16c5a6fe12d8ec
 ```
 
-The second command rederives every Hiyal parent/fork result from its original journals, not just checksums. **That full Rust/Hiyal replay command has not yet been run during this archive-retrieval session** because the execution environment lacks Cargo/Rust. Do not mark the full-replay checkbox complete based solely on checksum checks.
+Its logs confirm **12/12** runs passed setup and parent/fork Hiyal replay, ancestry, intervention attribution, per-arm reports, batch summary, SHA coverage and expected source/Hiyal revisions. **No V0 simulation was rerun** for preservation. After verification, it created the release `experiment-002-v0-raw-evidence-20261022`, then independently fetched that published asset and passed the same SHA-256 plus a byte-for-byte `cmp` with the downloaded original ZIP.
 
-Save the original ZIP in a user-controlled, exportable research object store, record the independent retention policy and retrieval URL, and verify a fresh download against the outer checksum. Only then close #12.
+- [Public release](https://github.com/davletovb/social-emergence-lab/releases/tag/experiment-002-v0-raw-evidence-20261022)
+- [Published original ZIP](https://github.com/davletovb/social-emergence-lab/releases/download/experiment-002-v0-raw-evidence-20261022/experiment-002-v0-dev-batch-original.zip)
+- Archive retention: owned repository's GitHub Release without the original Actions artifact's fixed 90-day expiration; owner/GitHub may delete or discontinue it. Private Library retains a separate confirmed copy, but neither provides a DOI or an independent archival institution's retention guarantee.
+
+**V0 preservation gate:** complete at the repository-retention level, but a Zenodo/institutional DOI deposit remains desirable for long-term scholarly archiving. The unrelated V1, V2, V3 and Experiment 001 archive gates are still open.
 
 ## V3 — raw research evidence still missing durable custody
 
