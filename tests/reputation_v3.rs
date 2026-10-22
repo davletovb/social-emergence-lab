@@ -57,7 +57,8 @@ fn information_corrected_cell_expectations_match_independent_reference() {
     for (p, period) in PERIODS.into_iter().enumerate() {
         for (k, mechanism) in Mechanism::ALL.into_iter().enumerate() {
             let config = cell_config(10, 2, period, mechanism).unwrap();
-            let mut streams = Streams::new("v3-grid-reference".into(), 121_000 + (3 * p + k) as u64);
+            let mut streams =
+                Streams::new("v3-grid-reference".into(), 121_000 + (3 * p + k) as u64);
             let mut world = setup(&config, &mut streams).unwrap();
             world.intervene(Arm::Information).unwrap();
             reputation_reference::check(&world, 1e-9).unwrap();
