@@ -27,6 +27,26 @@ Algebraic exposure identity, in expectation over the next scheduled allocator: `
 
 **Nuance:** The **+0.00708** belief-choice term alone has an interval slightly above zero; that still does *not* rescue the stronger H1 as specified: its combined effect with new-link exposure is near zero. Moreover, this component depends on EMA updates under identical intrinsic qualities and may reflect stochastic re-formation of beliefs rather than continuing the original false belief.
 
+### The gap decays at the link-turnover rate
+
+Each run's report also holds four 100-event windows after τ. For the δ=0.2 information-only fork over the same 36 parents ([h1-quarters.json](results/v2-36-paired-20261021/h1-quarters.json)):
+
+| Window | Late gap | Surviving-link exposure | Checkpoint links still present | Exposure per surviving link | New links + selection |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 201–300 | +0.287 | +0.316 | 94.4% | 0.334 | −0.003 |
+| 301–400 | +0.256 | +0.279 | 83.4% | 0.335 | −0.002 |
+| 401–500 | +0.256 | +0.252 | 73.7% | 0.341 | +0.000 |
+| 501–600 | +0.218 | +0.224 | 65.8% | 0.340 | +0.002 |
+
+The exposure each surviving checkpoint link carries stays constant, near 0.34, and the new-link plus selection term stays near zero in every window: the gap shrinks only as checkpoint links are replaced. Checkpoint links survive about 88–89% of each 100 events, a half-life of roughly 560–610 events, close to what near-uniform removal predicts. With one rewiring every m events among N·d links, a checkpoint link survives a rewiring with probability about 1 − 1/(N·d), so after t events
+
+```text
+surviving fraction S(t) ≈ (1 − 1/(N·d))^(t/m)        (N·d = 80, m = 10: 0.882 per 100 events)
+late gap(t)       ≈ c · S(t),  c ≈ 0.34 here
+```
+
+That is a quantitative **slow-relaxation** account of the whole post-correction gap. It gives Issue #19's turnover grid a prediction to test before it runs: link half-lives of about 110, 550 and 1,100 events for m = 2, 10 and 20. The constant c will differ between grid cells, because m also changes the history before τ and so the checkpoint graph's imbalance. So the testable claims are that, within each cell, the gap divided by the surviving fraction stays constant over the four windows, and that new links plus selection stays near zero. A gap that stays above c·S(t), or a positive new-link plus selection term, would be evidence of regeneration after correction.
+
 ### Structural null capable of the same qualitative persistence
 
 The exact degree-only exposure under unbiased per-neighbor selection is
@@ -41,7 +61,7 @@ A second small test establishes that in a balanced regular graph, independently 
 
 ### Four-fork redundancy warning
 
-For all 36 observed seeds, `paired_repair_difference` equals `matched_seed_prior_effect` up to floating-point tolerance. This is **not** corroboration from an independent mechanism; in the recorded runs, the `IS` combined intervention after both corrections produced the same realized late signed gap in δ=0 and δ=0.2. Graph + belief reset makes the **policy inputs** coincide, but differences in inherited RNG positions could, for some parameterizations, prevent exact pathwise equality; do **not** generalize this observed equality to every possible run without proving stream equivalence. Keep the treatment estimands conceptually distinct, but never advertise these two observed contrasts as separate supporting findings.
+For all 36 observed seeds, `paired_repair_difference` equals `matched_seed_prior_effect` up to floating-point tolerance. This is **not** corroboration from an independent mechanism. Graph and belief reset makes the policy inputs coincide, and in a review reproduction of all 36 pairs the two `IS` forks also started from identical stream positions and made identical allocation decisions. The number of draws per event does not depend on δ; positions could only diverge through a rejection redraw in a tie-break draw, whose probability is of order n/2⁶⁴ per event. Keep the treatment estimands conceptually distinct, but never advertise these two observed contrasts as separate supporting findings.
 
 ## 2026 literature novelty triage
 
@@ -56,12 +76,12 @@ This pass explicitly adds a highly direct prior-art work absent from the old sel
 | **Holtz, Dow & Aral (2026), _Can Social Networks Substitute for Reputation Systems?_**, ICWSM 20, [DOI 10.1609/icwsm.v20i1.42680](https://doi.org/10.1609/icwsm.v20i1.42680) | Large randomized rating-system rollout in an online marketplace found no average effects on marketplace activity, behavior or network structure over six months. | A strong empirical **negative-prior** against claims that reputation intervention necessarily shifts actual opportunity flow. Ratings introduction is not identical to historical false-prior correction. |
 | **Papamichalis et al. (14 October 2026), _Educational intervention can rewire village social networks_**, Nature, [DOI 10.1038/s41586-026-11154-7](https://doi.org/10.1038/s41586-026-11154-7) | Randomized educational intervention in 110 villages changed formation and persistence of ties, sometimes enduring several years; overall degree statistics could remain stable. | Information-driven durable network rewiring is **known**. This did not test false reputation correction or independent structural repair, so do not claim exact duplication. |
 
-The latest specific publication dates and DOI links were checked against publisher or indexed abstracts. This is **a targeted audit, not an exhaustive citation search**. A genuinely independent human scientist should review the candidate claim and the original 2016 paper's supplemental model, alongside 2025–2026 citations and any registered nearby ongoing studies.
+The latest specific publication dates and DOI links were checked against publisher or indexed abstracts; Frey & van de Rijt (2016, Scientific Reports; Vincenz Frey, laboratory trust-game experiment), Holtz, Dow & Aral (2026, ICWSM 20, field experiment) and Tsvetkova (2021, Phil. Trans. R. Soc. B 376:20200299) were re-checked against their PubMed Central or AAAI proceedings records in review on 22 October 2026. This is **a targeted audit, not an exhaustive citation search**. A genuinely independent human scientist should review the candidate claim and the original 2016 paper's supplemental model, alongside 2025–2026 citations and any registered nearby ongoing studies.
 
 ## Next experimental design: maximum discriminative value, minimal CI
 
 1. **Veto obvious structural-only persistence:** report postcorrection `late(new_links + selection)` as *the mechanism-specific falsification metric* for the existing model, retaining the original gap as a descriptive context outcome. Do not silently redefine an earlier primary outcome after looking at outcomes; a new exploratory protocol must explicitly mark this as a follow-up.
-2. **Change turnover while holding everything else constant:** use a **prespecified** fixed small parameter grid of `rewire_every ∈ {2,10,20}`, across a fresh disjoint seed set; compare inherited fraction, newly formed edge exposure, and late selection. The intervention fork must be identical within each parent history. A faster schedule may eliminate structural inheritance without demonstrating a new reputational effect.
+2. **Change turnover while holding everything else constant:** use a **prespecified** fixed small parameter grid of `rewire_every ∈ {2,10,20}`, across a fresh disjoint seed set; compare inherited fraction, newly formed edge exposure, and late selection against the slow-relaxation prediction above (gap ÷ surviving fraction constant over the four windows, new links plus selection near zero). The intervention fork must be identical within each parent history. A faster schedule may eliminate structural inheritance without demonstrating a new reputational effect.
 3. **Separate rewiring mechanisms:** uniform removal/addition (random churn), lowest-belief removal with κ=0, and current public-reputation-biased κ=6 additions. Current controls do not isolate each component cleanly.
 4. **Predefine an analytic graph-only counterfactual:** for each checkpoint graph, compute `g^degree` with uniform partner choice; for frozen network, this is a time-invariant exact expected gap. Use this as baseline for all postcorrection access estimates, and document that difference from it can be due to **network evolution or choice**, not solely a lasting misinformation effect.
 5. **Run a small feasibility grid manually outside routine PR CI**, include outcomes in all cells and failure counts; do not select favorable settings after inspecting results. Do not use the same 36 developmental seeds for later confirmatory testing.

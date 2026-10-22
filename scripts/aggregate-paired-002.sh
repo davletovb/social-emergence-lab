@@ -58,6 +58,7 @@ jq --argjson t 2.030108 '. + {
 (( ${#runs[@]} == 72 )) || { echo "Expected 72 run reports" >&2; exit 2; }
 jq -s -f scripts/arm-summary-002.jq "${runs[@]}" > "$out/arm-summary.json"
 jq -s --argjson t 2.030108 -f scripts/h1-decomposition-002.jq "${runs[@]}" > "$out/h1-decomposition.json"
+jq -s --argjson t 2.030108 -f scripts/h1-quarters-002.jq "${runs[@]}" > "$out/h1-quarters.json"
 jq -s '{
  scientific_status:"EXPLORATORY_ONLY_ALL_36_SHARDS_VERIFIED",
  source_commit:.[0].source_revision,hiyal_revision:.[0].hiyal_revision,

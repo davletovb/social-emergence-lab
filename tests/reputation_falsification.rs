@@ -1,6 +1,6 @@
-//! Experiment 002 falsification/identification tests. These demonstrate
-//! counterexamples to claims that a positive late gap requires ongoing
-//! misinformation or belief selection.
+//! Experiment 002 identity checks for the exposure decomposition. They show
+//! that a positive late gap does not by itself require ongoing misinformation
+//! or belief selection; they are algebraic, not empirical, falsifications.
 use hiyal::{
     core::{AgentId, World},
     experiment::EffectPolicy,
