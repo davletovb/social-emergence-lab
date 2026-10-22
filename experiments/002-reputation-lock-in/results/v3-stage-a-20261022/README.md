@@ -58,7 +58,26 @@ Means over 48 parents, δ=0.2 information-only fork. "Surviving fraction" is the
   - With δ=0 nothing reads the labels, and labels are balanced and uniformly assigned. So the expected value is exactly zero, and its distribution is symmetric about zero.
   - Two of three controls were nonetheless flagged, with opposite signs. At m=2 the flag is driven by a right tail (one parent at +0.345; signs 27 positive, 21 negative). At m=10 the signs are 16 positive, 32 negative (sign test p ≈ 0.03).
   - The chance of two or more false flags among three independent controls is about 0.7%. So the nominal t intervals look somewhat optimistic, especially at m=2, where the null sd is 0.105.
-  - As frozen, these flags call for investigation, not exclusion. A robustness check such as a sign test or trimmed mean could be added for Stage B, but only by amending the protocol before Stage B runs.
+  - As frozen, these flags call for investigation, not exclusion. The exact sign test below flags only m=10.
+
+## Post hoc robustness under Amendment 1
+
+[Amendment 1](../../v3-protocol-20261022.md#amendment-1--adopted-2026-10-22-after-stage-a-and-before-any-stage-b-run) was adopted after these outcomes were seen, and before any Stage B run. It adds a **compensation** category (`nps` interval entirely below 0) and distribution-free checks, and it decides Stage B. Applied here to the same committed cell summaries, it is **descriptive only**: the Stage A decisions above stay the frozen rule's.
+
+| Cell | m | t rule | Median rule: `nps` median (95% order-statistic interval) | `nps` signs, sign-test p | Control-variate `nps` | δ=0 signs, sign-test p |
+| --- | ---: | --- | --- | --- | --- | --- |
+| 2 | 2 | compensation; mean −0.037, not beyond −0.05 | inconclusive: −0.064 (−0.092, +0.006) | 18+ / 30−, p = 0.11 | −0.040 (−0.077, −0.003) | 27+ / 21−, p = 0.47 |
+| 5 | 10 | slow relaxation | slow relaxation: −0.006 (−0.038, +0.015) | 20+ / 28−, p = 0.31 | −0.007 (−0.027, +0.014) | 16+ / 32−, p = 0.029, **flagged** |
+| 8 | 20 | slow relaxation | slow relaxation: −0.001 (−0.022, +0.015) | 23+ / 25−, p = 0.89 | −0.000 (−0.015, +0.014) | 22+ / 26−, p = 0.67 |
+
+The median intervals are [x₍₁₇₎, x₍₃₂₎] of the 48 parents, with 97.1% coverage. The control variate is the intercept of the least-squares fit of `nps` on the same parent's δ=0 `nps`, with a t interval at 46 df. At m=2 the `nps` t intervals lie below zero in all four windows: (−0.043, −0.021), (−0.063, −0.024), (−0.068, −0.005) and (−0.072, −0.003). These windows share parents, so this shows stability, not replication.
+
+Reading, post hoc:
+- **No regeneration.** No cell is regeneration under either rule, so Stage A shows no active reputation lock-in.
+- **m=10 and m=20 are robust slow relaxation.** The control variate brings their `nps` closer to zero: from −0.014 to −0.007, and from −0.007 to −0.000.
+- **The m=2 compensation is not robust.** Its median interval reaches above 0, and its sign test is not significant: 18 positive against 30 negative parents is not distinguishable from an even split. Its median, −0.064, is further from zero than its mean, so the t-rule verdict is not driven by negative outliers.
+- **One null flag under the sign test.** Only m=10's null control is flagged. At δ=0 every quantity is exactly symmetric about 0, so the sign test is exact there. The m=2 t flag came from its right tail, and the sign test does not reproduce it. With three exact tests of size 2.9%, at least one flag happens by chance about 8.5% of the time.
+- **The frozen Stage A outcome stands:** not every cell is slow relaxation, and none shows regeneration.
 
 ## Files and preservation
 
@@ -68,7 +87,7 @@ Committed per cell:
 - `SHA256SUMS`: the full evidence seal;
 - `cell-summaries/parent-<seed>.json`: each parent's derived summary.
 
-`stage-a-summary.json` collects the three decisions and the seal digests:
+`stage-a-summary.json` collects the three decisions and the seal digests. `stage-a-amendment-1-post-hoc.json` holds the post hoc Amendment 1 analysis above. CI runs `scripts/check-v3-stage-a-002.sh`, which ties every committed file to its cell's `SHA256SUMS` entry, re-derives each frozen decision and the post hoc analysis from the committed cell summaries, and checks `stage-a-summary.json`. It runs no simulation.
 
 | Cell | SHA256SUMS digest |
 | --- | --- |

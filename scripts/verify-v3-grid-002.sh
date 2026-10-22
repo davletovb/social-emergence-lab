@@ -2,7 +2,8 @@
 # Verify one sealed V3 main-grid cell written by v3-grid-002.sh: the seal and
 # its exact coverage (and, if given, the recorded SHA256SUMS digest), the
 # frozen design from `reputation-v3 plan`, exactly the planned parents, every
-# parent's Hiyal journals, and the re-derived cell summaries and decision.
+# parent's Hiyal journals, and the re-derived cell summaries and decision
+# (under the rule the plan names: frozen for Stage A, Amendment 1 for Stage B).
 set -euo pipefail
 usage() {
   echo "usage: bash scripts/verify-v3-grid-002.sh <ABSOLUTE-DIR> [--digest SHA256] [--jobs N]" >&2
@@ -46,6 +47,13 @@ jq -e --argjson design "$design" '.design == $design
   fail "Batch plan is not the frozen design of cell $cell"
 read -r period mechanism t margin < <(jq -r '[.rewire_every, .mechanism, .critical_t, .margin] | @tsv' <<< "$design")
 mapfile -t seeds < <(jq -r '.seeds[]' <<< "$design")
+# Stage A keeps the frozen rule; Stage B plans name Amendment 1's rule.
+rule="$(jq -r '.decision_rule // "v3-decision-002.jq"' <<< "$design")"
+case "$rule" in
+  v3-decision-002.jq | v3-decision-002-amendment-1.jq) ;;
+  *) fail "Unknown V3 decision rule: $rule" ;;
+esac
+cv_t="$(jq -c '.control_variate_critical_t // null' <<< "$design")"
 
 # Exactly the planned parents plus the plan, decision and seal.
 shopt -s nullglob
@@ -78,11 +86,11 @@ for seed in "${seeds[@]}"; do
      -f scripts/v3-cell-summary-002.jq | same "$path/cell-summary.json" ||
     fail "Cell summary differs from journals: $path"
 done
-jq -s --argjson t "$t" --argjson margin "$margin" -f scripts/v3-decision-002.jq \
+jq -s --argjson t "$t" --argjson margin "$margin" --argjson cv_t "$cv_t" -f "scripts/$rule" \
   "$root"/parent-*/cell-summary.json | same "$root/decision.json" ||
   fail "decision.json differs from the cell summaries"
 hiyal="$(jq -r .hiyal_revision "$root"/parent-*/paired-report.json | sort -u)"
 jq -e --arg hiyal "$hiyal" '.hiyal_revision == $hiyal' "$plan" >/dev/null ||
   fail "Batch plan names a different Hiyal revision than its runs"
-echo "V3 grid cell $cell (stage $(jq -r .stage <<< "$design"), m=$period, $mechanism, ${#seeds[@]} parents$([[ ${#smoke[@]} -gt 0 ]] && echo ', SMOKE')): verified; classification $(jq -r .classification "$root/decision.json")"
+echo "V3 grid cell $cell (stage $(jq -r .stage <<< "$design"), m=$period, $mechanism, ${#seeds[@]} parents$([[ ${#smoke[@]} -gt 0 ]] && echo ', SMOKE')): verified; classification $(jq -r '.classification + (.robustness.median_classification | if . then " (median rule: \(.))" else "" end)' "$root/decision.json")"
 echo "Source commit $(jq -r .source_revision "$plan"), Hiyal $hiyal"

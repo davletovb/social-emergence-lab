@@ -4,9 +4,10 @@ use social_emergence_lab::{
     reputation::{Arm, Removal, flow, setup},
     reputation_reference,
     reputation_v3::{
-        DECISION_CRITICAL_T, DECISION_MARGIN, FIRST_FEASIBILITY_SEED, MAIN_GRID_PARENTS_PER_CELL,
-        Mechanism, PERIODS, SMOKE_PARENTS_PER_CELL, cell_config, cell_design, main_grid_plan,
-        main_grid_seed, uniform_edge_survival, uniform_half_life_events,
+        AMENDMENT_1_DECISION_RULE, CONTROL_VARIATE_CRITICAL_T, DECISION_CRITICAL_T,
+        DECISION_MARGIN, FIRST_FEASIBILITY_SEED, MAIN_GRID_PARENTS_PER_CELL, Mechanism, PERIODS,
+        SMOKE_CONTROL_VARIATE_CRITICAL_T, SMOKE_PARENTS_PER_CELL, cell_config, cell_design,
+        main_grid_plan, main_grid_seed, uniform_edge_survival, uniform_half_life_events,
     },
 };
 
@@ -139,4 +140,31 @@ fn stage_a_is_the_full_feedback_turnover_cells_and_plans_match_the_seeds() {
         assert!(smoke_seeds.iter().all(|s| !(94_000..=121_099).contains(s)));
     }
     assert!(main_grid_plan(9, false).is_err());
+}
+
+#[test]
+fn only_stage_b_plans_name_the_amended_decision_rule() {
+    let rule = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("scripts")
+        .join(AMENDMENT_1_DECISION_RULE);
+    assert!(rule.is_file());
+    for cell in 0..9 {
+        for smoke in [false, true] {
+            let plan = main_grid_plan(cell, smoke).unwrap();
+            let fields = plan.as_object().unwrap();
+            if plan["stage"] == "A" {
+                // Stage A's sealed batches record exactly the frozen design.
+                assert!(!fields.contains_key("decision_rule"));
+                assert!(!fields.contains_key("control_variate_critical_t"));
+            } else {
+                assert_eq!(plan["decision_rule"], AMENDMENT_1_DECISION_RULE);
+                let cv_t = if smoke {
+                    SMOKE_CONTROL_VARIATE_CRITICAL_T
+                } else {
+                    CONTROL_VARIATE_CRITICAL_T
+                };
+                assert_eq!(plan["control_variate_critical_t"], cv_t);
+            }
+        }
+    }
 }

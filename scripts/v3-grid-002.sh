@@ -2,7 +2,8 @@
 # Manual-only V3 main-grid runner for ONE cell; NEVER run it in routine CI.
 # Stage A is cells 2, 5 and 8 (full feedback at m = 2, 10, 20). Runs the
 # cell's frozen parents from `reputation-v3 plan`, derives each parent's cell
-# summary and the cell's frozen decision, seals the batch and verifies it.
+# summary and the cell's decision (the frozen rule for Stage A, Amendment 1's
+# for Stage B), seals the batch and verifies it.
 # --smoke runs three parents on non-frozen seeds: an engineering dry run, not
 # evidence.
 set -euo pipefail
@@ -36,6 +37,13 @@ design="$("$binary" plan "$cell" "${smoke[@]}")"
 read -r period mechanism actors degree checkpoint total t margin < <(
   jq -r '[.rewire_every, .mechanism, .actors, .degree, .checkpoint, .total, .critical_t, .margin] | @tsv' <<< "$design")
 mapfile -t seeds < <(jq -r '.seeds[]' <<< "$design")
+# Stage A keeps the frozen rule; Stage B plans name Amendment 1's rule.
+rule="$(jq -r '.decision_rule // "v3-decision-002.jq"' <<< "$design")"
+case "$rule" in
+  v3-decision-002.jq | v3-decision-002-amendment-1.jq) ;;
+  *) echo "Unknown V3 decision rule: $rule" >&2; exit 2 ;;
+esac
+cv_t="$(jq -c '.control_variate_critical_t // null' <<< "$design")"
 
 mkdir -p "$root"
 trap 'status=$?; echo "V3 grid cell $cell failed (exit=$status); planned seeds are not replaceable" > "$root/FAILURE.txt"; exit "$status"' ERR
@@ -52,7 +60,7 @@ for seed in "${seeds[@]}"; do
      --arg mode "$mechanism" --argjson seed "$seed" --argjson period "$period" \
      -f scripts/v3-cell-summary-002.jq > "$path/cell-summary.json"
 done
-jq -s --argjson t "$t" --argjson margin "$margin" -f scripts/v3-decision-002.jq \
+jq -s --argjson t "$t" --argjson margin "$margin" --argjson cv_t "$cv_t" -f "scripts/$rule" \
   "$root"/parent-*/cell-summary.json > "$root/decision.json"
 # The engine records its own revision in every genesis; the runs must agree.
 hiyal="$(jq -r .hiyal_revision "$root"/parent-*/paired-report.json | sort -u)"
@@ -69,6 +77,7 @@ jq -n --argjson design "$design" --arg source "$source_sha" --arg hiyal "$hiyal"
 bash scripts/verify-v3-grid-002.sh "$root" --jobs "$jobs" >&2
 trap - ERR
 jq -c '{cell: '"$cell"', rewire_every, mechanism, parents, classification,
+  median_classification: .robustness.median_classification,
   new_link_plus_selection: .new_link_plus_selection.interval_95,
   structural_excess: .structural_excess.interval_95}' "$root/decision.json"
 echo "V3 GRID SEAL (record outside the evidence directory):" >&2

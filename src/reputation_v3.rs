@@ -28,6 +28,16 @@ pub const FIRST_SMOKE_SEED: u64 = 140_000;
 /// t quantile for the smoke run's df = 2.
 pub const SMOKE_CRITICAL_T: f64 = 4.302653;
 
+/// Amendment 1, adopted after Stage A and before any Stage B run: Stage B
+/// cells are decided by this rule, which adds a compensation category and
+/// distribution-free checks. Stage A keeps the frozen scripts/v3-decision-002.jq,
+/// so its plans, and with them its sealed batches, are unchanged.
+pub const AMENDMENT_1_DECISION_RULE: &str = "v3-decision-002-amendment-1.jq";
+/// t quantiles at parents - 2 df for the rule's control-variate interval:
+/// df = 46 for the grid, df = 1 for the smoke run.
+pub const CONTROL_VARIATE_CRITICAL_T: f64 = 2.012896;
+pub const SMOKE_CONTROL_VARIATE_CRITICAL_T: f64 = 12.706205;
+
 /// Rewire period and mechanism of row-major `cell` (0..9).
 pub fn cell_design(cell: usize) -> Result<(u64, Mechanism), String> {
     let n = Mechanism::ALL.len();
@@ -38,14 +48,16 @@ pub fn cell_design(cell: usize) -> Result<(u64, Mechanism), String> {
 }
 
 /// The frozen design of one main-grid cell (or its smoke dry run), as the
-/// grid scripts write and verify it.
+/// grid scripts write and verify it. Stage B plans also name Amendment 1's
+/// decision rule and its control-variate t quantile.
 pub fn main_grid_plan(cell: usize, smoke: bool) -> Result<serde_json::Value, String> {
     let (period, mechanism) = cell_design(cell)?;
-    let (parents, first, t, status) = if smoke {
+    let (parents, first, t, cv_t, status) = if smoke {
         (
             SMOKE_PARENTS_PER_CELL,
             FIRST_SMOKE_SEED,
             SMOKE_CRITICAL_T,
+            SMOKE_CONTROL_VARIATE_CRITICAL_T,
             "ENGINEERING_SMOKE_NOT_EVIDENCE",
         )
     } else {
@@ -53,17 +65,19 @@ pub fn main_grid_plan(cell: usize, smoke: bool) -> Result<serde_json::Value, Str
             MAIN_GRID_PARENTS_PER_CELL,
             FIRST_MAIN_GRID_SEED,
             DECISION_CRITICAL_T,
+            CONTROL_VARIATE_CRITICAL_T,
             "EXPLORATORY_V3_MAIN_GRID_FROZEN_2026_10_22",
         )
     };
     let seeds: Vec<u64> = (0..parents)
         .map(|i| first + 100 * cell as u64 + i as u64)
         .collect();
-    Ok(serde_json::json!({
+    let stage_a = mechanism == Mechanism::FullFeedback;
+    let mut plan = serde_json::json!({
         "protocol": "experiment-002-v3-20261022",
         "scientific_status": status,
         "smoke": smoke,
-        "stage": if mechanism == Mechanism::FullFeedback { "A" } else { "B" },
+        "stage": if stage_a { "A" } else { "B" },
         "cell": cell,
         "rewire_every": period,
         "mechanism": mechanism.name(),
@@ -75,7 +89,12 @@ pub fn main_grid_plan(cell: usize, smoke: bool) -> Result<serde_json::Value, Str
         "total": 600,
         "critical_t": t,
         "margin": DECISION_MARGIN,
-    }))
+    });
+    if !stage_a {
+        plan["decision_rule"] = AMENDMENT_1_DECISION_RULE.into();
+        plan["control_variate_critical_t"] = cv_t.into();
+    }
+    Ok(plan)
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
