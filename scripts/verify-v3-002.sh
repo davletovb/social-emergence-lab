@@ -27,6 +27,15 @@ jq -e '.protocol == "experiment-002-v3-20261022"
   and ((.source_revision | type) == "string")
   and (.source_revision | test("^[0-9a-f]{40}$"))' "$root/batch-plan.json" >/dev/null
 [[ "$(jq -r '.cells | length' "$root/batch-plan.json")" == 9 ]] || exit 2
+# Exactly the nine planned cells plus the plan, summary and seal.
+shopt -s nullglob
+entries=("$root"/* "$root"/.[!.]*)
+[[ ${#entries[@]} == 12 ]] || { echo "Unexpected entries in V3 evidence" >&2; exit 2; }
+for f in batch-plan.json summary.json SHA256SUMS; do [[ -f "$root/$f" ]] || { echo "Missing $f" >&2; exit 2; }; done
+# Compare values, not jq's number spelling: jq versions differ on whether an
+# unchanged 0.0 prints as 0.0 or 0.
+canonical='walk(if type == "number" then . + 0 else . end)'
+same() { cmp -s <(jq -cS "$canonical" "$1") <(jq -cS "$canonical"); }
 cargo build --quiet --locked --release --bin reputation-v3
 target="$(cargo metadata --locked --format-version 1 --no-deps | jq -r .target_directory)"
 binary="$target/release/reputation-v3"
@@ -37,12 +46,13 @@ for period in 2 10 20; do
     jq -e --argjson i "$cell" --argjson seed "$seed" --argjson period "$period" --arg mode "$mode" \
       '.cells[$i] == {seed:$seed,rewire_every:$period,mechanism:$mode}' "$root/batch-plan.json" >/dev/null
     path="$root/cell-$cell-$mode-m$period"
+    [[ -d "$path" ]] || { echo "Missing planned cell: $path" >&2; exit 2; }
     "$binary" verify "$path" >/dev/null
     jq -n --slurpfile prior "$path/paired-report.json" \
        --slurpfile with "$path/false-prior/report.json" \
        --slurpfile null "$path/no-false-prior/report.json" \
        --arg mode "$mode" --argjson seed "$seed" --argjson period "$period" \
-       -f scripts/v3-cell-summary-002.jq | cmp -s "$path/cell-summary.json" - || {
+       -f scripts/v3-cell-summary-002.jq | same "$path/cell-summary.json" || {
       echo "Derived V3 cell summary differs from journals: $cell" >&2; exit 2;
     }
     cell=$((cell+1))
@@ -51,7 +61,7 @@ done
 jq -s '{scientific_status:"EXPLORATORY_V3_FEASIBILITY_NOT_CONFIRMATORY",
   independent_parent_societies:length, cells:.,
   no_go_rule:"A positive total gap alone cannot establish ongoing reputation feedback; compare new-link+selection with structural survival and delta-zero control."
-}' "$root"/cell-*/cell-summary.json | cmp -s "$root/summary.json" - || {
+}' "$root"/cell-*/cell-summary.json | same "$root/summary.json" || {
   echo "V3 aggregate summary differs from sealed individual results" >&2; exit 2;
 }
 echo "V3: SHA manifest, exact nine-cell design, Hiyal journals and summary verified" >&2

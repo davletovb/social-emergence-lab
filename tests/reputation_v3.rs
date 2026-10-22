@@ -4,7 +4,8 @@ use social_emergence_lab::{
     reputation::{Arm, Removal, flow, setup},
     reputation_reference,
     reputation_v3::{
-        FIRST_FEASIBILITY_SEED, Mechanism, PERIODS, cell_config, uniform_edge_survival,
+        DECISION_CRITICAL_T, DECISION_MARGIN, FIRST_FEASIBILITY_SEED, MAIN_GRID_PARENTS_PER_CELL,
+        Mechanism, PERIODS, cell_config, main_grid_seed, uniform_edge_survival,
         uniform_half_life_events,
     },
 };
@@ -81,4 +82,32 @@ fn information_corrected_cell_expectations_match_independent_reference() {
     assert!(q.selection.abs() < 1e-12);
     assert!(q.added.abs() < 1e-12);
     assert!((q.total - q.inherited).abs() < 1e-12);
+}
+
+#[test]
+fn main_grid_seeds_are_fresh_and_distinct() {
+    // Every seed range used by earlier Experiment 002 evidence, review checks
+    // or unit tests; the frozen main grid must not reuse any of them.
+    let used = [
+        62_000..=62_000,
+        81_000..=83_003,
+        90_000..=92_551,
+        94_000..=98_035,
+        120_200..=120_208,
+        121_000..=121_099,
+    ];
+    let mut seeds = Vec::new();
+    for cell in 0..9 {
+        for index in 0..MAIN_GRID_PARENTS_PER_CELL {
+            let seed = main_grid_seed(cell, index).unwrap();
+            assert!(used.iter().all(|range| !range.contains(&seed)), "{seed}");
+            seeds.push(seed);
+        }
+    }
+    seeds.sort_unstable();
+    seeds.dedup();
+    assert_eq!(seeds.len(), 9 * MAIN_GRID_PARENTS_PER_CELL);
+    assert!(main_grid_seed(9, 0).is_err());
+    assert!(main_grid_seed(0, MAIN_GRID_PARENTS_PER_CELL).is_err());
+    assert_eq!((DECISION_MARGIN, DECISION_CRITICAL_T), (0.05, 2.011741));
 }

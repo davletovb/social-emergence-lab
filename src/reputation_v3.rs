@@ -5,6 +5,22 @@ use crate::reputation::{Config, Removal};
 pub const PERIODS: [u64; 3] = [2, 10, 20];
 pub const FIRST_FEASIBILITY_SEED: u64 = 120_200;
 
+/// Main grid, frozen before any V3 outcome: 48 fresh parents per cell, sized
+/// from the m=10 full-feedback variance of the 36 V2 pairs.
+pub const MAIN_GRID_PARENTS_PER_CELL: usize = 48;
+pub const FIRST_MAIN_GRID_SEED: u64 = 130_000;
+/// Equivalence margin and t quantile (df = 47) used by scripts/v3-decision-002.jq.
+pub const DECISION_MARGIN: f64 = 0.05;
+pub const DECISION_CRITICAL_T: f64 = 2.011741;
+
+/// Seed of parent `index` in row-major `cell` (0..9, as in the pilot).
+pub fn main_grid_seed(cell: usize, index: usize) -> Result<u64, String> {
+    if cell >= PERIODS.len() * Mechanism::ALL.len() || index >= MAIN_GRID_PARENTS_PER_CELL {
+        return Err("V3 main-grid cell must be 0..9 and parent index 0..48".into());
+    }
+    Ok(FIRST_MAIN_GRID_SEED + 100 * cell as u64 + index as u64)
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Mechanism {
     RandomTurnover,
