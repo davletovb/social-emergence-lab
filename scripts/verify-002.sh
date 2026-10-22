@@ -84,7 +84,10 @@ fi
 hiyal="$(jq -r .hiyal_revision "${reports[@]}" | sort -u)"
 jq -e --arg key "$hiyal_key" --arg hiyal "$hiyal" '.[$key] == $hiyal' "$plan" >/dev/null ||
   fail "Batch plan names a different Hiyal revision than its runs"
-same() { cmp -s <(jq -cS . "$1") <(jq -s -f "$2" "${reports[@]}" | jq -cS .); }
+# Compare values, not jq's number spelling: jq versions differ on whether an
+# unchanged 0.0 prints as 0.0 or 0.
+canonical='walk(if type == "number" then . + 0 else . end)'
+same() { cmp -s <(jq -cS "$canonical" "$1") <(jq -s -f "$2" "${reports[@]}" | jq -cS "$canonical"); }
 same "$batch/$summary_file" "$summary" || fail "$summary_file disagrees with the runs"
 if [[ -e "$batch/arm-summary.json" ]]; then
   same "$batch/arm-summary.json" scripts/arm-summary-002.jq || fail "arm-summary.json disagrees with the runs"

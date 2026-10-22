@@ -27,4 +27,4 @@ The entire original, SHA-256-sealed Hiyal archive is available from [GitHub Acti
 
 ## Experiment 002 V2 research progress
 
-[Measured V1/V2 performance and completed 36 matched parent-seed pairs](experiments/002-reputation-lock-in/results/v2-36-paired-20261021/README.md) are available with source commits, uncertainty estimates, per-seed outcomes and original sealed Hiyal artifacts. This is **exploratory, synthetic model evidence**; no claim of new sociology or human-world generalizability.
+[Measured V1/V2 performance and completed 36 matched parent-seed pairs](experiments/002-reputation-lock-in/results/v2-36-paired-20261021/README.md) are available with source commits, uncertainty estimates, per-seed outcomes and original sealed Hiyal artifacts. In-model, the late post-correction gap is carried by surviving checkpoint links, which the formal model's H1 classifies as slow relaxation rather than lock-in. This is **exploratory, synthetic model evidence**; no claim of new sociology or human-world generalizability.
