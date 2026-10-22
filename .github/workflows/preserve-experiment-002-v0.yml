@@ -1,0 +1,81 @@
+name: Preserve Experiment 002 V0 original evidence
+
+# One automatic invocation: this dedicated marker is added once on main.
+# Manual dispatch remains available for recovery if the first attempt fails.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/archive-v0-20261022.trigger'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: original-v0-evidence-archive
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    if: github.repository == 'davletovb/social-emergence-lab'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out verified main
+        uses: actions/checkout@v4
+
+      - name: Select pinned Rust
+        uses: dtolnay/rust-toolchain@1.89.0
+
+      - name: Download original, check archive and full Hiyal replay
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/v0-archive"
+          mkdir -p "$dir/raw"
+          zip="$dir/experiment-002-v0-dev-batch-original.zip"
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/12347080662/zip" > "$zip"
+          printf '%s  %s\n' 'ec8b1b15cbfaec6f3263025421f31ca3de423c533da36392f37aa20323912fab' "$zip" | sha256sum --check --strict
+          unzip -q "$zip" -d "$dir/raw"
+          printf '%s  %s\n' '80666d6f9329b9e332078d57cdd7fddfea5619948a759e9f5d16c5a6fe12d8ec' "$dir/raw/SHA256SUMS" | sha256sum --check --strict
+          bash scripts/verify-002.sh "$dir/raw" '80666d6f9329b9e332078d57cdd7fddfea5619948a759e9f5d16c5a6fe12d8ec'
+          echo "V0_ORIGINAL_FULL_REPLAY_VERIFIED=1" >> "$GITHUB_ENV"
+
+      - name: Publish archive only after complete verification
+        if: env.V0_ORIGINAL_FULL_REPLAY_VERIFIED == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag='experiment-002-v0-raw-evidence-20261022'
+          name='experiment-002-v0-dev-batch-original.zip'
+          zip="$RUNNER_TEMP/v0-archive/$name"
+          printf '%s\n' \
+            'Original Experiment 002 V0 exploratory synthetic-model evidence.' \
+            '' \
+            'This is NOT preregistered research or empirical data.' \
+            'Original GitHub Actions artifact: 12347080662, workflow: 39602086513.' \
+            'Original evidence source: bc870fe5ca75ad627421838b24fb1375eceaffdb.' \
+            'Hiyal source: 4bb53aca5cffa6bc01b7558efbd690af7dbed79f.' \
+            'ZIP SHA256: ec8b1b15cbfaec6f3263025421f31ca3de423c533da36392f37aa20323912fab.' \
+            'SHA256SUMS SHA256: 80666d6f9329b9e332078d57cdd7fddfea5619948a759e9f5d16c5a6fe12d8ec.' \
+            'This release was created only after scripts/verify-002.sh passed Hiyal replay.' \
+            'Archive retention: GitHub Release asset remains available while the release and repository are retained; deletion/availability are governed by GitHub and repository owners.' \
+            > "$RUNNER_TEMP/v0-release-notes.txt"
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" "$zip" --target "$GITHUB_SHA" \
+              --title 'Experiment 002 V0 — original raw evidence (2026-10-22)' \
+              --notes-file "$RUNNER_TEMP/v0-release-notes.txt"
+          fi
+          # Download through the published release endpoint and validate the
+          # independently retrieved release asset, not just the upload source.
+          mkdir -p "$RUNNER_TEMP/v0-release-restore"
+          gh release download "$tag" --pattern "$name" \
+            --dir "$RUNNER_TEMP/v0-release-restore"
+          printf '%s  %s\n' 'ec8b1b15cbfaec6f3263025421f31ca3de423c533da36392f37aa20323912fab' "$RUNNER_TEMP/v0-release-restore/$name" | sha256sum --check --strict
+          cmp "$zip" "$RUNNER_TEMP/v0-release-restore/$name"
+          gh release view "$tag" --json url,assets
+          echo 'V0_RELEASE_ARCHIVE_READBACK_VERIFIED=1'
