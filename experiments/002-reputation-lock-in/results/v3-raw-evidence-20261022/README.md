@@ -1,11 +1,11 @@
 # Experiment 002 V3 — raw evidence custody record
 
-This records the packed copy of the raw Hiyal evidence behind the [Stage A](../v3-stage-a-20261022/README.md) and [Stage B](../v3-stage-b-20261022/README.md) results, for [Issue #21](https://github.com/davletovb/social-emergence-lab/issues/21).
+This records the packed copy of the raw Hiyal evidence behind the [Stage A](../v3-stage-a-20261022/README.md) and [Stage B](../v3-stage-b-20261022/README.md) results ([Issue #21](https://github.com/davletovb/social-emergence-lab/issues/21)).
 
 **Status:**
-- packed and checked;
-- held by the repository owner;
-- **not yet in durable storage**, with no stable URL or DOI yet.
+- packed and checked on 2026-10-22, and downloaded by the repository owner;
+- replayed in full outside the producing environment, then published as the [GitHub Release `experiment-002-v3-raw-evidence-20261022`](https://github.com/davletovb/social-emergence-lab/releases/tag/experiment-002-v3-raw-evidence-20261022) on 2026-10-23 and read back;
+- retained at the repository level, like V0: no DOI yet.
 
 `bundle/` holds byte-identical copies of the bundle's `MANIFEST.json`, `README.md` and `SHA256SUMS`, so a stored copy can be checked against this repository. The `bundle/README.md` describes the bundle and how to verify it.
 
@@ -71,8 +71,23 @@ bash scripts/check-v3-raw-evidence-002.sh /absolute/path/experiment-002-v3-raw-e
 - **No secrets:** the runs made no model or tool calls, so they hold no API keys or prompts.
 - **No licence stated:** the repository has no licence file, so reuse terms are not stated. Choose them before publishing the bundle.
 
-## Still to do for Issue #21
+## Release and readback (2026-10-23)
 
-- [ ] **Durable storage:** put the bundle in durable, user-controlled storage with a documented retention policy and an independent backup, and record its stable URL or DOI here.
-- [ ] **Retrieval check:** re-download it from that storage, outside the producing environment, and run `check-v3-raw-evidence-002.sh` on the copy. Then extract each of the nine cells and run `scripts/verify-v3-grid-002.sh <cell dir> --digest <cell SHA256SUMS SHA-256> --jobs 4`, taking each digest from the table above.
-- [ ] **Licence:** choose and record the access and reuse terms.
+[Actions run 39901070657](https://github.com/davletovb/social-emergence-lab/actions/runs/39901070657) ran on a GitHub-hosted runner, outside the environment that produced and packed the evidence. It received the bundle in three parts through a temporary branch, `evidence-transfer/v3-raw-20261022`, which shares no history with `main`. Then, in order:
+1. **Bundle check:** it reassembled the bundle and checked its SHA-256 against the value above.
+2. **Seal check:** it checked every cell's `SHA256SUMS` against the copy committed on `main` at `f16b019`.
+3. **Full replay:** it extracted each of the nine cells and ran `scripts/verify-v3-grid-002.sh --digest`, from that commit, on it.
+4. **Publication:** only then did it publish the release, tagged on `main` commit `f16b019b52b0a4da921fba14cce8af6c4921f431`. It holds 13 assets:
+   - the bundle;
+   - the nine per-cell archives as separate assets;
+   - `MANIFEST.json`, `README.md` and `SHA256SUMS`.
+5. **Readback:** it downloaded every published asset and checked it by SHA-256 and byte for byte against its source.
+
+The tag points at `main`, not at the transfer branch. Once that temporary branch is deleted, the transferred parts are no longer reachable.
+
+## Still open
+
+- [ ] **Transfer branch:** delete `evidence-transfer/v3-raw-20261022`. It is not needed after publication.
+- [ ] **Local copy:** check the owner's local copy: `sha256sum` on the bundle, then `check-v3-raw-evidence-002.sh` on the unpacked copy.
+- [ ] **Long-term deposit:** a Zenodo or institutional deposit with a DOI, if long-term scholarly archiving is wanted. GitHub Release assets last only as long as the release and repository.
+- [ ] **Licence:** choose and record the access and reuse terms. The release is public, but the repository states no licence.
