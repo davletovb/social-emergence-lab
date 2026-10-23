@@ -65,9 +65,12 @@ pub fn verify_pair(root: &Path) -> Result<PriorPairReport, String> {
 fn derive(root: &Path) -> Result<PriorPairReport, String> {
     let with = verify(&root.join("false-prior"))?;
     let without = verify(&root.join("no-false-prior"))?;
-    let a = Store::<ReputationWorld, Action>::inspect_read_only(root.join("false-prior/parent"))?;
-    let b =
-        Store::<ReputationWorld, Action>::inspect_read_only(root.join("no-false-prior/parent"))?;
+    let a = Store::<ReputationWorld, Action>::inspect_read_only_cached(
+        root.join("false-prior/parent"),
+    )?;
+    let b = Store::<ReputationWorld, Action>::inspect_read_only_cached(
+        root.join("no-false-prior/parent"),
+    )?;
     let wa = &a.genesis.initial_world;
     let wb = &b.genesis.initial_world;
     if with.seed != without.seed
