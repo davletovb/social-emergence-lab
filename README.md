@@ -25,6 +25,16 @@ See the [research roadmap](docs/research-roadmap.md), [theoretical framework](do
 
 The entire original, SHA-256-sealed Hiyal archive is available from [GitHub Actions run 39553947265](https://github.com/davletovb/social-emergence-lab/actions/runs/39553947265) (artifact `12324369551`) until **January 19, 2027**; its `SHA256SUMS` is committed with the [derived results](experiments/001-emergence-of-inequality/results/replicated-74000/README.md), so a preserved copy can be checked against Git. The derived CSV files are not a substitute. See [archive issue #6](https://github.com/davletovb/social-emergence-lab/issues/6) for permanent preservation steps.
 
+Experiment 002's original raw evidence is preserved as GitHub Releases: [V0](https://github.com/davletovb/social-emergence-lab/releases/tag/experiment-002-v0-raw-evidence-20261022) and [V3](https://github.com/davletovb/social-emergence-lab/releases/tag/experiment-002-v3-raw-evidence-20261022), each published only after a full Hiyal replay. See the [evidence custody record](docs/experiment-002-evidence-custody-20261022.md).
+
 ## Experiment 002: current interpretation
 
 [36 matched parent-seed pairs](experiments/002-reputation-lock-in/results/v2-36-paired-20261021/README.md), with source commits, uncertainty estimates, per-seed outcomes and original sealed Hiyal artifacts, give a late signed access gap of +0.2183 after truthful correction. The [H1 review (22 October 2026)](experiments/002-reputation-lock-in/h1-falsification-novelty-gate-20261022.md) finds it carried by checkpoint links that survive correction (+0.2239). New links plus belief-mediated selection average only **+0.0016** (exploratory 95% interval −0.0214 to +0.0246), and the gap decays at the rate those links are replaced. In-model, this is **slow relaxation of the inherited opportunity graph, not a continuing post-correction lock-in mechanism**. Frey and van de Rijt (2016) already documented arbitrary exchange inequality from reputation cascades experimentally, so no originality is claimed. This is **exploratory, synthetic model evidence**; no claim of new sociology or human-world generalizability.
+
+## Licence
+
+Copyright © 2026 Behruz Davletov.
+
+- **Code: [MIT](LICENSE).** This covers source code, tests, scripts, and build and CI configuration: `src/`, `tests/`, `scripts/`, `.github/`, `Cargo.toml`, `Cargo.lock` and `rust-toolchain.toml`. It also covers code files elsewhere, such as `docs/review/*.py`.
+- **Everything else: [CC BY 4.0](LICENSE-CC-BY-4.0.txt).** This covers documentation, protocols, results and data. It includes the raw-evidence assets of this repository's GitHub Releases ([`experiment-002-v0-raw-evidence-20261022`](https://github.com/davletovb/social-emergence-lab/releases/tag/experiment-002-v0-raw-evidence-20261022), [`experiment-002-v3-raw-evidence-20261022`](https://github.com/davletovb/social-emergence-lab/releases/tag/experiment-002-v3-raw-evidence-20261022)). Credit "Behruz Davletov, Social Emergence Lab" and link to this repository.
+- **Other people's material keeps its own rights:** cited works, quoted passages and third-party names. [Hiyal](https://github.com/davletovb/hiyal) is a separate project under its own MIT licence.

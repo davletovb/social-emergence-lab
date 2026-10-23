@@ -5,6 +5,7 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.89"
 publish = false
+license = "MIT"
 
 [dependencies]
 hiyal = { git = "https://github.com/davletovb/hiyal", rev = "e38419f857afbb53428284a312b0eb926a2320e2" }

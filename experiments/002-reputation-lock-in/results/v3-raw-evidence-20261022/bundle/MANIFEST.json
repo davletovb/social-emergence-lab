@@ -1,0 +1,214 @@
+{
+  "bundle": "experiment-002-v3-raw-evidence-20261022",
+  "repository": "https://github.com/davletovb/social-emergence-lab",
+  "main_merge_commit": "1b59d24a1e88a4879dc67a06157e925b5b1d1116",
+  "results": {
+    "A": "experiments/002-reputation-lock-in/results/v3-stage-a-20261022",
+    "B": "experiments/002-reputation-lock-in/results/v3-stage-b-20261022"
+  },
+  "packed": {
+    "date": "2026-10-22",
+    "tar": "GNU tar 1.35, pax, sorted names, owner/group 0, mtime 2026-10-22T00:00:00Z",
+    "compressor": "xz 5.4.5, -6 -T4"
+  },
+  "archives": [
+    {
+      "file": "experiment-002-v3-stage-a-cell-2.tar.xz",
+      "directory": "experiment-002-v3-stage-a-cell-2",
+      "stage": "A",
+      "cell": 2,
+      "mechanism": "full-feedback",
+      "rewire_every": 2,
+      "parents": 48,
+      "seeds": [
+        130200,
+        130247
+      ],
+      "decision_rule": "v3-decision-002.jq",
+      "classification": "inconclusive",
+      "source_revision": "3b6ddb43bc451f7b708fca6202eb2b087675e7fe",
+      "hiyal_revision": "e38419f857afbb53428284a312b0eb926a2320e2",
+      "sealed_files": 3266,
+      "uncompressed_bytes": 1174323770,
+      "sha256sums_sha256": "d0037ac3e583b9597969ac7e96d5790d1897eb749f29d1180528d1fca86144d0",
+      "archive_bytes": 25427060,
+      "archive_sha256": "3cd3d85ebe5f258186e24dcf073c6d5dd0849b644b6e515eb429d09aeaa5e49d"
+    },
+    {
+      "file": "experiment-002-v3-stage-a-cell-5.tar.xz",
+      "directory": "experiment-002-v3-stage-a-cell-5",
+      "stage": "A",
+      "cell": 5,
+      "mechanism": "full-feedback",
+      "rewire_every": 10,
+      "parents": 48,
+      "seeds": [
+        130500,
+        130547
+      ],
+      "decision_rule": "v3-decision-002.jq",
+      "classification": "slow_relaxation",
+      "source_revision": "3b6ddb43bc451f7b708fca6202eb2b087675e7fe",
+      "hiyal_revision": "e38419f857afbb53428284a312b0eb926a2320e2",
+      "sealed_files": 3266,
+      "uncompressed_bytes": 1100152202,
+      "sha256sums_sha256": "979dd9c1b96b559cf6efa14d67682b6a374710ce1058a07eeb461d4b6e106366",
+      "archive_bytes": 24795604,
+      "archive_sha256": "3dfc34aef8ab678c014a6cafd702562720da70a8aa379e865366217ed83b7049"
+    },
+    {
+      "file": "experiment-002-v3-stage-a-cell-8.tar.xz",
+      "directory": "experiment-002-v3-stage-a-cell-8",
+      "stage": "A",
+      "cell": 8,
+      "mechanism": "full-feedback",
+      "rewire_every": 20,
+      "parents": 48,
+      "seeds": [
+        130800,
+        130847
+      ],
+      "decision_rule": "v3-decision-002.jq",
+      "classification": "slow_relaxation",
+      "source_revision": "3b6ddb43bc451f7b708fca6202eb2b087675e7fe",
+      "hiyal_revision": "e38419f857afbb53428284a312b0eb926a2320e2",
+      "sealed_files": 3266,
+      "uncompressed_bytes": 1047028510,
+      "sha256sums_sha256": "29dcc642e29f945ceb43513da953185c50669e6131d1b5904b3bcac2391ccf25",
+      "archive_bytes": 24477896,
+      "archive_sha256": "1fce8c5b30e239392d84b4f1a2afd10f11005ab204f4d383365dd0fd04f22bba"
+    },
+    {
+      "file": "experiment-002-v3-stage-b-cell-0.tar.xz",
+      "directory": "experiment-002-v3-stage-b-cell-0",
+      "stage": "B",
+      "cell": 0,
+      "mechanism": "random-turnover",
+      "rewire_every": 2,
+      "parents": 48,
+      "seeds": [
+        130000,
+        130047
+      ],
+      "decision_rule": "v3-decision-002-amendment-1.jq",
+      "classification": "slow_relaxation",
+      "source_revision": "defb96ee73f4fe8a5258fc7178166e7bc7961b49",
+      "hiyal_revision": "e38419f857afbb53428284a312b0eb926a2320e2",
+      "sealed_files": 3266,
+      "uncompressed_bytes": 1172163600,
+      "sha256sums_sha256": "75d1eee90e6e88651580c0f4cf9e05ecf0619bff647534fd24cde7f7651e5cc0",
+      "archive_bytes": 25214444,
+      "archive_sha256": "5f34ee3c33269dea52715e55ae8d39a625d3e84bd1211196f69092826c1f2f89"
+    },
+    {
+      "file": "experiment-002-v3-stage-b-cell-1.tar.xz",
+      "directory": "experiment-002-v3-stage-b-cell-1",
+      "stage": "B",
+      "cell": 1,
+      "mechanism": "belief-deletion",
+      "rewire_every": 2,
+      "parents": 48,
+      "seeds": [
+        130100,
+        130147
+      ],
+      "decision_rule": "v3-decision-002-amendment-1.jq",
+      "classification": "compensation",
+      "source_revision": "defb96ee73f4fe8a5258fc7178166e7bc7961b49",
+      "hiyal_revision": "e38419f857afbb53428284a312b0eb926a2320e2",
+      "sealed_files": 3266,
+      "uncompressed_bytes": 1174278003,
+      "sha256sums_sha256": "47ec0e8c9510aa78a444b9a1240755383ad81a45cf23a651d1fe707bf1ace847",
+      "archive_bytes": 25498144,
+      "archive_sha256": "80595fec203193933766c2cc0618933ae7a90f21f3bbd2b0b8942ab89f7d8fe6"
+    },
+    {
+      "file": "experiment-002-v3-stage-b-cell-3.tar.xz",
+      "directory": "experiment-002-v3-stage-b-cell-3",
+      "stage": "B",
+      "cell": 3,
+      "mechanism": "random-turnover",
+      "rewire_every": 10,
+      "parents": 48,
+      "seeds": [
+        130300,
+        130347
+      ],
+      "decision_rule": "v3-decision-002-amendment-1.jq",
+      "classification": "slow_relaxation",
+      "source_revision": "defb96ee73f4fe8a5258fc7178166e7bc7961b49",
+      "hiyal_revision": "e38419f857afbb53428284a312b0eb926a2320e2",
+      "sealed_files": 3266,
+      "uncompressed_bytes": 1096958655,
+      "sha256sums_sha256": "90e1b06b6b3a421487ed3dca3973c7d50261e23a8af3f3d553d8bc0d5a18aea6",
+      "archive_bytes": 24674356,
+      "archive_sha256": "8eda7884e92cdc3d8a5deda64f84de8d6ad187a246e19a9f07e1ef0de4f992f7"
+    },
+    {
+      "file": "experiment-002-v3-stage-b-cell-4.tar.xz",
+      "directory": "experiment-002-v3-stage-b-cell-4",
+      "stage": "B",
+      "cell": 4,
+      "mechanism": "belief-deletion",
+      "rewire_every": 10,
+      "parents": 48,
+      "seeds": [
+        130400,
+        130447
+      ],
+      "decision_rule": "v3-decision-002-amendment-1.jq",
+      "classification": "slow_relaxation",
+      "source_revision": "defb96ee73f4fe8a5258fc7178166e7bc7961b49",
+      "hiyal_revision": "e38419f857afbb53428284a312b0eb926a2320e2",
+      "sealed_files": 3266,
+      "uncompressed_bytes": 1099681465,
+      "sha256sums_sha256": "498803a38dc8a82c6a3086409940b636834291f2b38f850d1e7bf68bcacb453f",
+      "archive_bytes": 24888864,
+      "archive_sha256": "56cbed6f09d7887f02a0c6f46c4817fb1f27b73ebc9fbd26b38258fe38170917"
+    },
+    {
+      "file": "experiment-002-v3-stage-b-cell-6.tar.xz",
+      "directory": "experiment-002-v3-stage-b-cell-6",
+      "stage": "B",
+      "cell": 6,
+      "mechanism": "random-turnover",
+      "rewire_every": 20,
+      "parents": 48,
+      "seeds": [
+        130600,
+        130647
+      ],
+      "decision_rule": "v3-decision-002-amendment-1.jq",
+      "classification": "slow_relaxation",
+      "source_revision": "defb96ee73f4fe8a5258fc7178166e7bc7961b49",
+      "hiyal_revision": "e38419f857afbb53428284a312b0eb926a2320e2",
+      "sealed_files": 3266,
+      "uncompressed_bytes": 1045931564,
+      "sha256sums_sha256": "4990fccad7ace0b49ed2f9d3da15b24bfdcd47ee6c988f54355ddf13cb88709b",
+      "archive_bytes": 24331204,
+      "archive_sha256": "539575942f7a7341b2987a2b1cf44e817f0762070b353a4b5359a8f4fb25a06b"
+    },
+    {
+      "file": "experiment-002-v3-stage-b-cell-7.tar.xz",
+      "directory": "experiment-002-v3-stage-b-cell-7",
+      "stage": "B",
+      "cell": 7,
+      "mechanism": "belief-deletion",
+      "rewire_every": 20,
+      "parents": 48,
+      "seeds": [
+        130700,
+        130747
+      ],
+      "decision_rule": "v3-decision-002-amendment-1.jq",
+      "classification": "slow_relaxation",
+      "source_revision": "defb96ee73f4fe8a5258fc7178166e7bc7961b49",
+      "hiyal_revision": "e38419f857afbb53428284a312b0eb926a2320e2",
+      "sealed_files": 3266,
+      "uncompressed_bytes": 1046884972,
+      "sha256sums_sha256": "e620eeee6927dc9fc95477ffac7efdfd63a37fbaf0ad111bd24b4d6ac77be668",
+      "archive_bytes": 24564324,
+      "archive_sha256": "18146ee808fae1e5311b429145e8972d38bee424e4f7820f7aa7384df171be98"
+    }
+  ]
+}
