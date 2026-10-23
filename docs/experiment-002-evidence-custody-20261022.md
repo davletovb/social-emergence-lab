@@ -49,14 +49,14 @@ The [merged PR #20](https://github.com/davletovb/social-emergence-lab/pull/20) c
 - **The run.** [GitHub Actions run 39901070657](https://github.com/davletovb/social-emergence-lab/actions/runs/39901070657) ran on 2026-10-23 on a GitHub-hosted runner, outside the producing environment. It received the bundle in parts through a temporary branch shared with no other history.
 - **Checks before publishing.** It reassembled the bundle and checked its SHA-256. It checked every cell's seal against the seals committed on `main`. It then replayed all nine cells with `scripts/verify-v3-grid-002.sh --digest`, re-deriving every parent's Hiyal journals, cell summaries and decision.
 - **Publishing and readback.** Only after that did it publish the [public release `experiment-002-v3-raw-evidence-20261022`](https://github.com/davletovb/social-emergence-lab/releases/tag/experiment-002-v3-raw-evidence-20261022), tagged on `main` commit `f16b019`. The release holds the bundle, the nine per-cell archives as separate assets, and `MANIFEST.json`, `README.md` and `SHA256SUMS`. The job then downloaded every published asset and checked it by SHA-256 and byte for byte against its source.
-- **Cleanup.** The release tag points at `main`, not at the transfer branch. Once the temporary branch `evidence-transfer/v3-raw-20261022` is deleted, the transferred parts are no longer reachable.
+- **Cleanup.** The release tag points at `main`, not at the transfer branch. The temporary branch `evidence-transfer/v3-raw-20261022` was deleted on 2026-10-23, so the transferred parts are no longer reachable.
 
-**Checking the owner's local copy.** `sha256sum experiment-002-v3-raw-evidence-20261022.tar` should print the digest above. After `tar -xf`, run `bash scripts/check-v3-raw-evidence-002.sh /ABSOLUTE/experiment-002-v3-raw-evidence-20261022` from a checkout that includes the custody record. It checks the copy against that record.
+**The owner's local copy.** On 2026-10-23 the owner reported that `sha256sum experiment-002-v3-raw-evidence-20261022.tar` prints the digest above. That hash covers every byte, so the local copy is identical to the released bundle. To check another copy, run `sha256sum` on the bundle. After `tar -xf`, `bash scripts/check-v3-raw-evidence-002.sh /ABSOLUTE/experiment-002-v3-raw-evidence-20261022` also checks it against the committed custody record.
 
 **V3 preservation gate:** complete at the repository-retention level, as for V0.
 - The release is retained while the release and repository exist; it is not DOI-backed.
 - A Zenodo or institutional deposit remains desirable.
-- **Licence:** the release assets are licensed [CC BY 4.0](../LICENSE-CC-BY-4.0.txt), under the [repository licence](../README.md#licence) adopted on 2026-10-23. The release notes, written before that, still say no licence was stated.
+- **Licence:** the release assets are licensed [CC BY 4.0](../LICENSE-CC-BY-4.0.txt), under the [repository licence](../README.md#licence) adopted on 2026-10-23. The release notes, first written before that, were updated the same day to state it.
 
 **Do not call regenerated journals "the originals."** Regenerating a cell on its exact source revision is a reproducibility check, not custody. Label any such copy `regenerated-verified-copy`, and compare its `SHA256SUMS` byte for byte with the committed one. Make it with `scripts/v3-grid-002.sh /NEW/ABSOLUTE/DIR <cell> --jobs 4`, then check it with `scripts/verify-v3-grid-002.sh`.
 

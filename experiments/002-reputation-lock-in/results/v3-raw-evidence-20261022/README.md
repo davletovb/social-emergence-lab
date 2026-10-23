@@ -5,6 +5,7 @@ This records the packed copy of the raw Hiyal evidence behind the [Stage A](../v
 **Status:**
 - packed and checked on 2026-10-22, and downloaded by the repository owner;
 - replayed in full outside the producing environment, then published as the [GitHub Release `experiment-002-v3-raw-evidence-20261022`](https://github.com/davletovb/social-emergence-lab/releases/tag/experiment-002-v3-raw-evidence-20261022) on 2026-10-23 and read back;
+- the owner's local copy matched the bundle's SHA-256 on 2026-10-23, as reported by the owner. That hash covers every byte, so the local copy is identical to the released bundle;
 - retained at the repository level, like V0: no DOI yet.
 
 `bundle/` holds byte-identical copies of the bundle's `MANIFEST.json`, `README.md` and `SHA256SUMS`, so a stored copy can be checked against this repository. The `bundle/README.md` describes the bundle and how to verify it.
@@ -69,7 +70,7 @@ bash scripts/check-v3-raw-evidence-002.sh /absolute/path/experiment-002-v3-raw-e
 - **Synthetic content only:** model configurations, seeds, Hiyal event journals, snapshots, random-stream positions and derived reports from a synthetic agent model.
 - **No human or personal data.**
 - **No secrets:** the runs made no model or tool calls, so they hold no API keys or prompts.
-- **Licence: [CC BY 4.0](../../../../LICENSE-CC-BY-4.0.txt)**, under the repository licence adopted on 2026-10-23 (code is MIT; see the [README](../../../../README.md#licence)). The release notes were written at publication, before the licence was adopted, and still say none was stated.
+- **Licence: [CC BY 4.0](../../../../LICENSE-CC-BY-4.0.txt)**, under the repository licence adopted on 2026-10-23 (code is MIT; see the [README](../../../../README.md#licence)). The release notes, first written before the licence was adopted, were updated on 2026-10-23 to state it.
 
 ## Release and readback (2026-10-23)
 
@@ -83,11 +84,11 @@ bash scripts/check-v3-raw-evidence-002.sh /absolute/path/experiment-002-v3-raw-e
    - `MANIFEST.json`, `README.md` and `SHA256SUMS`.
 5. **Readback:** it downloaded every published asset and checked it by SHA-256 and byte for byte against its source.
 
-The tag points at `main`, not at the transfer branch. Once that temporary branch is deleted, the transferred parts are no longer reachable.
+The tag points at `main`, not at the transfer branch. That temporary branch was deleted on 2026-10-23, so the transferred parts are no longer reachable.
 
 ## Still open
 
-- [ ] **Transfer branch:** delete `evidence-transfer/v3-raw-20261022`. It is not needed after publication.
-- [ ] **Local copy:** check the owner's local copy: `sha256sum` on the bundle, then `check-v3-raw-evidence-002.sh` on the unpacked copy.
+- [x] **Transfer branch:** `evidence-transfer/v3-raw-20261022` was deleted on 2026-10-23.
+- [x] **Local copy:** the owner's local copy matched the bundle's SHA-256 on 2026-10-23, as reported by the owner. That hash covers every byte, so the local copy is identical to the released bundle.
 - [ ] **Long-term deposit:** a Zenodo or institutional deposit with a DOI, if long-term scholarly archiving is wanted. GitHub Release assets last only as long as the release and repository.
 - [x] **Licence:** CC BY 4.0 for the bundle and its contents, adopted 2026-10-23.
