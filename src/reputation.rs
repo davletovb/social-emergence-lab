@@ -10,6 +10,20 @@ use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
 pub const KIND: &str = "social-emergence-lab.reputation.v0";
+/// Same model, but the world keeps no per-step `trace`: trajectories are
+/// rebuilt from the verified journal (`reputation_reference::replay_journal_trace`).
+/// State hashes then cover O(N²) state instead of a trace growing with every
+/// event. A separate kind, so V0 journals and hashes are never reinterpreted.
+pub const KIND_JOURNAL_TRACE: &str = "social-emergence-lab.reputation.journal-trace.v1";
+
+/// The Hiyal world kind a configuration must be recorded under.
+pub fn kind_for(config: &Config) -> &'static str {
+    if config.journal_trace {
+        KIND_JOURNAL_TRACE
+    } else {
+        KIND
+    }
+}
 pub const MAX_GRAPH_ATTEMPTS: usize = 200_000;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -40,6 +54,11 @@ pub struct Config {
     /// Reproduce legacy journals exactly: old V0 manifests lacked this flag.
     #[serde(default, skip_serializing_if = "is_false")]
     pub survival_accounting: bool,
+    /// Keep no `trace` in the world; derive it from the journal instead.
+    /// Requires world kind `KIND_JOURNAL_TRACE`. Absent from older configs,
+    /// whose serialization (and so every V0 hash) is unchanged.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub journal_trace: bool,
 }
 fn is_false(v: &bool) -> bool {
     !*v
@@ -61,6 +80,7 @@ impl Config {
             graph_attempts: MAX_GRAPH_ATTEMPTS,
             annealed: false,
             survival_accounting: true,
+            journal_trace: false,
         }
     }
     pub fn validate(&self) -> Result<(), String> {
@@ -380,6 +400,32 @@ pub struct StepTrace {
     pub surviving_count: Option<usize>,
 }
 
+impl StepTrace {
+    /// The record of the opportunity that produced `post`, allocated by
+    /// `allocator` with `action`. Shared by in-world traces and journal
+    /// replay, so both trajectories are built by the same rule.
+    pub fn after(post: &ReputationWorld, allocator: usize, action: &Action) -> Self {
+        let r = action.recipient;
+        Self {
+            step: post.step,
+            allocator,
+            recipient: r,
+            sign: if post.boost[r] { 1 } else { -1 },
+            // Keep the recorded value, not a recomputed one: `f64::exp`
+            // precision varies by platform, and replay hashes this state.
+            expectation: action.pre_flow.clone(),
+            rewire: action.rewire.clone(),
+            surviving_count: if post.config.survival_accounting {
+                post.surviving_edges
+                    .as_ref()
+                    .map(|rows| rows.iter().map(Vec::len).sum())
+            } else {
+                None
+            },
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ReputationWorld {
     pub config: Config,
@@ -448,7 +494,11 @@ impl ReputationWorld {
         if sum != 10u128 * n as u128 + self.step as u128 {
             return Err("wealth conservation failed".into());
         }
-        if self.trace.len() != self.step as usize {
+        if self.config.journal_trace {
+            if !self.trace.is_empty() {
+                return Err("journal-trace worlds keep no trace".into());
+            }
+        } else if self.trace.len() != self.step as usize {
             return Err("one trace required per opportunity".into());
         }
         Ok(())
@@ -596,24 +646,10 @@ impl HiyalWorld for ReputationWorld {
             }
         }
         w.step = step;
-        let surviving_count = if w.config.survival_accounting {
-            w.surviving_edges
-                .as_ref()
-                .map(|rows| rows.iter().map(Vec::len).sum())
-        } else {
-            None
-        };
-        w.trace.push(StepTrace {
-            step,
-            allocator: j,
-            recipient: r,
-            sign: if w.boost[r] { 1 } else { -1 },
-            // Keep the recorded value, not `now`: `f64::exp` precision varies
-            // by platform, and replay hashes this state.
-            expectation: a.pre_flow,
-            rewire: a.rewire,
-            surviving_count,
-        });
+        if !w.config.journal_trace {
+            let entry = StepTrace::after(&w, j, &a);
+            w.trace.push(entry);
+        }
         w.verify()?;
         *self = w;
         Ok(())
@@ -773,11 +809,23 @@ pub struct Window {
     pub mean_surviving_edge_fraction: Option<f64>,
 }
 pub fn window(w: &ReputationWorld, from: u64, through: u64) -> Result<Window, String> {
-    if from == 0 || through < from || through > w.step {
+    if through > w.step {
         return Err("invalid measurement window".into());
     }
-    let rows: Vec<_> = w
-        .trace
+    window_of(&w.config, &w.trace, from, through)
+}
+
+/// `window` over an explicit trajectory, e.g. one rebuilt from a journal.
+pub fn window_of(
+    config: &Config,
+    trace: &[StepTrace],
+    from: u64,
+    through: u64,
+) -> Result<Window, String> {
+    if from == 0 || through < from {
+        return Err("invalid measurement window".into());
+    }
+    let rows: Vec<_> = trace
         .iter()
         .filter(|x| (from..=through).contains(&x.step))
         .collect();
@@ -802,7 +850,7 @@ pub fn window(w: &ReputationWorld, from: u64, through: u64) -> Result<Window, St
         innovation: gap - degree - selection,
         rewire_events: rows.iter().filter(|x| x.rewire.is_some()).count(),
         mean_surviving_edge_fraction: if rows.iter().all(|x| x.surviving_count.is_some()) {
-            let denominator = (w.config.actors * w.config.degree) as f64;
+            let denominator = (config.actors * config.degree) as f64;
             Some(
                 rows.iter()
                     .map(|x| x.surviving_count.unwrap_or(0) as f64 / denominator)
