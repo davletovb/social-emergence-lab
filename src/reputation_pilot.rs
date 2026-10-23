@@ -84,7 +84,7 @@ pub async fn run(
         let setup_config = config.clone();
         move |rng| setup(&setup_config, rng)
     })?;
-    let parent = Store::<ReputationWorld, Action>::inspect_read_only(&parent_dir)?;
+    let parent = Store::<ReputationWorld, Action>::inspect_read_only_cached(&parent_dir)?;
     let mut reports = Vec::new();
     for arm in Arm::ALL {
         let path = root.join(arm.name());
@@ -108,7 +108,7 @@ pub async fn run(
         trial.checkpoint()?;
         drop(trial);
         verify_fork::<ReputationWorld>(&path)?;
-        let ro = Store::<ReputationWorld, Action>::inspect_read_only(&path)?;
+        let ro = Store::<ReputationWorld, Action>::inspect_read_only_cached(&path)?;
         ro.world.verify()?;
         if ro.world.step != total || ro.logical_step != total - checkpoint {
             return Err("final world/ledger step mismatch".into());
@@ -130,7 +130,7 @@ pub async fn run(
 /// finally the exact bytes of `report.json`.
 pub fn verify(root: &Path) -> Result<PilotReport, String> {
     let parent_dir = root.join("parent");
-    let parent = Store::<ReputationWorld, Action>::inspect_read_only(&parent_dir)?;
+    let parent = Store::<ReputationWorld, Action>::inspect_read_only_cached(&parent_dir)?;
     let config = parent.genesis.initial_world.config.clone();
     if parent.genesis.world_kind != KIND {
         return Err("parent is not a reputation V0 trial".into());
@@ -155,7 +155,7 @@ pub fn verify(root: &Path) -> Result<PilotReport, String> {
         {
             return Err(format!("{} is not a fork of this run's parent", arm.name()));
         }
-        let ro = Store::<ReputationWorld, Action>::inspect_read_only(&path)?;
+        let ro = Store::<ReputationWorld, Action>::inspect_read_only_cached(&path)?;
         let mut expected = parent.world.clone();
         expected.intervene(arm)?;
         if ro.genesis.initial_world != expected {
