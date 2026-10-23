@@ -808,7 +808,17 @@ pub struct Window {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mean_surviving_edge_fraction: Option<f64>,
 }
+/// Measure a window from a V0 world's own stored trace.
+///
+/// A journal-trace world (`config.journal_trace`) stores no trace, so this
+/// refuses it: rebuild its trajectory with
+/// `reputation_reference::replay_journal_trace` and call `window_of`.
 pub fn window(w: &ReputationWorld, from: u64, through: u64) -> Result<Window, String> {
+    if w.config.journal_trace {
+        return Err(
+            "journal-trace worlds store no trace: use window_of with replay_journal_trace".into(),
+        );
+    }
     if through > w.step {
         return Err("invalid measurement window".into());
     }

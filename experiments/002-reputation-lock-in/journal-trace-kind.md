@@ -42,7 +42,21 @@ reduced, so this growth is now the main cost of long runs.
   - that windows computed from either trajectory are equal;
   - that a journal-trace world rejects a stored trace;
   - that an edited report fails `verify`;
-  - that V0 configs serialize without the new field.
+  - that V0 configs serialize without the new field;
+  - that every fork's journal-derived trajectory equals a second extraction
+    that does not use `StepTrace::after`. That extraction reads fields from
+    the raw journal JSON and the genesis world, and counts surviving links
+    from a separately replayed world. Each trajectory's digest is also
+    pinned for seed 82102. The pin holds on both the current Hiyal pin and
+    the canonical-writer branch.
+- **`window(&world, …)`** reads a V0 world's stored trace. It refuses a
+  journal-trace world with an explicit error. For those worlds, rebuild the
+  trajectory with `replay_journal_trace` and use `window_of`.
+- **Not independent everywhere:** the trajectory rule itself
+  (`StepTrace::after`) is shared by V0 and journal-trace, so the
+  independent-extraction test and the golden digests are the methodological
+  check on it. Keep them, or add a further external fixture, before using
+  this kind in confirmatory work.
 - **V0 raw-evidence archive** (`80666d6f…d8ec`): still passes
   `scripts/verify-002.sh`, including the new stored-trace check. The V3 evidence
   checks still pass.

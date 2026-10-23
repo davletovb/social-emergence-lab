@@ -7,6 +7,15 @@ use social_emergence_lab::reputation::{
 };
 use social_emergence_lab::reputation_pilot::{control_config, run, verify};
 use social_emergence_lab::reputation_reference::replay_journal_trace;
+/// `hiyal::storage::digest` of each fork's journal-derived trajectory for
+/// seed 82102 (N=10, d=3, checkpoint 20, total 60).
+const GOLDEN_TRACE_DIGESTS: [&str; 4] = [
+    "information:2371e1bc80c4166eeb638ffcbaf8d54b5d73d2f6f51a825e28ecaced1e3d3a9e",
+    "structure:d209f742a2ac75c494578a4b46ae75451c6679ce68eea705a8903fc3b8e278c4",
+    "both:e7af40e22262121b1c8eb61ac9c243fab9219326ac275def450b2edb4e80cec2",
+    "sham:85e55d0c662e74a192038e6bc1fb38d50ef14b4fd80aa2e523965175c945b52b",
+];
+
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -134,6 +143,78 @@ async fn journal_trace_run_matches_v0_actions_and_reports() {
             serde_json::to_value(window_of(&new.world.config, &trace, 21, 60).unwrap()).unwrap()
         );
     }
+    fs::remove_dir_all(root).unwrap();
+}
+
+/// Trajectory of a journal-trace run, extracted without `StepTrace::after`:
+/// every field is read from the raw journal JSON and the genesis world, and
+/// the uninterrupted-link count from a separately replayed world.
+fn independent_trace(dir: &Path) -> Vec<serde_json::Value> {
+    let ro = Store::<ReputationWorld, Action>::inspect_read_only(dir).unwrap();
+    let mut world = ro.genesis.initial_world.clone();
+    let mut step = world.step;
+    let mut rows = Vec::new();
+    for record in journal(dir) {
+        let outcome = &record["outcome"];
+        if outcome["outcome"] != "accepted" {
+            continue;
+        }
+        let actor: u64 = record["actor"]
+            .as_str()
+            .map(|s| s.parse().unwrap())
+            .unwrap_or_else(|| record["actor"].as_u64().unwrap());
+        let action: Action = serde_json::from_value(outcome["action"].clone()).unwrap();
+        world.apply(AgentId(actor), action).unwrap();
+        step += 1;
+        let recipient = outcome["action"]["recipient"].as_u64().unwrap() as usize;
+        let mut row = serde_json::json!({
+            "step": step,
+            "allocator": actor,
+            "recipient": recipient,
+            "sign": if ro.genesis.initial_world.boost[recipient] { 1 } else { -1 },
+            "expectation": outcome["action"]["pre_flow"],
+            "rewire": outcome["action"].get("rewire").cloned().unwrap_or(serde_json::Value::Null),
+        });
+        if world.config.survival_accounting
+            && let Some(rows) = &world.surviving_edges
+        {
+            let count: usize = rows.iter().map(|r| r.len()).sum();
+            row["surviving_count"] = serde_json::json!(count);
+        }
+        rows.push(row);
+    }
+    rows
+}
+
+#[tokio::test]
+async fn journal_trajectory_matches_an_independent_extraction_and_golden_digest() {
+    let root = temp();
+    let mut config = control_config(10, 3, "default").unwrap();
+    config.journal_trace = true;
+    run(&root, 82102, config, 20, 60).await.unwrap();
+    let mut digests = Vec::new();
+    for arm in ["information", "structure", "both", "sham"] {
+        let dir = root.join(arm);
+        let ro = Store::<ReputationWorld, Action>::inspect_read_only(&dir).unwrap();
+        let (_, trace) = replay_journal_trace(
+            &dir.join("events.jsonl"),
+            ro.log_bytes,
+            &ro.genesis.initial_world,
+            1e-9,
+        )
+        .unwrap();
+        let derived = serde_json::to_value(&trace).unwrap();
+        assert_eq!(
+            derived,
+            serde_json::Value::Array(independent_trace(&dir)),
+            "{arm}"
+        );
+        assert!(window(&ro.world, 21, 60).is_err());
+        digests.push(format!("{arm}:{}", hiyal::storage::digest(&trace).unwrap()));
+    }
+    // Pinned for seed 82102: a change in how trajectories are derived must
+    // be deliberate and re-pinned here.
+    assert_eq!(digests, GOLDEN_TRACE_DIGESTS);
     fs::remove_dir_all(root).unwrap();
 }
 
