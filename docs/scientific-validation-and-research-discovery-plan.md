@@ -19,7 +19,7 @@ This document has two workstreams:
 
 Hiyal remains the experimental execution and reproducibility library, not a source of sociological validity by itself. Work here is primarily deterministic Rust model specification, neutral data exports, independent verification in any suitable language, and carefully bounded scientific analysis.
 
-**Current decisions:** Treat Experiment 002 V0–V3 as *exploratory synthetic evidence*, not a newly established sociological mechanism. The V3 raw-journal package is reported downloaded and retained on the researcher's local computer; external archival work is deferred by owner choice, **not independently checksum-verified**. External human academic review is also deferred until there is a clearer scientific contribution. Neither item blocks low-cost internal methodological work. No broad V4 grid or new Experiment 003 is approved by this plan.
+**Current decisions:** Treat Experiment 002 V0–V3 as *exploratory synthetic evidence*, not a newly established sociological mechanism. V3's original raw journals are published as the [GitHub Release `experiment-002-v3-raw-evidence-20261022`](https://github.com/davletovb/social-emergence-lab/releases/tag/experiment-002-v3-raw-evidence-20261022). A GitHub-hosted job replayed all nine cells before publication and read the assets back afterwards; see the [V3 custody record](../experiments/002-reputation-lock-in/results/v3-raw-evidence-20261022/README.md). The owner's separate local copy has **not yet been checksum-checked**, and a DOI deposit is not yet made. The repository is licensed MIT for code and CC BY 4.0 for documentation, results and data ([README](../README.md#licence)). External human academic review is also deferred until there is a clearer scientific contribution. Neither item blocks low-cost internal methodological work. No broad V4 grid or new Experiment 003 is approved by this plan.
 
 ## 2. Scientific claims and evidence levels
 
@@ -202,5 +202,7 @@ No implementation begins without a short versioned protocol containing:
 | 2026-10-22 | Accept the owner's local retention of raw V3 evidence for the current milestone; external upload deferred | Owner reported; no independent local verification |
 | 2026-10-22 | Defer cold-contact external academic review until research question and contribution are stronger | Agreed direction |
 | 2026-10-23 | Use this framework to debate further validation and research candidates before approving Experiment 003 | Proposed; planning only |
+| 2026-10-23 | Publish V3's original raw journals as a GitHub Release, after a full nine-cell replay outside the producing environment | Done: [run 39901070657](https://github.com/davletovb/social-emergence-lab/actions/runs/39901070657); supersedes the 2026-10-22 local-retention decision. Owner's local copy check pending |
+| 2026-10-23 | Licence the repository: MIT for code; CC BY 4.0 for documentation, results and data, including the raw-evidence releases | Adopted |
 
 This document does **not** approve new experiments, modify historical evidence, or supersede the existing [methodology policy](methodology.md).

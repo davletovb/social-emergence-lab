@@ -56,7 +56,7 @@ The [merged PR #20](https://github.com/davletovb/social-emergence-lab/pull/20) c
 **V3 preservation gate:** complete at the repository-retention level, as for V0.
 - The release is retained while the release and repository exist; it is not DOI-backed.
 - A Zenodo or institutional deposit remains desirable.
-- The repository states no licence, so reuse terms are the owner's to set.
+- **Licence:** the release assets are licensed [CC BY 4.0](../LICENSE-CC-BY-4.0.txt), under the [repository licence](../README.md#licence) adopted on 2026-10-23. The release notes, written before that, still say no licence was stated.
 
 **Do not call regenerated journals "the originals."** Regenerating a cell on its exact source revision is a reproducibility check, not custody. Label any such copy `regenerated-verified-copy`, and compare its `SHA256SUMS` byte for byte with the committed one. Make it with `scripts/v3-grid-002.sh /NEW/ABSOLUTE/DIR <cell> --jobs 4`, then check it with `scripts/verify-v3-grid-002.sh`.
 

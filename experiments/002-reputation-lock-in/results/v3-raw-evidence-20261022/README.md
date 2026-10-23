@@ -69,7 +69,7 @@ bash scripts/check-v3-raw-evidence-002.sh /absolute/path/experiment-002-v3-raw-e
 - **Synthetic content only:** model configurations, seeds, Hiyal event journals, snapshots, random-stream positions and derived reports from a synthetic agent model.
 - **No human or personal data.**
 - **No secrets:** the runs made no model or tool calls, so they hold no API keys or prompts.
-- **No licence stated:** the repository has no licence file, so reuse terms are not stated. Choose them before publishing the bundle.
+- **Licence: [CC BY 4.0](../../../../LICENSE-CC-BY-4.0.txt)**, under the repository licence adopted on 2026-10-23 (code is MIT; see the [README](../../../../README.md#licence)). The release notes were written at publication, before the licence was adopted, and still say none was stated.
 
 ## Release and readback (2026-10-23)
 
@@ -90,4 +90,4 @@ The tag points at `main`, not at the transfer branch. Once that temporary branch
 - [ ] **Transfer branch:** delete `evidence-transfer/v3-raw-20261022`. It is not needed after publication.
 - [ ] **Local copy:** check the owner's local copy: `sha256sum` on the bundle, then `check-v3-raw-evidence-002.sh` on the unpacked copy.
 - [ ] **Long-term deposit:** a Zenodo or institutional deposit with a DOI, if long-term scholarly archiving is wanted. GitHub Release assets last only as long as the release and repository.
-- [ ] **Licence:** choose and record the access and reuse terms. The release is public, but the repository states no licence.
+- [x] **Licence:** CC BY 4.0 for the bundle and its contents, adopted 2026-10-23.
