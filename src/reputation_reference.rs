@@ -1,6 +1,6 @@
 //! Independent, algebraic evaluator of signed opportunity access.
 //! Does not invoke production flow(), selection_probs() or softmax().
-use crate::reputation::{Action, ReputationWorld};
+use crate::reputation::{Action, ReputationWorld, StepTrace};
 use hiyal::core::{AgentId, World};
 use serde_json::Value;
 use std::{fs, path::Path};
@@ -137,6 +137,19 @@ pub fn replay_journal(
     initial: &ReputationWorld,
     tolerance: f64,
 ) -> Result<ReputationWorld, String> {
+    replay_journal_trace(journal, verified_bytes, initial, tolerance).map(|(world, _)| world)
+}
+
+/// `replay_journal`, also returning one `StepTrace` per accepted event in
+/// this journal, built from each event's action and post-event state. For a
+/// journal-trace world this is its trajectory; for a legacy world it equals
+/// the suffix of `world.trace` that the journal appended.
+pub fn replay_journal_trace(
+    journal: &Path,
+    verified_bytes: u64,
+    initial: &ReputationWorld,
+    tolerance: f64,
+) -> Result<(ReputationWorld, Vec<StepTrace>), String> {
     let bytes = fs::read(journal).map_err(|e| e.to_string())?;
     let length = usize::try_from(verified_bytes).map_err(|e| e.to_string())?;
     let prefix = bytes
@@ -146,6 +159,7 @@ pub fn replay_journal(
         return Err("verified prefix ends inside a record".into());
     }
     let mut world = initial.clone();
+    let mut trace = Vec::new();
     for (index, line) in prefix.split(|&b| b == b'\n').enumerate() {
         if line.is_empty() {
             continue;
@@ -173,9 +187,11 @@ pub fn replay_journal(
                 index + 1
             ));
         }
-        world.apply(AgentId(actor), action)?;
+        let allocator = usize::try_from(actor).map_err(|e| e.to_string())?;
+        world.apply(AgentId(actor), action.clone())?;
+        trace.push(StepTrace::after(&world, allocator, &action));
     }
-    Ok(world)
+    Ok((world, trace))
 }
 
 #[cfg(test)]

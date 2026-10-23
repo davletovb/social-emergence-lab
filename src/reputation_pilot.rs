@@ -1,6 +1,7 @@
 //! Bounded, replay-verified *exploratory* Experiment 002 runs. No confirmatory claims.
 use crate::reputation::{
-    Action, Arm, Config, KIND, Removal, ReputationPolicy, ReputationWorld, Window, setup, window,
+    Action, Arm, Config, Removal, ReputationPolicy, ReputationWorld, StepTrace, Window, kind_for,
+    setup, window_of,
 };
 use crate::reputation_reference;
 use hiyal::{
@@ -52,6 +53,8 @@ pub async fn run(
     if checkpoint == 0 || total <= checkpoint || total > 1000 || checkpoint > 500 || root.exists() {
         return Err("pilot needs a new path, 0<checkpoint<total<=1000 and checkpoint<=500".into());
     }
+    let kind = kind_for(&config);
+    let journal_trace = config.journal_trace;
     let config_for_genesis = config.clone();
     let agent_ids = (0..config.actors as u64).map(AgentId).collect();
     fs::create_dir_all(root).map_err(|e| e.to_string())?;
@@ -61,7 +64,7 @@ pub async fn run(
         &parent_dir,
         "reputation-v0",
         seed,
-        KIND,
+        kind,
         move |rng| setup(&config_for_genesis, rng),
         ReputationPolicy,
         backend.clone(),
@@ -113,7 +116,14 @@ pub async fn run(
         if ro.world.step != total || ro.logical_step != total - checkpoint {
             return Err("final world/ledger step mismatch".into());
         }
-        reports.push(arm_report(&ro.world, arm, checkpoint, total)?);
+        let derived;
+        let trace = if journal_trace {
+            derived = replay_reference(&path, &ro)?;
+            &derived
+        } else {
+            &ro.world.trace
+        };
+        reports.push(arm_report(&ro.world, trace, arm, checkpoint, total)?);
     }
     let answer = pilot_report(&parent, config, checkpoint, total, reports)?;
     fs::write(
@@ -132,8 +142,8 @@ pub fn verify(root: &Path) -> Result<PilotReport, String> {
     let parent_dir = root.join("parent");
     let parent = Store::<ReputationWorld, Action>::inspect_read_only_cached(&parent_dir)?;
     let config = parent.genesis.initial_world.config.clone();
-    if parent.genesis.world_kind != KIND {
-        return Err("parent is not a reputation V0 trial".into());
+    if parent.genesis.world_kind != kind_for(&config) {
+        return Err("parent world kind does not match its reputation configuration".into());
     }
     verify_setup(&parent_dir, |rng| setup(&config, rng))?;
     parent.world.verify()?;
@@ -165,12 +175,25 @@ pub fn verify(root: &Path) -> Result<PilotReport, String> {
             ));
         }
         ro.world.verify()?;
-        replay_reference(&path, &ro)?;
+        let replayed_trace = replay_reference(&path, &ro)?;
+        let trace = if config.journal_trace {
+            &replayed_trace
+        } else {
+            // The journal-derived trajectory must match the stored one.
+            let start = usize::try_from(checkpoint).map_err(|e| e.to_string())?;
+            if ro.world.trace.get(start..) != Some(&replayed_trace[..]) {
+                return Err(format!(
+                    "{}: stored trace differs from its journal",
+                    arm.name()
+                ));
+            }
+            &ro.world.trace
+        };
         let steps = *total.get_or_insert(ro.world.step);
         if ro.world.step != steps || ro.logical_step != steps - checkpoint {
             return Err("arms disagree on the run length".into());
         }
-        reports.push(arm_report(&ro.world, arm, checkpoint, steps)?);
+        reports.push(arm_report(&ro.world, trace, arm, checkpoint, steps)?);
     }
     let report = pilot_report(
         &parent,
@@ -186,8 +209,10 @@ pub fn verify(root: &Path) -> Result<PilotReport, String> {
     Ok(report)
 }
 
-fn replay_reference(dir: &Path, ro: &ReadOnly<ReputationWorld>) -> Result<(), String> {
-    let replayed = reputation_reference::replay_journal(
+/// Replay `dir`'s journal against the independent reference and return the
+/// trajectory of its own events.
+fn replay_reference(dir: &Path, ro: &ReadOnly<ReputationWorld>) -> Result<Vec<StepTrace>, String> {
+    let (replayed, trace) = reputation_reference::replay_journal_trace(
         &dir.join("events.jsonl"),
         ro.log_bytes,
         &ro.genesis.initial_world,
@@ -199,11 +224,14 @@ fn replay_reference(dir: &Path, ro: &ReadOnly<ReputationWorld>) -> Result<(), St
             dir.display()
         ));
     }
-    Ok(())
+    Ok(trace)
 }
 
+/// Windows are read from `trace`: the world's own trace, or for a
+/// journal-trace world the trajectory rebuilt from its journal.
 fn arm_report(
     world: &ReputationWorld,
+    trace: &[StepTrace],
     arm: Arm,
     checkpoint: u64,
     total: u64,
@@ -213,8 +241,9 @@ fn arm_report(
         let chunk = (total - checkpoint) / 4;
         (0..4)
             .map(|i| {
-                window(
-                    world,
+                window_of(
+                    &world.config,
+                    trace,
                     checkpoint + 1 + i * chunk,
                     checkpoint + (i + 1) * chunk,
                 )
@@ -225,8 +254,8 @@ fn arm_report(
     };
     Ok(ArmReport {
         arm: arm.name().into(),
-        full: window(world, checkpoint + 1, total)?,
-        late: window(world, last, total)?,
+        full: window_of(&world.config, trace, checkpoint + 1, total)?,
+        late: window_of(&world.config, trace, last, total)?,
         quarters,
         final_tokens: world.wealth.clone(),
         all_events: world.step,
