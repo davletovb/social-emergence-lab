@@ -127,7 +127,7 @@ checksum = "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a"
 [[package]]
 name = "hiyal"
 version = "0.1.0"
-source = "git+https://github.com/davletovb/hiyal?rev=aeb79f28ff2067b9b8d04b9f6a2d669ed583e53e#aeb79f28ff2067b9b8d04b9f6a2d669ed583e53e"
+source = "git+https://github.com/davletovb/hiyal?rev=4d2cc3558576f56d8cd6e7acc107c194ade87a24#4d2cc3558576f56d8cd6e7acc107c194ade87a24"
 dependencies = [
  "atomicwrites",
  "rand_chacha",
