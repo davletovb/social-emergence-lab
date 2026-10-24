@@ -1,5 +1,5 @@
 # R-05 dossier 4 — Cooperation under resource scarcity
-**Date:** 2026-10-24 · **Stage:** Tier-1 under corrected all-six re-screen
+**Date:** 2026-10-24 · **Updated:** 2026-10-25 · **Status:** Tier-1 source-corrected research dossier; **UNDER RE-SCREEN**, no approved shortlist or scores
 
 ## Narrow question and claim
 After a predeclared resource shock, do societies with equal pre-shock cooperation but different mechanisms of sharing recover differently? Compare (a) reciprocal sharing, (b) centralized rule enforcement, (c) risk-pooling/self-insurance and (d) exclusion/selective membership. **Contribution type:** synthetic robustness / possibly a documented identification boundary; **not** an empirical finding about water management. Human claims need actual resource shocks, extraction, group access, compliance, independent units and intervention assignment.
@@ -18,3 +18,6 @@ A scientifically distinct contribution requires **one precise shock × instituti
 
 ## Source and screening correction (2026-10-24)
 **Anderies, Janssen, Lee & Wasserman's published paper is [*Ecological Economics* 93 (2013): 166–176](https://doi.org/10.1016/j.ecolecon.2013.04.010)**; our 2012 repository citation was an earlier copy, not the final bibliographic version. Original publisher abstract/highlights explicitly study environmental uncertainty, unequal resource positions and collective action, reducing the novelty of generic shocks. **Armstrong et al. (2024)** likewise covers simulated rule formation under freshwater salinity pressures. Neither abstract alone closes every *model-identification* question about equal-pretrend mechanisms; this dossier must state a precise candidate stressor/observable and an independent tiny oracle before re-screening. A lack of accessible human microdata does **not** disqualify an explicitly synthetic limit claim. Status: unresolved.
+
+## Review 3 — additional independent close precedent (2026-10-25)
+[Amirova & Petrick (2022), *Investment traps and resilience to shocks: An experimental study of Central Asian collective water governance*, *Irrigation and Drainage*](https://doi.org/10.1002/ird.2704) reports experimental institutional investment and shock-resilience work. Publisher original abstract/metadata inspected; full methods and sample/rights not audited. Adds another direct predecessor to uncertainty and common-pool shock research. **Do not** infer no identification-gap remains or that this study implements our proposed exact scarcity shock. Remains under re-screen.

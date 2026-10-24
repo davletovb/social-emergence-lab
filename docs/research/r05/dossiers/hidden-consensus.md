@@ -1,5 +1,5 @@
 # R-05 dossier 2 — Hidden consensus and norm collapse
-**Date:** 2026-10-24 · **Stage:** Tier-1 source scan / candidate, not R-06
+**Date:** 2026-10-24 · **Updated:** 2026-10-25 · **Status:** Tier-1 source-corrected research dossier; **UNDER RE-SCREEN**, no approved shortlist or scores
 
 ## Narrow question and contribution
 When can near-identical *public agreement* conceal different distributions of *private disagreement*, and which intervention (accurate disclosure of peers' actual private beliefs vs changing sanction risk) separates a **pluralistic-ignorance mechanism** from a **public coordination/payoff mechanism**? Not “discover a universal tipping percentage.” **Claim type:** synthetic mechanism-discrimination first; direct human mechanism inference would require independently measured private attitudes, public choices and assignment/timing.
@@ -22,3 +22,9 @@ When can near-identical *public agreement* conceal different distributions of *p
 **[Lütz & Wardil (2024)](https://doi.org/10.1016/j.physa.2024.129920)**, *Physica A* 647, 129920 (authors corrected): models concealed/public opinion states, imitation, social pressure and memory. Its abstract challenges generic emergence claims; read full mechanism equations in Tier 2 if this remains shortlisted.
 
 **Specific unresolved question required:** Is there a parameter regime where **private-belief disclosure and an identical enforcement manipulation** separate public coordination incentives from pluralistic ignorance despite *identical public actions*, and has this exact contrast already been studied? A direct empirical-correspondence version would require recorded private beliefs and observed assignments, not merely the existence of a replication package. **Status:** unknown pending re-screen.
+
+## Review 3 — additional closest-source challenges (2026-10-25)
+- [Bursztyn, Egorov & Fiorin (2020), *AER*](https://doi.org/10.1257/aer.20171175) shows experimental social-norm expression and public sanctioning affected by information about others' acceptability; the new review's specific public-vs-anonymous factorial needs original Methods verification, **not assumed proven from the abstract**.
+- [Smerdon, Offerman & Gneezy (2025), *Experimental Economics*](https://www.cambridge.org/core/journals/experimental-economics/article/abs/everybodys-doing-it-on-the-persistence-of-bad-social-norms/E71E8C064EBEB130586439039C42A5BB) directly contrasts coordinating on a bad norm against pluralistic ignorance when peer preferences are disclosed, with experimental results favoring the latter in their setting. **Original published abstract inspected**; proposed disclosure-vs-coordination differentiation likely has direct prior art.
+- [Reitmann et al. (2026), *JEBO*](https://doi.org/10.1016/j.jebo.2026.107465) reports measurement-method sensitivity for elicited private attitudes and perceived social norms. **Original abstract inspected**, no replication files checked. An observable private-belief variable is not necessarily an error-free state.
+No renewed shortlist invitation is warranted before a narrower question and source matched review.

@@ -1,5 +1,5 @@
 # R-05 dossier 3 — Institution formation and breakdown
-**Date:** 2026-10-24 · **Stage:** Tier-1 under corrected all-six re-screen
+**Date:** 2026-10-24 · **Updated:** 2026-10-25 · **Status:** Tier-1 source-corrected research dossier; **UNDER RE-SCREEN**, no approved shortlist or scores
 
 ## Narrow question and contribution
 Can two synthetic mechanisms generate the same rate of voluntary institution adoption but differ in **survival after an externally imposed monitoring-cost increase**? Rival candidates: (a) rational/expected-sanction payoff incentives, (b) legitimacy/choice preference, (c) composition/selection of high cooperators into a sanctioning institution. **Claim type:** synthetic within-model identification initially; empirical explanation would require explicit choice, member/punisher actions, public-good allocation and a credible exogenous cost intervention.
@@ -18,3 +18,6 @@ Mechanism contrast plausible, but generic institution selection/punishment is we
 
 ## Review correction (2026-10-24)
 Applying the **same screening rule as every other dossier**, it was unsound to reject institution formation merely because existing research studies sanctions and voluntary institutions, while allowing other candidates to advance without checking their direct predecessors. **Gürerk et al. (2006) / Lo Iacono et al. (2023)** preclude a generic novelty claim but do not, from their abstracts alone, prove that *all potential monitoring-cost perturbations and joint selection effects* are settled. Lo Iacono's [OSF link](https://osf.io/tyxfm/?view_only=604fe6ace95d4e52b89ec8556c4fb304) is only **an identified archive locator**; access, license, exact assignment and microvariables remain unknown. Document the exact payoff/rule operator and a source-specific novel contrast before any shortlisted status. **Re-screen: unresolved.**
+
+## Review 3 — additional near-predecessor (2026-10-25)
+[Anderson & Putterman (2006), *Games and Economic Behavior*](https://doi.org/10.1016/j.geb.2004.08.007) randomized **the price of punishing other group members**, finding punishment demand declined with price. Original publisher abstract inspected. This is **not identical** to changing *institution-wide monitoring cost*, but a generic “costly sanctioning is unexplored” claim is untenable. The explicit monitoring versus punishment price distinction and individual/group assignment must be audited. Remains **under re-screen**.
