@@ -8,7 +8,7 @@ publish = false
 license = "MIT"
 
 [dependencies]
-hiyal = { git = "https://github.com/davletovb/hiyal", rev = "3ee6953b9fb15e647808a6c1572653432dc8b3ef" }
+hiyal = { git = "https://github.com/davletovb/hiyal", rev = "cd9f1720d52567434cf576fd3574add12d14a57f" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
