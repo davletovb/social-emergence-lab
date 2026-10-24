@@ -63,6 +63,8 @@ jobs:
             and (.independent_urn_variance_benchmark.ratio - 720/221 | fabs) < 1e-12' /tmp/design.json
       # Checks that the committed 36-parent files agree with each other; it
       # deliberately does not assert which way the result came out.
+      - name: Independently audit all archived 001 / 002 V2 / 002 V3 summary arithmetic (no Hiyal run)
+        run: python3 scripts/post-optimization-arithmetic-audit.py
       - name: Reconcile the committed 36-parent H1 decomposition
         run: |
           bash scripts/check-h1-falsification-002.sh | tee /tmp/experiment-002-h1-review.json
