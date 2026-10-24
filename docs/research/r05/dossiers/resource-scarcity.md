@@ -1,5 +1,5 @@
 # R-05 dossier 4 — Cooperation under resource scarcity
-**Date:** 2026-10-24 · **Stage:** Tier-1 screening (deferred pending resources)
+**Date:** 2026-10-24 · **Stage:** Tier-1 under corrected all-six re-screen
 
 ## Narrow question and claim
 After a predeclared resource shock, do societies with equal pre-shock cooperation but different mechanisms of sharing recover differently? Compare (a) reciprocal sharing, (b) centralized rule enforcement, (c) risk-pooling/self-insurance and (d) exclusion/selective membership. **Contribution type:** synthetic robustness / possibly a documented identification boundary; **not** an empirical finding about water management. Human claims need actual resource shocks, extraction, group access, compliance, independent units and intervention assignment.
@@ -13,4 +13,8 @@ Use group-scoped resource patches/rights (not a single global stock with meaning
 - **Armstrong et al. (2024)**, *Simulating the emergence of institutions that reverse freshwater salinization*, Journal of Hydrology X, https://doi.org/10.1016/j.hydroa.2024.100188 — **original publisher abstract/highlights inspected**; a self-organizing ABM already demonstrates rule formation and improvements to simulated salinity. Full transition rules and evidence/data rights not audited.
 
 ## Feasibility / decision
-A scientifically distinct contribution requires **one precise shock × institutional mechanism contrast that prior art does not already resolve**; initial questions currently overlap strong laboratory and computational work. Heavy coupled-stock dynamics add cost and failure modes. No agent-level data/license has been verified for calibrating a new model. **Status: DEFER** for later Stage B or separate study; reopen if a novel, feasible oracle or untested disturbance/structure combination is written. This is not a judgment that scarcity research is uninteresting.
+A scientifically distinct contribution requires **one precise shock × institutional mechanism contrast that prior art does not already resolve**; initial questions currently overlap strong laboratory and computational work. Heavy coupled-stock dynamics add cost and failure modes. No agent-level data/license has been verified for calibrating a new model. **Status: UNDER RE-SCREEN**, not disqualified merely because of strong existing experiments. A narrow differential-model-identification claim and cheap exact shock oracle still require source-grounded formulation.
+
+
+## Source and screening correction (2026-10-24)
+**Anderies, Janssen, Lee & Wasserman's published paper is [*Ecological Economics* 93 (2013): 166–176](https://doi.org/10.1016/j.ecolecon.2013.04.010)**; our 2012 repository citation was an earlier copy, not the final bibliographic version. Original publisher abstract/highlights explicitly study environmental uncertainty, unequal resource positions and collective action, reducing the novelty of generic shocks. **Armstrong et al. (2024)** likewise covers simulated rule formation under freshwater salinity pressures. Neither abstract alone closes every *model-identification* question about equal-pretrend mechanisms; this dossier must state a precise candidate stressor/observable and an independent tiny oracle before re-screening. A lack of accessible human microdata does **not** disqualify an explicitly synthetic limit claim. Status: unresolved.

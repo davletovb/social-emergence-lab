@@ -1,5 +1,5 @@
 # R-05 dossier 3 — Institution formation and breakdown
-**Date:** 2026-10-24 · **Stage:** Tier-1 screening (deferred pending a sharper question)
+**Date:** 2026-10-24 · **Stage:** Tier-1 under corrected all-six re-screen
 
 ## Narrow question and contribution
 Can two synthetic mechanisms generate the same rate of voluntary institution adoption but differ in **survival after an externally imposed monitoring-cost increase**? Rival candidates: (a) rational/expected-sanction payoff incentives, (b) legitimacy/choice preference, (c) composition/selection of high cooperators into a sanctioning institution. **Claim type:** synthetic within-model identification initially; empirical explanation would require explicit choice, member/punisher actions, public-good allocation and a credible exogenous cost intervention.
@@ -13,4 +13,8 @@ Apply the **same increase in monitoring cost** to every candidate and specify wh
 - **Baldassarri & Grossman (2011)**, centralized sanctioning/legitimacy, https://doi.org/10.1073/pnas.1105456108 — on related but distinct institutional mechanisms; full original methods not yet checked.
 
 ## Feasibility / decision
-Mechanism contrast plausible, but generic institution selection/punishment is well studied and the needed **specific** monitoring-cost shock and observationally equivalent parameter pairing have not been grounded. Existing experimental data do not automatically contain the proposed shock. **Failure:** alternative models explain only an established adoption pattern or each uses a different sanction operator. **Tier-1 status: DEFER** from a first shortlist pending one precise novel estimand and data-independent exact case; absence of validation is **unknown**, not negative evidence.
+Mechanism contrast plausible, but generic institution selection/punishment is well studied and the needed **specific** monitoring-cost shock and observationally equivalent parameter pairing have not been grounded. Existing experimental data do not automatically contain the proposed shock. **Failure:** alternative models explain only an established adoption pattern or each uses a different sanction operator. **Tier-1 status: UNDER RE-SCREEN** with all six. Need a sharply distinct monitoring-cost shock estimand or a bounded identification limit; prior-art overlap alone is **not a categorical rejection**. The OSF archive offers a **potential** evidence route, not verified rights/variable coverage.
+
+
+## Review correction (2026-10-24)
+Applying the **same screening rule as every other dossier**, it was unsound to reject institution formation merely because existing research studies sanctions and voluntary institutions, while allowing other candidates to advance without checking their direct predecessors. **Gürerk et al. (2006) / Lo Iacono et al. (2023)** preclude a generic novelty claim but do not, from their abstracts alone, prove that *all potential monitoring-cost perturbations and joint selection effects* are settled. Lo Iacono's [OSF link](https://osf.io/tyxfm/?view_only=604fe6ace95d4e52b89ec8556c4fb304) is only **an identified archive locator**; access, license, exact assignment and microvariables remain unknown. Document the exact payoff/rule operator and a source-specific novel contrast before any shortlisted status. **Re-screen: unresolved.**
