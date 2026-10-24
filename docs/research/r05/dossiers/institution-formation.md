@@ -1,0 +1,16 @@
+# R-05 dossier 3 — Institution formation and breakdown
+**Date:** 2026-10-24 · **Stage:** Tier-1 screening (deferred pending a sharper question)
+
+## Narrow question and contribution
+Can two synthetic mechanisms generate the same rate of voluntary institution adoption but differ in **survival after an externally imposed monitoring-cost increase**? Rival candidates: (a) rational/expected-sanction payoff incentives, (b) legitimacy/choice preference, (c) composition/selection of high cooperators into a sanctioning institution. **Claim type:** synthetic within-model identification initially; empirical explanation would require explicit choice, member/punisher actions, public-good allocation and a credible exogenous cost intervention.
+
+## Shared interventions / known confounding
+Apply the **same increase in monitoring cost** to every candidate and specify whether individuals or institutions pay. Include a pure no-choice control plus identical endowment/information rules; monitor group membership and within-agent contribution separately. If some models contain no monitoring institution, the operator must still be meaningful as a zero-effect control. Institution choice can change payoffs with group size and partner composition, so a naive sanction-on/off arm is a compound intervention. A two-member choice game can be exhaustively enumerated, but penalty financing and reward/punishment choices increase complexity.
+
+## Original-source Tier-1 scan
+- **Gürerk, Irlenbusch & Rockenbach (2006)**, *The competitive advantage of sanctioning institutions*, Science, https://doi.org/10.1126/science.1123633 — **original published abstract located; methods not independently audited here**. Competition between sanctioning and sanction-free groups already demonstrates migration to sanctioning institutions, so “institutions evolve to favor sanctions” is **not novel**.
+- **Lo Iacono et al. (2023)**, *The competitive advantage of sanctioning institutions revisited: A multilab replication*, PNAS Nexus, https://doi.org/10.1093/pnasnexus/pgad091 — original experimental report identified; its design includes costly peer punishment/reward, group membership and 30 rounds. OSF view-only materials linked in article; **file-level public access, variable coverage and data license unverified**. Central fines are **not an empirical reproduction** of this setup.
+- **Baldassarri & Grossman (2011)**, centralized sanctioning/legitimacy, https://doi.org/10.1073/pnas.1105456108 — on related but distinct institutional mechanisms; full original methods not yet checked.
+
+## Feasibility / decision
+Mechanism contrast plausible, but generic institution selection/punishment is well studied and the needed **specific** monitoring-cost shock and observationally equivalent parameter pairing have not been grounded. Existing experimental data do not automatically contain the proposed shock. **Failure:** alternative models explain only an established adoption pattern or each uses a different sanction operator. **Tier-1 status: DEFER** from a first shortlist pending one precise novel estimand and data-independent exact case; absence of validation is **unknown**, not negative evidence.
