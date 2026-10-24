@@ -1,0 +1,99 @@
+name: One-time archived journal replay on optimized Hiyal
+
+# Not part of routine CI. This narrowly scoped PR-only check runs once to
+# verify ORIGINAL archived evidence using the optimized current consumer pin.
+# No simulator or evidence regeneration. No write permissions.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/post-optimization-archive-replay-20261024.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: archived-replay-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  original-journals:
+    if: github.repository == 'davletovb/social-emergence-lab'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.89.0
+      - name: Assert exact optimized Hiyal revision
+        run: |
+          grep -F 'rev = "050d1de094f5d0813817e2020ec5c5da97d5c42e"' Cargo.toml
+          echo 'Verifier: current optimized lab consumer, not historical reproduction build'
+
+      - name: Replay ORIGINAL Experiment 002 V0 archive (12 parents)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/archived-002-v0"
+          mkdir -p "$dir/raw"
+          gh release download experiment-002-v0-raw-evidence-20261022 \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern experiment-002-v0-dev-batch-original.zip --dir "$dir"
+          archive="$dir/experiment-002-v0-dev-batch-original.zip"
+          printf '%s  %s\n' \
+            ec8b1b15cbfaec6f3263025421f31ca3de423c533da36392f37aa20323912fab "$archive" \
+            | sha256sum --check --strict
+          unzip -q "$archive" -d "$dir/raw"
+          bash scripts/verify-002.sh "$dir/raw" \
+            80666d6f9329b9e332078d57cdd7fddfea5619948a759e9f5d16c5a6fe12d8ec
+          echo 'PASS: original V0 SHA-256 + current Hiyal replay and reference checks' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Replay ORIGINAL Experiment 001 10-pair grid archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/archived-001"
+          mkdir -p "$dir/raw"
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/12324369551/zip" > "$dir/original.zip"
+          printf '%s  %s\n' \
+            1eb1160f8a3d9db36a23271e598dce2364c30064e6ce3ab21e881fde9dc5fea5 \
+            "$dir/original.zip" | sha256sum --check --strict
+          unzip -q "$dir/original.zip" -d "$dir/raw"
+          printf '%s  %s\n' \
+            5e585b12060805ff210ac5de26672455cd450ccec8be2762959e5fe19a487b81 \
+            "$dir/raw/SHA256SUMS" | sha256sum --check --strict
+          bash scripts/verify-001.sh "$dir/raw"
+          echo 'PASS: original Experiment 001 SHA-256 + all parents and arms reverified' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Replay ORIGINAL V3 fast-turnover compensating cell (one archived parent)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/archived-002-v3"
+          mkdir -p "$dir/cells"
+          name="experiment-002-v3-stage-b-cell-1.tar.xz"
+          gh release download experiment-002-v3-raw-evidence-20261022 \
+            --repo "$GITHUB_REPOSITORY" --pattern "$name" --dir "$dir"
+          printf '%s  %s\n' \
+            80595fec203193933766c2cc0618933ae7a90f21f3bbd2b0b8942ab89f7d8fe6 \
+            "$dir/$name" | sha256sum --check --strict
+          tar -C "$dir/cells" -xJf "$dir/$name"
+          cell="$dir/cells/experiment-002-v3-stage-b-cell-1"
+          cmp "$cell/SHA256SUMS" \
+            experiments/002-reputation-lock-in/results/v3-stage-b-20261022/cell-1/SHA256SUMS
+          (cd "$cell" && sha256sum --check --strict --quiet SHA256SUMS)
+          jq -e '.design.cell == 1 and .hiyal_revision ==
+              "e38419f857afbb53428284a312b0eb926a2320e2"' "$cell/batch-plan.json"
+          cargo build --quiet --locked --release --bin reputation-v3
+          target="$(cargo metadata --locked --format-version 1 --no-deps | jq -r .target_directory)"
+          "$target/release/reputation-v3" verify "$cell/parent-130100"
+          echo 'PASS: original V3 cell 1 sealed; archived parent 130100 replayed under optimized Hiyal' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Scientific scope of the result
+        if: always()
+        run: |
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo 'This checks compatibility of original evidence against NEW Hiyal, not a new independent model, empirical validity, confirmation or novelty.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Stage A/B decisions and archived data are unchanged. V3 samples one parent only on the new engine; historical full 432-parent replay was previously performed on the original engine.' >> "$GITHUB_STEP_SUMMARY"
