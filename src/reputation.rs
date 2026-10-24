@@ -1,7 +1,7 @@
 //! Experiment 002: transparent reputation and endogenous opportunity-network world.
 //! Exploration only: rules are a specified synthetic mechanism, not human behavior.
 use hiyal::{
-    core::{AgentId, World as HiyalWorld},
+    core::{AgentId, Undo, World as HiyalWorld},
     experiment::EffectPolicy,
     rng::Streams,
     runtime::Receipt,
@@ -580,16 +580,124 @@ impl HiyalWorld for ReputationWorld {
         })
     }
     fn apply(&mut self, actor: AgentId, a: Action) -> Result<(), String> {
+        self.apply_recorded(actor, &a).map(drop)
+    }
+    /// Staged in place: undoing puts back the few values one opportunity
+    /// changes, instead of Hiyal copying the whole world (with its legacy
+    /// trace) for every event.
+    fn apply_undoable(
+        &mut self,
+        actor: AgentId,
+        a: Action,
+        _: &mut Streams,
+    ) -> Result<Undo<Self>, String> {
+        let changes = self.apply_recorded(actor, &a)?;
+        Ok(Undo::revert(move |world: &mut Self| changes.revert(world)))
+    }
+}
+
+/// The values one in-place `apply` overwrote, in the order it overwrote
+/// them, so `revert` can put each back exactly.
+#[derive(Default)]
+struct Changes {
+    /// Whole graph replaced by an annealed opportunity.
+    graph: Option<Vec<Vec<usize>>>,
+    /// Whole surviving-edge set before an annealed opportunity pruned it.
+    surviving: Option<Vec<Vec<usize>>>,
+    wealth: Option<(usize, u64)>,
+    belief: Option<(usize, usize, f64)>,
+    public: Option<(usize, f64)>,
+    /// `(allocator, index, old target)` of a rewired edge.
+    edge: Option<(usize, usize, usize)>,
+    /// The rewired allocator's surviving-edge row before pruning.
+    surviving_row: Option<(usize, Vec<usize>)>,
+    step: Option<u64>,
+    traced: bool,
+}
+
+impl Changes {
+    /// Undo in reverse order, so a field changed twice ends at its first value.
+    fn revert(self, w: &mut ReputationWorld) {
+        if self.traced {
+            w.trace.pop();
+        }
+        if let Some(step) = self.step {
+            w.step = step;
+        }
+        if let Some((allocator, row)) = self.surviving_row
+            && let Some(ref mut surviving) = w.surviving_edges
+        {
+            surviving[allocator] = row;
+        }
+        if let Some((allocator, index, target)) = self.edge {
+            w.graph[allocator][index] = target;
+        }
+        if let Some((r, value)) = self.public {
+            w.public[r] = value;
+        }
+        if let Some((j, r, value)) = self.belief {
+            w.beliefs[j][r] = value;
+        }
+        if let Some((r, value)) = self.wealth {
+            w.wealth[r] = value;
+        }
+        if let Some(surviving) = self.surviving {
+            w.surviving_edges = Some(surviving);
+        }
+        if let Some(graph) = self.graph {
+            w.graph = graph;
+        }
+    }
+}
+
+impl ReputationWorld {
+    /// `apply`, in place: on `Err` every change is reverted, so the world is
+    /// as it was. The checks, their order and their messages are those of
+    /// the copy-based reducer this replaces (kept in
+    /// `tests/reputation_in_place.rs` as the reference), because a rejected
+    /// event records its message in the journal.
+    fn apply_recorded(&mut self, actor: AgentId, a: &Action) -> Result<Changes, String> {
+        let mut changes = Changes::default();
+        match self.apply_in_place(actor, a, &mut changes) {
+            Ok(()) => Ok(changes),
+            Err(error) => {
+                changes.revert(self);
+                Err(error)
+            }
+        }
+    }
+
+    fn apply_in_place(
+        &mut self,
+        actor: AgentId,
+        a: &Action,
+        changes: &mut Changes,
+    ) -> Result<(), String> {
         let j = usize::try_from(actor.0).map_err(|e| e.to_string())?;
         let n = self.config.actors;
         if j >= n {
             return Err("allocator out of range".into());
         }
-        let pre = self.pre_event_state(&a)?;
-        if !pre.graph[j].contains(&a.recipient) {
+        // `pre_event_state`, in place.
+        if let Some(ref new_graph) = a.annealed_graph {
+            if !self.config.annealed {
+                return Err("unexpected annealed graph".into());
+            }
+            validate_graph(new_graph, n, self.config.degree)?;
+            changes.graph = Some(std::mem::replace(&mut self.graph, new_graph.clone()));
+            if let Some(ref mut surviving) = self.surviving_edges {
+                changes.surviving = Some(surviving.clone());
+                for (row, links) in surviving.iter_mut().zip(&self.graph) {
+                    row.retain(|i| links.contains(i));
+                }
+            }
+        } else if self.config.annealed {
+            return Err("annealed policy must provide a fresh graph".into());
+        }
+        if !self.graph[j].contains(&a.recipient) {
             return Err("recipient not eligible".into());
         }
-        let now = flow(&pre)?;
+        let now = flow(self)?;
         for (v, x) in [
             (now.degree, a.pre_flow.degree),
             (now.inherited, a.pre_flow.inherited),
@@ -606,53 +714,56 @@ impl HiyalWorld for ReputationWorld {
         if requires != a.rewire.is_some() {
             return Err("incorrect rewiring event timing".into());
         }
-        // Stage all changes atomically, as Hiyal also stages its own world.
-        let mut w = pre;
-        w.wealth[a.recipient] = w.wealth[a.recipient]
-            .checked_add(1)
-            .ok_or("wealth overflow")?;
         let r = a.recipient;
-        w.beliefs[j][r] = (1.0 - w.config.learning) * w.beliefs[j][r]
-            + w.config.learning * f64::from(u8::from(a.success));
-        w.public[r] = (1.0 - w.config.public_learning) * w.public[r]
-            + w.config.public_learning * f64::from(u8::from(a.success));
+        let wealth = self.wealth[r].checked_add(1).ok_or("wealth overflow")?;
+        changes.wealth = Some((r, self.wealth[r]));
+        self.wealth[r] = wealth;
+        changes.belief = Some((j, r, self.beliefs[j][r]));
+        self.beliefs[j][r] = (1.0 - self.config.learning) * self.beliefs[j][r]
+            + self.config.learning * f64::from(u8::from(a.success));
+        changes.public = Some((r, self.public[r]));
+        self.public[r] = (1.0 - self.config.public_learning) * self.public[r]
+            + self.config.public_learning * f64::from(u8::from(a.success));
         if let Some(ref change) = a.rewire {
             if change.allocator >= n
                 || change.added >= n
                 || change.removed >= n
                 || change.added == change.removed
                 || change.added == change.allocator
-                || !w.graph[change.allocator].contains(&change.removed)
-                || w.graph[change.allocator].contains(&change.added)
+                || !self.graph[change.allocator].contains(&change.removed)
+                || self.graph[change.allocator].contains(&change.added)
             {
                 return Err("invalid replacement edge".into());
             }
-            if w.config.removal == Removal::LowestBelief {
-                let low = w.graph[change.allocator]
+            if self.config.removal == Removal::LowestBelief {
+                let low = self.graph[change.allocator]
                     .iter()
-                    .map(|&i| w.beliefs[change.allocator][i])
+                    .map(|&i| self.beliefs[change.allocator][i])
                     .fold(f64::INFINITY, f64::min);
-                if (w.beliefs[change.allocator][change.removed] - low).abs() > 1e-12 {
+                if (self.beliefs[change.allocator][change.removed] - low).abs() > 1e-12 {
                     return Err("rewiring did not remove lowest-belief neighbor".into());
                 }
             }
-            let idx = w.graph[change.allocator]
+            let idx = self.graph[change.allocator]
                 .iter()
                 .position(|&x| x == change.removed)
                 .ok_or("missing edge")?;
-            w.graph[change.allocator][idx] = change.added;
-            if let Some(ref mut surviving) = w.surviving_edges {
+            changes.edge = Some((change.allocator, idx, change.removed));
+            self.graph[change.allocator][idx] = change.added;
+            if let Some(ref mut surviving) = self.surviving_edges {
+                changes.surviving_row =
+                    Some((change.allocator, surviving[change.allocator].clone()));
                 surviving[change.allocator].retain(|&i| i != change.removed);
             }
         }
-        w.step = step;
-        if !w.config.journal_trace {
-            let entry = StepTrace::after(&w, j, &a);
-            w.trace.push(entry);
+        changes.step = Some(self.step);
+        self.step = step;
+        if !self.config.journal_trace {
+            let entry = StepTrace::after(self, j, a);
+            self.trace.push(entry);
+            changes.traced = true;
         }
-        w.verify()?;
-        *self = w;
-        Ok(())
+        self.verify()
     }
 }
 
