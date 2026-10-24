@@ -8,7 +8,12 @@ import csv
 import importlib.util
 import json
 import math
+import sys
 from pathlib import Path
+
+# The downstream evidence pipeline refuses dirty source trees. Loading a local
+# reference module must never write an untracked __pycache__ into the checkout.
+sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).resolve().parents[1]
 ONE = ROOT / "experiments/001-emergence-of-inequality/results/replicated-74000"
