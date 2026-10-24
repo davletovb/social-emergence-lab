@@ -1,7 +1,7 @@
 //! Matched-setup, independently replayable contrast for randomized false priors.
 //! This is a synthetic within-seed policy comparison, not human causal inference.
 use crate::reputation::{Action, Config, ReputationWorld};
-use crate::reputation_pilot::{PilotReport, SetupCheck, run_checked, verify};
+use crate::reputation_pilot::{PilotReport, Verification, run_checked, verify, verify_and_record};
 use hiyal::storage::Store;
 use serde::Serialize;
 use std::{fs, path::Path};
@@ -41,29 +41,21 @@ pub async fn run_pair(
     fs::create_dir_all(root).map_err(|e| e.to_string())?;
     let mut null = config.clone();
     null.delta = 0.0;
-    // `derive` below runs `verify` on both trees, which re-derives each
-    // parent's setup from its genesis, before anything is written or
-    // reported; so the runs skip their own, identical setup check.
-    let deferred = SetupCheck::ByCallerVerify;
-    run_checked(
-        &root.join("false-prior"),
-        seed,
-        config,
-        checkpoint,
-        total,
-        deferred,
-    )
-    .await?;
-    run_checked(
-        &root.join("no-false-prior"),
-        seed,
-        null,
-        checkpoint,
-        total,
-        deferred,
-    )
-    .await?;
-    let report = derive(root)?;
+    // The runs only create and run the trials. Each tree is then verified
+    // once, setup included, and its report.json written from the verified
+    // journals, before the paired report is derived from both.
+    let by_caller = Verification::ByCaller;
+    for (dir, config) in [("false-prior", config), ("no-false-prior", null)] {
+        run_checked(&root.join(dir), seed, config, checkpoint, total, by_caller).await?;
+    }
+    let with = verify_and_record(&root.join("false-prior"))?;
+    let without = verify_and_record(&root.join("no-false-prior"))?;
+    for run in [&with, &without] {
+        if run.checkpoint != checkpoint || run.total_steps != total {
+            return Err("run did not reach its requested checkpoint and length".into());
+        }
+    }
+    let report = pair(root, &with, &without)?;
     fs::write(
         root.join("paired-report.json"),
         serde_json::to_vec_pretty(&report).map_err(|e| e.to_string())?,
@@ -85,6 +77,12 @@ pub fn verify_pair(root: &Path) -> Result<PriorPairReport, String> {
 fn derive(root: &Path) -> Result<PriorPairReport, String> {
     let with = verify(&root.join("false-prior"))?;
     let without = verify(&root.join("no-false-prior"))?;
+    pair(root, &with, &without)
+}
+
+/// The paired report of two verified run trees, after checking that they
+/// are a matched-setup false-prior pair.
+fn pair(root: &Path, with: &PilotReport, without: &PilotReport) -> Result<PriorPairReport, String> {
     let a = Store::<ReputationWorld, Action>::inspect_read_only_cached(
         root.join("false-prior/parent"),
     )?;

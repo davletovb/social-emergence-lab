@@ -42,16 +42,17 @@ pub struct PilotReport {
     pub variance_and_significance_claims: &'static str,
 }
 
-/// Whether `run` re-derives the parent's setup itself (`verify_setup`).
+/// Who verifies a run's evidence and derives its `report.json`.
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub(crate) enum SetupCheck {
-    /// Check before forking: the default, and the only check a standalone
-    /// pilot run gets before it reports.
+pub(crate) enum Verification {
+    /// `run` itself: it verifies the setup and every arm, then writes the
+    /// report. The default, and the only check a standalone pilot gets.
     InRun,
-    /// Leave it to the caller, which must run `verify` on this tree before
-    /// reporting success. `verify` re-derives the setup from the saved
-    /// genesis, so checking here too would only repeat the same work.
-    ByCallerVerify,
+    /// The caller, which must call `verify_and_record` on the tree before
+    /// reporting anything. `run` then only creates and runs the trials;
+    /// `verify_and_record` performs every check `verify` does, once, and
+    /// writes the report from the verified journals.
+    ByCaller,
 }
 
 pub async fn run(
@@ -61,7 +62,9 @@ pub async fn run(
     checkpoint: u64,
     total: u64,
 ) -> Result<PilotReport, String> {
-    run_checked(root, seed, config, checkpoint, total, SetupCheck::InRun).await
+    run_checked(root, seed, config, checkpoint, total, Verification::InRun)
+        .await?
+        .ok_or_else(|| "in-run verification produced no report".into())
 }
 
 pub(crate) async fn run_checked(
@@ -70,8 +73,8 @@ pub(crate) async fn run_checked(
     config: Config,
     checkpoint: u64,
     total: u64,
-    setup_check: SetupCheck,
-) -> Result<PilotReport, String> {
+    verification: Verification,
+) -> Result<Option<PilotReport>, String> {
     config.validate()?;
     if checkpoint == 0 || total <= checkpoint || total > 1000 || checkpoint > 500 || root.exists() {
         return Err("pilot needs a new path, 0<checkpoint<total<=1000 and checkpoint<=500".into());
@@ -106,13 +109,20 @@ pub(crate) async fn run_checked(
     parent.checkpoint()?;
     parent.store.world().verify()?;
     drop(parent);
-    if setup_check == SetupCheck::InRun {
+    let in_run = verification == Verification::InRun;
+    if in_run {
         verify_setup(&parent_dir, {
             let setup_config = config.clone();
             move |rng| setup(&setup_config, rng)
         })?;
     }
-    let parent = Store::<ReputationWorld, Action>::inspect_read_only_cached(&parent_dir)?;
+    let parent = if in_run {
+        Some(Store::<ReputationWorld, Action>::inspect_read_only_cached(
+            &parent_dir,
+        )?)
+    } else {
+        None
+    };
     let mut reports = Vec::new();
     for arm in Arm::ALL {
         let path = root.join(arm.name());
@@ -135,6 +145,9 @@ pub(crate) async fn run_checked(
         }
         trial.checkpoint()?;
         drop(trial);
+        if !in_run {
+            continue;
+        }
         verify_fork::<ReputationWorld>(&path)?;
         let ro = Store::<ReputationWorld, Action>::inspect_read_only_cached(&path)?;
         ro.world.verify()?;
@@ -150,13 +163,16 @@ pub(crate) async fn run_checked(
         };
         reports.push(arm_report(&ro.world, trace, arm, checkpoint, total)?);
     }
+    let Some(parent) = parent else {
+        return Ok(None);
+    };
     let answer = pilot_report(&parent, config, checkpoint, total, reports)?;
     fs::write(
         root.join("report.json"),
         serde_json::to_vec_pretty(&answer).map_err(|e| e.to_string())?,
     )
     .map_err(|e| e.to_string())?;
-    Ok(answer)
+    Ok(Some(answer))
 }
 
 /// Re-derive a finished run from its Hiyal evidence alone: the parent's
@@ -164,6 +180,31 @@ pub(crate) async fn run_checked(
 /// and replay, every pre-event state against the independent reference, and
 /// finally the exact bytes of `report.json`.
 pub fn verify(root: &Path) -> Result<PilotReport, String> {
+    let report = verified_report(root)?;
+    let recorded = fs::read(root.join("report.json")).map_err(|e| e.to_string())?;
+    if recorded != serde_json::to_vec_pretty(&report).map_err(|e| e.to_string())? {
+        return Err("report.json is not derivable from the verified journals".into());
+    }
+    Ok(report)
+}
+
+/// Every check of `verify`, then write `report.json` from the verified
+/// journals instead of comparing it: the second half of a
+/// `Verification::ByCaller` run.
+pub(crate) fn verify_and_record(root: &Path) -> Result<PilotReport, String> {
+    let report = verified_report(root)?;
+    fs::write(
+        root.join("report.json"),
+        serde_json::to_vec_pretty(&report).map_err(|e| e.to_string())?,
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(report)
+}
+
+/// The report derived from a run tree after verifying all of it: setup,
+/// parent and arm replays, fork attribution, interventions and the
+/// independent reference replay.
+fn verified_report(root: &Path) -> Result<PilotReport, String> {
     let parent_dir = root.join("parent");
     let parent = Store::<ReputationWorld, Action>::inspect_read_only_cached(&parent_dir)?;
     let config = parent.genesis.initial_world.config.clone();
@@ -227,10 +268,6 @@ pub fn verify(root: &Path) -> Result<PilotReport, String> {
         total.ok_or("no arms")?,
         reports,
     )?;
-    let recorded = fs::read(root.join("report.json")).map_err(|e| e.to_string())?;
-    if recorded != serde_json::to_vec_pretty(&report).map_err(|e| e.to_string())? {
-        return Err("report.json is not derivable from the verified journals".into());
-    }
     Ok(report)
 }
 
