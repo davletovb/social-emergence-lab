@@ -1,0 +1,16 @@
+# R-05 dossier 4 — Cooperation under resource scarcity
+**Date:** 2026-10-24 · **Stage:** Tier-1 screening (deferred pending resources)
+
+## Narrow question and claim
+After a predeclared resource shock, do societies with equal pre-shock cooperation but different mechanisms of sharing recover differently? Compare (a) reciprocal sharing, (b) centralized rule enforcement, (c) risk-pooling/self-insurance and (d) exclusion/selective membership. **Contribution type:** synthetic robustness / possibly a documented identification boundary; **not** an empirical finding about water management. Human claims need actual resource shocks, extraction, group access, compliance, independent units and intervention assignment.
+
+## Rival mechanisms, common intervention, oracle
+Use group-scoped resource patches/rights (not a single global stock with meaningless sorting) and define identical **exogenous scarcity shock** and same reporting for all generators. Specify conservation, regeneration, downstream access and collapse floor **before** comparing. Compare postshock extraction/defection separately from stock recovery, and a no-shock/no-enforcement control. A 2-agent/one-stock integer model has an enumerable reference but adding replenishment, power asymmetry and institutional choice makes the implementation larger. Potential nonidentifiability: very different risk preferences produce the same sustainable stock and extraction histories until shocks reveal them.
+
+## Original-source Tier-1 scan
+- **Anderies, Janssen, Lee & Wasserman (2012)**, *Environmental Variability and Collective Action: Experimental Insights from an Irrigation Game*, Indiana University Digital Library of the Commons, https://hdl.handle.net/10535/8611 — **original repository abstract checked**. Laboratory irrigation game with upstream/downstream asymmetric incentives and environmental uncertainty/infra shocks. Its study directly precedes generic “scarcity tests cooperation” claims.
+- **Janssen & Anderies (2007)**, *Robustness Trade-offs in Social-Ecological Systems*, International Journal of the Commons, https://www.jstor.org/stable/26522981 — **original abstract checked**, argues robustness necessarily trades off across risks and disturbances.
+- **Armstrong et al. (2024)**, *Simulating the emergence of institutions that reverse freshwater salinization*, Journal of Hydrology X, https://doi.org/10.1016/j.hydroa.2024.100188 — **original publisher abstract/highlights inspected**; a self-organizing ABM already demonstrates rule formation and improvements to simulated salinity. Full transition rules and evidence/data rights not audited.
+
+## Feasibility / decision
+A scientifically distinct contribution requires **one precise shock × institutional mechanism contrast that prior art does not already resolve**; initial questions currently overlap strong laboratory and computational work. Heavy coupled-stock dynamics add cost and failure modes. No agent-level data/license has been verified for calibrating a new model. **Status: DEFER** for later Stage B or separate study; reopen if a novel, feasible oracle or untested disturbance/structure combination is written. This is not a judgment that scarcity research is uninteresting.

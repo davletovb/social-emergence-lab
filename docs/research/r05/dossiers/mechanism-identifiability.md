@@ -1,0 +1,21 @@
+# R-05 dossier 1 — Mechanism identifiability / inverse social modeling
+**Date:** 2026-10-24 · **Stage:** Tier-1 source scan / candidate, not R-06 · **Effort:** bounded primary-article methods check plus prior lab evidence
+
+## Narrow proposals (keep both visible)
+**A — inequalities:** Can distinct synthetic generators reproduce Experiment 001/002's *same macro trajectory*, but disagree under a small predeclared network/policy intervention? Candidate contrasts: cumulative reinforcement vs preferential opportunity access vs heterogeneous productivity; possible exact nonidentification when only Gini/aggregate gaps are observed. **B — cooperation (#36):** Can exogenous-fine, personal-norm, conditional-cooperation, fixed-type sorting, a mixture, and an aspiration learner be identified under a fixed observer/assignment budget? This is a **variant**, not a second automatically shortlisted seventh topic. Screening should compare A/B on equal one-page evidence, not award extra credit for #36's long review thread.
+
+## Claim/evidence contract
+**Type:** synthetic methodology/identification. Maximum supported conclusion: within *specified* competing model classes and observables, find parameter/intervention regimes with recovery, observational overlap or provably insufficient measurement. Required: independently specified generators, matched **physical** intervention in all models, exact tiny-world oracle, held-out parent-world recovery and clear noise/budget accounting. **Human empirical correspondence is NOT currently claimed**. Existing Hiyal journal/replay evidence from 001/002 helps software provenance, **not** identification of human processes.
+
+## Rival mechanisms, counterfactuals, known overlap
+A: urn reinforcement, reputation-mediated dynamic opportunity graphs, and true-quality heterogeneity; compare truthful information correction, exogenous link repair, and policy-neutralization only where operators are defined for all generators. Equal aggregate inequality under different generators is an admissible *negative* result. B: six candidates under a shared dyadic assignment/observation design; synthetic matched forks must be separated from lab-feasible one-realized-history assignment. Exact overlap is not fixed by selecting the simpler predictive model. Required null: identical behavior across all admissible interventions despite distinct generative labels.
+
+## Prior source inspection (Tier 1)
+- **Wilson & Collins (2019)**, *Ten simple rules for the computational modeling of behavioral data*, eLife, https://elifesciences.org/articles/49547 — **original full-text sections inspected** (“Design good models”, “Simulate, simulate”, and model arbitration/validation). Model and parameter recovery are established methodological tools; avoid treating a confusion matrix alone as novel.
+- **Our independently documented Experiment 002**: [post-optimization verification report](../../../review/post-optimization-verification-report-20261024.md). The six-agent exact counterexample demonstrates that a single aggregate opportunity gap cannot identify mechanism.
+- Cooperation B comparator: **Galbiati, Henry & Jacquemet (2018)** https://doi.org/10.1073/pnas.1813502115 — dyadic fine-per-match randomized laboratory design, **not** endogenous partner sorting. This reference belongs to the alternative B only; #36 details remain supplemental, not a substitute for this equal-depth dossier.
+
+**Verified:** papers' methods/abstracts and lab's synthetic records. **Unknown:** whether existing human data include assigned interventions, micro-observables and appropriate reuse permissions for either A or B; original subject-level data not examined. **Novelty NOT established**.
+
+## Feasibility / disconfirmation / reopening
+Independent two- to six-agent exact transition probabilities and no-new-sim reanalysis are relatively low cost; preliminary model recovery must budget train/test independently. **Failure:** rivals stay indistinguishable even after feasible interventions, or a published benchmark already exhaustively establishes the same pair; report identifiable frontier or stop if boundary is merely a data-volume artifact. **Current screening:** eligible for Tier 2, both A/B variants unresolved; no numerical score.
