@@ -14,3 +14,11 @@
 **Reviewer separation:** The second reader should use [blinded-screening-packet.md](blinded-screening-packet.md), not original verdicts. A separate comparison file must preserve disagreement and can conclude **none ready**. A marked difference in source depth between portfolios must be declared rather than converting “could not access full text” into a negative score.
 
 **Ethics:** Do not upload or mirror raw social-media, employment, or sensitive human participant data without independent verification of permissions, privacy and purpose. A publisher's open-access article licence is not a guarantee that its respondent data are openly reusable.
+
+## 2026-10-25 limitation and replacement for independent reader
+
+The above **named-source list was originally an author-led plan** prepared after reviewer suggestions; it cannot be treated as an independent discovery procedure. Its subsequent additions and new close predecessors are documented separately in [review-3 source leads](source-leads-review3-20261025.md).
+
+**For the genuinely separate reviewer, do not send this document or its citations at first.** Supply only the source-neutral [candidate packet](blinded-screening-packet.md), exported outside repository context, and the **source-name-free procedure** in [independent-search-protocol-20261025.md]. Record model/session and the actual materials before obtaining an independent verdict. A reader exposed to issue history is not blind. Only after receiving an untouched independent response should our author-led sources be disclosed for discrepancy reconciliation.
+
+Every topic is assessed under both synthetic-identification (S) and empirical-correspondence (E) contracts until the owner picks the scientific priority; no choice is inferred. This is a prospective instruction; **the existing 2026-10-24 scans did not satisfy it**.
