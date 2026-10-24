@@ -7,7 +7,7 @@ use crate::reputation_reference;
 use hiyal::{
     core::AgentId,
     experiment::{Trial, verify_setup},
-    research::{fork_at_head, verify_fork},
+    research::{fork_at_head, verify_fork_views},
     runtime::ScriptedBackend,
     scheduler::Scheduling,
     storage::{ReadOnly, Store},
@@ -148,8 +148,7 @@ pub(crate) async fn run_checked(
         if !in_run {
             continue;
         }
-        verify_fork::<ReputationWorld>(&path)?;
-        let ro = Store::<ReputationWorld, Action>::inspect_read_only_cached(&path)?;
+        let ro = verify_fork_views::<ReputationWorld>(&path)?.branch;
         ro.world.verify()?;
         if ro.world.step != total || ro.logical_step != total - checkpoint {
             return Err("final world/ledger step mismatch".into());
@@ -222,7 +221,8 @@ fn verified_report(root: &Path) -> Result<PilotReport, String> {
     let mut reports = Vec::new();
     for arm in Arm::ALL {
         let path = root.join(arm.name());
-        let meta = verify_fork::<ReputationWorld>(&path)?;
+        let fork = verify_fork_views::<ReputationWorld>(&path)?;
+        let meta = &fork.metadata;
         if meta.parent_id != parent.genesis.trial_id
             || meta.parent_head != parent.chain_head
             || meta.intervention != INTERVENTION
@@ -231,7 +231,7 @@ fn verified_report(root: &Path) -> Result<PilotReport, String> {
         {
             return Err(format!("{} is not a fork of this run's parent", arm.name()));
         }
-        let ro = Store::<ReputationWorld, Action>::inspect_read_only_cached(&path)?;
+        let ro = fork.branch;
         let mut expected = parent.world.clone();
         expected.intervene(arm)?;
         if ro.genesis.initial_world != expected {
