@@ -42,12 +42,35 @@ pub struct PilotReport {
     pub variance_and_significance_claims: &'static str,
 }
 
+/// Whether `run` re-derives the parent's setup itself (`verify_setup`).
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum SetupCheck {
+    /// Check before forking: the default, and the only check a standalone
+    /// pilot run gets before it reports.
+    InRun,
+    /// Leave it to the caller, which must run `verify` on this tree before
+    /// reporting success. `verify` re-derives the setup from the saved
+    /// genesis, so checking here too would only repeat the same work.
+    ByCallerVerify,
+}
+
 pub async fn run(
     root: &Path,
     seed: u64,
     config: Config,
     checkpoint: u64,
     total: u64,
+) -> Result<PilotReport, String> {
+    run_checked(root, seed, config, checkpoint, total, SetupCheck::InRun).await
+}
+
+pub(crate) async fn run_checked(
+    root: &Path,
+    seed: u64,
+    config: Config,
+    checkpoint: u64,
+    total: u64,
+    setup_check: SetupCheck,
 ) -> Result<PilotReport, String> {
     config.validate()?;
     if checkpoint == 0 || total <= checkpoint || total > 1000 || checkpoint > 500 || root.exists() {
@@ -83,10 +106,12 @@ pub async fn run(
     parent.checkpoint()?;
     parent.store.world().verify()?;
     drop(parent);
-    verify_setup(&parent_dir, {
-        let setup_config = config.clone();
-        move |rng| setup(&setup_config, rng)
-    })?;
+    if setup_check == SetupCheck::InRun {
+        verify_setup(&parent_dir, {
+            let setup_config = config.clone();
+            move |rng| setup(&setup_config, rng)
+        })?;
+    }
     let parent = Store::<ReputationWorld, Action>::inspect_read_only_cached(&parent_dir)?;
     let mut reports = Vec::new();
     for arm in Arm::ALL {

@@ -1,7 +1,7 @@
 //! Matched-setup, independently replayable contrast for randomized false priors.
 //! This is a synthetic within-seed policy comparison, not human causal inference.
 use crate::reputation::{Action, Config, ReputationWorld};
-use crate::reputation_pilot::{PilotReport, run, verify};
+use crate::reputation_pilot::{PilotReport, SetupCheck, run_checked, verify};
 use hiyal::storage::Store;
 use serde::Serialize;
 use std::{fs, path::Path};
@@ -41,8 +41,28 @@ pub async fn run_pair(
     fs::create_dir_all(root).map_err(|e| e.to_string())?;
     let mut null = config.clone();
     null.delta = 0.0;
-    run(&root.join("false-prior"), seed, config, checkpoint, total).await?;
-    run(&root.join("no-false-prior"), seed, null, checkpoint, total).await?;
+    // `derive` below runs `verify` on both trees, which re-derives each
+    // parent's setup from its genesis, before anything is written or
+    // reported; so the runs skip their own, identical setup check.
+    let deferred = SetupCheck::ByCallerVerify;
+    run_checked(
+        &root.join("false-prior"),
+        seed,
+        config,
+        checkpoint,
+        total,
+        deferred,
+    )
+    .await?;
+    run_checked(
+        &root.join("no-false-prior"),
+        seed,
+        null,
+        checkpoint,
+        total,
+        deferred,
+    )
+    .await?;
     let report = derive(root)?;
     fs::write(
         root.join("paired-report.json"),

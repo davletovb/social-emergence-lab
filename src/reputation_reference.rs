@@ -2,7 +2,6 @@
 //! Does not invoke production flow(), selection_probs() or softmax().
 use crate::reputation::{Action, ReputationWorld, StepTrace};
 use hiyal::core::{AgentId, World};
-use serde_json::Value;
 use std::{fs, path::Path};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -128,6 +127,28 @@ pub fn check(w: &ReputationWorld, tolerance: f64) -> Result<(), String> {
     Ok(())
 }
 
+/// The fields of one journal line that `replay_journal_trace` uses.
+#[derive(serde::Deserialize)]
+struct JournalRecord {
+    #[serde(default)]
+    actor: Option<ActorField>,
+    outcome: JournalOutcome,
+}
+#[derive(serde::Deserialize)]
+struct JournalOutcome {
+    #[serde(default)]
+    outcome: Option<String>,
+    #[serde(default)]
+    action: Option<Action>,
+}
+/// An actor id, written by Hiyal as a decimal string.
+#[derive(serde::Deserialize)]
+#[serde(untagged)]
+enum ActorField {
+    Text(String),
+    Number(u64),
+}
+
 /// Replay a trial's Hiyal-verified journal prefix from its initial world,
 /// checking every pre-event state against this reference and the action's
 /// recorded expectation. Returns the replayed final world.
@@ -164,21 +185,21 @@ pub fn replay_journal_trace(
         if line.is_empty() {
             continue;
         }
-        let record: Value = serde_json::from_slice(line)
+        // Only the three fields this reference reads, typed here rather than
+        // with Hiyal's `Entry`, so the extraction stays independent; serde
+        // skips every other field without building it.
+        let record: JournalRecord = serde_json::from_slice(line)
             .map_err(|e| format!("journal record {}: {e}", index + 1))?;
-        let outcome = record.get("outcome").ok_or("missing outcome")?;
-        match outcome.get("outcome").and_then(Value::as_str) {
+        match record.outcome.outcome.as_deref() {
             Some("accepted") => {}
             Some("rejected" | "control") => continue,
             other => return Err(format!("unexpected outcome kind: {other:?}")),
         }
-        let actor = record
-            .get("actor")
-            .and_then(|v| v.as_str().and_then(|s| s.parse().ok()).or(v.as_u64()))
-            .ok_or("missing actor")?;
-        let action: Action =
-            serde_json::from_value(outcome.get("action").cloned().ok_or("missing action")?)
-                .map_err(|e| e.to_string())?;
+        let actor = match record.actor.ok_or("missing actor")? {
+            ActorField::Text(text) => text.parse().map_err(|_| "missing actor")?,
+            ActorField::Number(number) => number,
+        };
+        let action: Action = record.outcome.action.ok_or("missing action")?;
         let pre = world.pre_event_state(&action)?;
         check(&pre, tolerance).map_err(|e| format!("journal record {}: {e}", index + 1))?;
         if (calculate(&pre)?.expected - action.pre_flow.total).abs() > tolerance {
