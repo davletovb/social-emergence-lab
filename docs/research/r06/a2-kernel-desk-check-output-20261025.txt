@@ -1,0 +1,53 @@
+[PASS   ] fixtures  oracle fixture CSV: 23/23 rows reproduced exactly
+[PASS   ] fixtures  information-check CSV: 19/19 numeric rows reproduced (CL_fixed_match rows checked by enumeration below)
+[PASS   ] payoff    leak identity a_j = u_i + a_i + f(1-a_i) holds for all 8 cells
+[PASS   ] payoff    material C-minus-D difference equals f-1 for every partner action
+[FINDING] payoff    f=0 stage game: R=0, S=-1, T=1, P=0; prisoner's dilemma (T>R>P>S, 2R>T+S)?
+                   -> R == P and 2R == T+S: mutual cooperation pays no more than mutual defection
+[FINDING] payoff    without a fine the dyad's total payoff is 0 in every cell (constant-sum)
+                   -> cooperation creates no surplus; it only transfers 1 unit
+[PASS   ] payoff    repair check: u=2a_j-a_i-f(1-a_i) keeps C-D difference f-1 and is a PD (R=1,S=-1,T=2,P=0)
+[PASS   ] nesting   M == N(nu=0): identical action law on all 8192 history nodes (T=4)
+[PASS   ] nesting   M == C(kappa=0): identical action law on all 8192 history nodes (T=4)
+[PASS   ] nesting   M == S(delta=0, either type): identical action law on all 8192 history nodes (T=4)
+[PASS   ] nesting   M == L(kappaL=0): identical action law on all 8192 history nodes (T=4)
+[PASS   ] nesting   C(kappa=1/2) == L(alpha=1, zeta=0, q1=m1) under fixed matching: 8192 nodes
+[PASS   ] nesting   C(kappa=1) == L(alpha=1, zeta=0, q1=m1) under fixed matching: 8192 nodes
+[PASS   ] nesting   C(kappa=3/2) == L(alpha=1, zeta=0, q1=m1) under fixed matching: 8192 nodes
+[FINDING] nesting   N(nu=0) == L(alpha_L=0, kappa_L=1, q1=0) for every fine schedule and history: 8192 nodes
+                   -> exact nesting for all T; spec section 3 lists only M-in-L
+[FINDING] nesting   N(nu=1/2) == L(alpha_L=0, kappa_L=3/2, q1=1/3) for every fine schedule and history: 8192 nodes
+                   -> exact nesting for all T; spec section 3 lists only M-in-L
+[FINDING] nesting   N(nu=1) == L(alpha_L=0, kappa_L=1, q1=1) for every fine schedule and history: 8192 nodes
+                   -> exact nesting for all T; spec section 3 lists only M-in-L
+[FINDING] nesting   N(nu=3/2) == L(alpha_L=0, kappa_L=3/2, q1=1) for every fine schedule and history: 8192 nodes
+                   -> exact nesting for all T; spec section 3 lists only M-in-L
+[PASS   ] nesting   L(zeta=1) == N on terminal withdrawal with no later action (512 nodes)
+                   -> learning after final choice has no observable effect
+[FINDING] nesting   L(zeta=1) == N always fined (512 nodes); early withdrawal may separate later
+                   -> early schedule counterexample: (0, (0, 1, 1, 1), ((0, 0),), 1, Fraction(1, 2), Fraction(1, 4))
+[PASS   ] nesting   S action kernel with all types tau=+1 equals N(nu=delta)
+[FINDING] nesting   only S (tau=-1) among the beta-logit families can cooperate BELOW the material baseline
+                   -> under random matching, S vs N is separated by the domain restriction nu>=0, not by a mechanism
+[FINDING] scheduler argmax matching is identical for omega in {1/2,1,2,3} across all 256 (tau, s) configurations
+                   -> with a common omega and argmax clearing, only omega=0 vs omega>0 matters
+[FINDING] scheduler any profile where all actors weight partner cooperation equally gives all three matchings the same total
+                   -> sum-of-scores clearing sorts only on preference HETEROGENEITY
+[FINDING] scheduler same common preferences under a mutual-consent (stable-matching) rule select only the assortative matching
+                   -> stable matchings: [0] (0 = cooperators together)
+[FINDING] R         with f=1 the R learner's reinforcement u-A is identical for cooperating and defecting (depends only on a_j)
+                   -> stay after a cooperative partner, shift after a defector when -1 < A < 0
+[FINDING] R         mutual cooperation and mutual defection pay the same (0) at f=0, so no aspiration makes CC self-reinforcing while DD is not
+
+Proposed exact multi-period fixtures (rational parameters):
+  L | 1 | f=1 | q_t=1/2 | logit_arg=f-1+q=1/2
+  L | 2 | f=0 | q_t=5/8 | logit_arg=f-1+q=-3/8
+  L | 3 | f=1 | q_t=5/16 | logit_arg=f-1+q=5/16
+  L | 4 | - | q_4=31/64 | after three updates
+  R | 1 | f=1 a_i=1 a_j=1 u=0 | Q(0)=0 Q(1)=0 A=-1/2 | Q(1)-Q(0)=0
+  R | 2 | f=0 a_i=0 a_j=0 u=0 | Q(0)=0 Q(1)=1/4 A=-1/4 | Q(1)-Q(0)=1/4
+  R | 3 | f=1 a_i=1 a_j=0 u=-1 | Q(0)=1/8 Q(1)=1/4 A=-1/8 | Q(1)-Q(0)=1/8
+  R | 4 | - | Q(0)=1/8 Q(1)=-3/16 A=-9/16 | Q(1)-Q(0)=-5/16
+  R-clip | 1..6 | alphaR=1 lam=0 A=-1 a_i=0 a_j=1 f=0 (u=1) | Q(0) after each update: 2,4,6,8,10,10 | clip at Qmax=10 binds on update 6
+
+27 checks: 0 FAIL, 13 FINDING (true as stated, but a design issue), rest PASS
