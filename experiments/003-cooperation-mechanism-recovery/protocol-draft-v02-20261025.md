@@ -1,4 +1,7 @@
 # Experiment 003 — Cooperation Mechanism Identification and Model Recovery
+
+> **Historical Experiment 003 v0.2 protocol — superseded by [current v0.2.1 protocol draft](protocol-draft-v021-20261025.md).** Research direction A2 unchanged; neither protocol is frozen or verified.
+
 **R-06 protocol DRAFT v0.2 · 2026-10-25 · NOT FROZEN · NOT VERIFIED · NOT RUN**
 
 **Owner-selected topic:** A2 ([R-05 decision](../../docs/research/r05/decision.md)) · **R-06 tracker:** [Issue #50](https://github.com/davletovb/social-emergence-lab/issues/50) · **Prior draft:** [v0.1](protocol-draft-20261025.md) (superseded for design; retained for research history).

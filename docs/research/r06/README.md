@@ -64,3 +64,14 @@ Run with `python3 docs/research/r06/a2_v02_design_check.py`; it exits non-zero i
 - The C ≡ L fixed-match equivalence covers only homogeneous-κ C.
 
 Like the v0.1 check, this is AI-assisted and **not** the source-independent P0 verification.
+
+## 2026-10-25 — v0.2.1 second-review amendments (CURRENT DESIGN, NOT VERIFIED)
+
+The [second AI-assisted review on Issue #50](https://github.com/davletovb/social-emergence-lab/issues/50#issuecomment-6395811896) and merged [PR #53](https://github.com/davletovb/social-emergence-lab/pull/53) (19 v0.2 checks, zero reported failures, ten design findings and one cost note) found an **S/N exact alias**, actor-level L asymmetry, unidentifiable matching scale, undefined sham, weak absolute-only family admission, and missing Q/aspiration constants. **PR #53 is internal review evidence only**, not a completed independent P0.
+
+The **current source-of-design truth** for the next verification is:
+- [v0.2.1 six-kernel/physical-world model](a2-v021-six-kernel-design-20261025.md): signed actor-level L learning, gamma normalized to 1, honest S/N observational equivalence under unrestricted correlated nuisance, shared matching and fine assignments, explicit R `A1=0` and `Qmax=10`.
+- [v0.2.1 set-admission and estimand](a2-v021-set-estimand-20261025.md): A0 = all random pairings/no fine, A = randomized matching and dyadic fines, proposed absolute + max-rival calibrated two-gate admissibility, with empty/multiple sets and structural ambiguity decomposition.
+- [six-point dated decision log](a2-v021-review-decisions-20261025.md) and [Experiment 003 protocol DRAFT v0.2.1](../../../experiments/003-cooperation-mechanism-recovery/protocol-draft-v021-20261025.md).
+
+**Version rule:** v0.1 exact fixtures, [PR #51](https://github.com/davletovb/social-emergence-lab/pull/51) and v0.2 [PR #53](https://github.com/davletovb/social-emergence-lab/pull/53) desk checks retain **their original version-specific meanings**. **None** is a verification of v0.2.1, no P0 source-separate dual implementation exists, and no new stochastic simulation, CI or Hiyal implementation is approved. Original equation source, statistical method, parameter ranges and model robustness remain for independent verification.
