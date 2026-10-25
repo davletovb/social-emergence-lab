@@ -1,0 +1,16 @@
+check_id,physical_assignment,model,observable,expected,scope
+leak,current_ai=1_current_aj=0_f=1_payoff=-1,common,reconstructed_partner_action,0,algebraic identity
+NC_fine1,prior_partner_action=1_f=1,N,prob_contribute,3/4,restricted parameters
+NC_fine1,prior_partner_action=1_f=1,C,prob_contribute,3/4,restricted parameters
+NC_fine0,prior_partner_action=1_f=0,N,prob_contribute,1/2,restricted parameters
+NC_fine0,prior_partner_action=1_f=0,C,prob_contribute,1/2,restricted parameters
+NC_defect,prior_partner_action=0_f=1,N,prob_contribute,3/4,restricted parameters
+NC_defect,prior_partner_action=0_f=1,C,prob_contribute,1/2,restricted parameters
+CL_fixed_match,alphaL=1_zeta=0_q1=partner_pre0_kappa_equal,C,all_fine_schedule_action_law,equals_L,inductive fixed matching
+CL_fixed_match,alphaL=1_zeta=0_q1=partner_pre0_kappa_equal,L,all_fine_schedule_action_law,equals_C,inductive fixed matching
+CL_rematch,old_partner_prior=0_new_partner_prior=1_f=1,C,prob_contribute,3/4,restricted two-period history
+CL_rematch,old_partner_prior=0_new_partner_prior=1_f=1,L,prob_contribute,1/2,restricted two-period history
+MR_fine0,first_decision_f=0,M,prob_contribute,1/4,restricted material parameter
+MR_fine1,first_decision_f=1,M,prob_contribute,1/2,restricted material parameter
+MR_fine0,first_decision_f=0_R_Q1eqQ0,R,prob_contribute,1/2,restricted initialized learner
+MR_fine1,first_decision_f=1_R_Q1eqQ0,R,prob_contribute,1/2,restricted initialized learner
