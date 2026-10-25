@@ -1,5 +1,8 @@
 # R-06 — A2 v0.2 kernel and physical-world redesign
 
+> **Historical v0.2 design — superseded by [v0.2.1 six-kernel specification](a2-v021-six-kernel-design-20261025.md) for independent P0.** Keep this file for audit. The reviewer [PR #53](https://github.com/davletovb/social-emergence-lab/pull/53) checks v0.2, not the revised v0.2.1 model.
+
+
 **Status:** design decisions proposed for Experiment 003; **NOT independently verified, frozen, implemented or run**. Dated 2026-10-25. Supersedes the **candidate equations** of [v0.1](../r05/a2-six-generator-formal-spec-20261025.md) for future verification, but does **not** rewrite v0.1's 23 + 21 old-oracle values or claim they validate v0.2. Source impetus: [R-06 Claude review](https://github.com/davletovb/social-emergence-lab/issues/50#issuecomment-6394749043), [PR #51](https://github.com/davletovb/social-emergence-lab/pull/51), and [owner selection](../r05/decision.md).
 
 **Contribution:** synthetic structural/model-set identification and explicitly allowed non-identification; no claim about actual human mechanisms. The six family *labels* still denote restricted generators, **not six disjoint truths**. All remain subject to a 15-pair adversarial free-rival-parameter review before P0 completion.
