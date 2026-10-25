@@ -14,3 +14,9 @@ MR_fine0,first_decision_f=0,M,prob_contribute,1/4,restricted material parameter
 MR_fine1,first_decision_f=1,M,prob_contribute,1/2,restricted material parameter
 MR_fine0,first_decision_f=0_R_Q1eqQ0,R,prob_contribute,1/2,restricted initialized learner
 MR_fine1,first_decision_f=1_R_Q1eqQ0,R,prob_contribute,1/2,restricted initialized learner
+S_rank_assort,H1H2_L1L2_prior_1100_tau_11minus1minus1_omega1,S,sum_ranking_scores,4,enumerated scheduler
+S_rank_mixedA,H1L1_H2L2_prior_1100_tau_11minus1minus1_omega1,S,sum_ranking_scores,-4,enumerated scheduler
+S_rank_mixedB,H1L2_H2L1_prior_1100_tau_11minus1minus1_omega1,S,sum_ranking_scores,-4,enumerated scheduler
+S_choice,prior_1100_choice_protocol_omega1,S,prob_assortative_matching,1,restricted truthful public actions
+S_random,prior_1100_random_protocol_omega1,S,prob_assortative_matching,1/3,uniform three matchings
+Zero_scores_choice,prior_1100_choice_protocol_all_scores0,M-N-C-L-R,prob_assortative_matching,1/3,restricted zero-ranking kernels
