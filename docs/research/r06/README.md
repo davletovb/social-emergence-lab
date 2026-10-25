@@ -75,3 +75,16 @@ The **current source-of-design truth** for the next verification is:
 - [six-point dated decision log](a2-v021-review-decisions-20261025.md) and [Experiment 003 protocol DRAFT v0.2.1](../../../experiments/003-cooperation-mechanism-recovery/protocol-draft-v021-20261025.md).
 
 **Version rule:** v0.1 exact fixtures, [PR #51](https://github.com/davletovb/social-emergence-lab/pull/51) and v0.2 [PR #53](https://github.com/davletovb/social-emergence-lab/pull/53) desk checks retain **their original version-specific meanings**. **None** is a verification of v0.2.1, no P0 source-separate dual implementation exists, and no new stochastic simulation, CI or Hiyal implementation is approved. Original equation source, statistical method, parameter ranges and model robustness remain for independent verification.
+
+## 2026-10-25 — v0.2.2 model-completion amendment after four first-pass verifiers
+
+**CURRENT P0 MODEL CONTRACT** is now [v0.2.2 full joint action distribution and H4 population hierarchy](a2-v022-joint-law-hierarchy-20261025.md), inheriting the six unchanged v0.2.1 substantive action/matching families. The four user-submitted first-pass reports independently identified **missing conditional simultaneous-action coupling and unbounded/undefined random-effects model class**, so their version cannot be deemed fully verified. [Issue #50 reconciliation](https://github.com/davletovb/social-emergence-lab/issues/50#issuecomment-6401214504) tracks agreements and errors without rewriting the original reports.
+
+- [v0.2.2 unfrozen Experiment 003 protocol draft](../../../experiments/003-cooperation-mechanism-recovery/protocol-draft-v022-20261025.md)
+- [Version-matched neutral identical fixture inputs (JSON)](a2-v022-fixture-inputs-20261025.json)
+- [Cross-language event schema, exact test matrix and acceptance](a2-v022-common-fixtures-20261025.md)
+- [Fresh isolated prompts for mathematical, Python, Rust and statistical verifiers](a2-v022-independent-verifier-prompts-20261025.md)
+
+**Named distinction:** **F** = fixed actor-vector deterministic conformance oracle only. **H4** = actor-iid **joint** parameter distributions with ≤4 atoms (within-actor correlation allowed), common family/global constants, independent societies at fixed hyperlaw; v0.2.2 primary joint actions use independent new uniforms conditional on complete latent state and current assignments. Domains are chosen as synthetic research-model parameters, not empirical estimates. Constructive S→N→L nesting preserved under actual hierarchy bounds, but **global 15-pair H4 identification and statistical coverage remain unknown**.
+
+**First-pass outputs are not P0.** B's independently reported Python source/tests/JSON have **not been submitted as executable attachments** with the four reports, and C's Rust report source appendix has not been replayed against a common B input. Do not check P0 until a genuinely independent v0.2.2 reconciliation of common event probabilities, pairwise proof review and limits is complete. No Hiyal implementation, stochastic pilot, routine CI, human data or R-06 GO.

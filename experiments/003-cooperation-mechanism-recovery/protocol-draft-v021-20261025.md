@@ -1,5 +1,8 @@
 # Experiment 003 — Cooperation mechanism identification and model recovery
 
+> **Historical v0.2.1 model draft — superseded for P0 conformance by [v0.2.2 protocol draft](protocol-draft-v022-20261025.md).** The newer document fixes the formerly unspecified action-vector coupling and actor-parameter hierarchy. This v0.2.1 file remains intact below as a versioned source; first-pass v0.2.1 test results do **not** establish v0.2.2 verification. Neither version approves simulations.
+
+
 **R-06 PROTOCOL DRAFT v0.2.1 · 2026-10-25 · DESIGN ONLY, NOT FROZEN, NOT VERIFIED, NOT RUN**
 
 A2 remains owner-selected ([R-05 decision](../../docs/research/r05/decision.md)). The [v0.2.1 complete generator specification](../../docs/research/r06/a2-v021-six-kernel-design-20261025.md) and [v0.2.1 set-inference criterion](../../docs/research/r06/a2-v021-set-estimand-20261025.md) are **the normative source for subsequent P0**. Earlier [v0.2 draft](protocol-draft-v02-20261025.md) and [v0.1 draft](protocol-draft-20261025.md) remain intact as historical hypotheses, not alternative current models. [New review on Issue #50](https://github.com/davletovb/social-emergence-lab/issues/50#issuecomment-6395811896), [PR #53 exact desk check](https://github.com/davletovb/social-emergence-lab/pull/53) are source for the *reasons to amend*, not independent validation.
