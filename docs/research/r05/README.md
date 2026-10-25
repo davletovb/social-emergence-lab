@@ -35,3 +35,11 @@ A [date-stamped, uniformly bounded independent-source search procedure](independ
 **Claim-priority protection:** For the rescreen, every candidate receives **two separately labeled conditional evaluations**: S = synthetic mathematical/model-identification question, and E = empirical human-correspondence question. A dataset locator does not make E feasible without actual randomization/observability/rights checks. The owner chooses research priority **before the final comparison/selection**, not after seeing what wins. No winner or shortlist currently exists.
 
 Bail replication DOI `10.7910/DVN/NSESEH` was checked against the [NLM catalog entry](https://datasetcatalog.nlm.nih.gov/dataset?q=0000080928), which records CC0 and variable coarsening for privacy; it is **not a file-level audit**.
+
+## 2026-10-25 first independent report received — conditional only
+
+The [isolated independent AI report](independent-reader-20261025.md) was submitted as [Issue #37 comment 6393379383](https://github.com/davletovb/social-emergence-lab/issues/37#issuecomment-6393379383). Its [critical methodological assessment](independent-report-assessment-20261025.md) preserves the exact seven-formulation, two-claim verdicts and search failures.
+
+The report **self-attests context isolation and independent literature discovery**, but the session ID was not visible, query-level top-five source attribution was impossible with its pooled search provider, and forward citations/closest Methods checks were incomplete. It is therefore **valuable provisional independent input, not a fully protocol-compliant re-screen**. Six synthetic proposals were recommended for further investigation; only hidden consensus received a **conditional** empirical advance. **No actual shortlist, score, owner priority or selected Experiment 003 exists.** Do not re-label the report as independent human peer review or real-world validation.
+
+Next: reconcile literature/operation details; perform focused missing-source checks rather than repeatedly redesigning the protocol; compare selected eligible narrow questions in an evidence matrix, with **owner research priority fixed before the final choice**.
