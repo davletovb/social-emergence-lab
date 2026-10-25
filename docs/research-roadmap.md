@@ -1,6 +1,6 @@
 # Research roadmap
 
-**Updated: 2026-10-23.** Experiment 001 and Experiment 002 V0–V3 are **exploratory synthetic-model research**. No stage is externally preregistered, empirically calibrated to a human population or confirmed as a novel sociological law.
+**Updated: 2026-10-25.** Experiment 001 and Experiment 002 V0–V3 are **exploratory synthetic-model research**. No stage is externally preregistered, empirically calibrated to a human population or confirmed as a novel sociological law.
 
 ## Mission
 
@@ -8,24 +8,24 @@ Investigate macro-level social patterns emerging from individual interactions us
 
 ## Research planning framework
 
-The [Scientific Validation and Research Discovery Framework](scientific-validation-and-research-discovery-plan.md) defines the next low-cost validation program (R-01–R-06), the Experiment 002 checkpoint-fork diagnostic, the competing-mechanism and independent-reference tests, and a six-topic selection rubric. **No new experiment or large simulation is authorized by that planning document.**
+The [Scientific Validation and Research Discovery Framework](scientific-validation-and-research-discovery-plan.md) defines the next low-cost validation program (R-01–R-06), the Experiment 002 checkpoint-fork diagnostic, the competing-mechanism and independent-reference tests, and a six-topic selection rubric. **It does not authorize any new implementation or simulation**; the owner has separately selected the **A2 topic for Experiment 003** on 2026-10-25, but **R-06 protocol approval and any run remain outstanding**.
 
 ## Research sequence
 
 1. **001 — Emergence of inequality:** exploratory known Pólya-urn benchmark completed; [confirmatory protocol draft](../experiments/001-emergence-of-inequality/confirmatory-protocol-draft.md) is not registered.
 2. **002 — Posttruth opportunity recovery / structural memory:** 36-parent V2 decomposition and **432-parent, nine-condition V3 factorial completed**. [V3 Stage A](../experiments/002-reputation-lock-in/results/v3-stage-a-20261022/README.md) and [Stage B](../experiments/002-reputation-lock-in/results/v3-stage-b-20261022/README.md) found **no cell satisfying positive active-regeneration criteria**; fast belief-dependent deletion showed compensatory new-link exposure. The models favor slow relaxation of inherited opportunities at studied parameters. Stage A's frozen criterion was **not fully met**, and Stage B's rule was amended *after* Stage A outcomes: neither stage is confirmatory. See [full protocol](../experiments/002-reputation-lock-in/v3-protocol-20261022.md), [independent-review packet](experiment-002-v3-independent-review-packet.md), and [Issue #19](https://github.com/davletovb/social-emergence-lab/issues/19).
-3. **003 — Emergence of cooperation:** possible future work on reciprocity, enforcement and composition; no implementation plan approved.
-4. **004 — Social norms and institutional persistence:** possible future work on convention stabilization and replacement.
-5. **005 — Polarization and information networks:** possible future work on network topology and selective exposure.
+3. **003 — Cooperation mechanism identification and model recovery (A2): SELECTED TOPIC, PROTOCOL NOT FROZEN.** Owner selection on 2026-10-25, recorded in [R-05 decision](research/r05/decision.md) with unresolved R-05 review/scoring exceptions. Compare six explicit synthetic mechanisms—material enforcement, personal normative preferences, conditional cooperation, assortative partner selection, fine-influenced social learning, and aspiration reinforcement—under a physically common observation and intervention budget. [R-06 protocol draft](../experiments/003-cooperation-mechanism-recovery/protocol-draft-20261025.md) is unapproved; **no pilot/run authorized**.
+4. **004 — Social norms and institutional persistence: PROVISIONAL future slot.** No topic/program approved; evaluate future topic portfolio separately, with hidden-consensus B and other directions eligible for renewed review.
+5. **005 — Polarization and information networks: PROVISIONAL future slot.** No study approved; requires stronger novel mechanism-specific contrast before commitment.
 
 ## Immediate priorities — internal falsification and candidate selection
 
 - **Internal validation:** use the [new discussion framework](scientific-validation-and-research-discovery-plan.md) for analytical toy-world benchmarks, independent implementation, causal checkpoint contrasts and rival-model discrimination. The committed [V3 critical reanalysis](review/experiment-002-v3-critical-reanalysis-20261022.md) remains **post hoc exploratory**, not a registered or externally validated result.
 - **Empirical and human review:** [Issue #22](https://github.com/davletovb/social-emergence-lab/issues/22) remains open. External academic outreach is deferred by owner choice; continue internal theoretical and methodological scrutiny without presenting it as a substitute for genuinely independent external validation.
 - **Evidence:** original V0 ZIP was preserved as a [GitHub Release](https://github.com/davletovb/social-emergence-lab/releases/tag/experiment-002-v0-raw-evidence-20261022) after a successful 12-run Hiyal replay ([#12](https://github.com/davletovb/social-emergence-lab/issues/12), closed). V3's original raw journals (all nine cells) were packed into a 224 MB bundle, replayed in full by a GitHub Actions job, and published as a [GitHub Release](https://github.com/davletovb/social-emergence-lab/releases/tag/experiment-002-v3-raw-evidence-20261022) on 2026-10-23 ([custody record](../experiments/002-reputation-lock-in/results/v3-raw-evidence-20261022/README.md); [#21](https://github.com/davletovb/social-emergence-lab/issues/21) closed). The owner's local copy matched the bundle's SHA-256 on 2026-10-23. V1/V2 and Experiment 001 evidence retention are tracked in [#14](https://github.com/davletovb/social-emergence-lab/issues/14), [#17](https://github.com/davletovb/social-emergence-lab/issues/17), and [#6](https://github.com/davletovb/social-emergence-lab/issues/6).
-- **Future experiments:** Experiment 003 is not yet selected. Compare mechanism identifiability, hidden-consensus/norm-collapse, resource-scarcity/cooperation, institutional formation, polarization, and organizational gatekeeping **before** committing to an implementation.
+- **Future experiments:** The owner **selected A2 cooperation mechanism identification as Experiment 003's research topic on 2026-10-25**, following six portfolios and two self-attested independent-context AI screenings. The source/scoring procedures did **not** fully pass; [R-05 decision](research/r05/decision.md) records the owner's explicit choice despite incomplete rubric and required follow-up checks. **R-06 design, independent oracle verification, source validation, cost/power planning, and GO decision still block implementation or simulation.** Other candidate topics remain deferred, with reopening conditions.
 
-**Decision:** pause expensive factorial/parameter sweeps until a specific diagnostic could discriminate rival explanations. Apply R-01–R-02 first; schedule no automatic large simulations.
+**Decision:** A2 is the **topic**, not an experiment already run. Continue cheap exact and independent source verification before any new code/pilot; R-01–R-02's own status is unchanged. Schedule **no automatic large simulations or extra routine CI**.
 
 ## Stage gates
 
