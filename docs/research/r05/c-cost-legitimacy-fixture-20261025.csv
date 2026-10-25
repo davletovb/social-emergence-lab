@@ -1,0 +1,5 @@
+case,model,expected_gain_g,legitimacy_value_v,total_fee_c,per_member_share,choice_probability_exact,prob_unanimous_two_exact,source
+low-cost,material-benefit,1,0,0,0,3/4,9/16,standalone-logit-oracle
+low-cost,legitimacy,0,1,0,0,3/4,9/16,standalone-logit-oracle
+high-cost,material-benefit,1,0,2,1,1/2,1/4,standalone-logit-oracle
+high-cost,legitimacy,0,1,2,1,1/2,1/4,standalone-logit-oracle
