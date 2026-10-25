@@ -1,5 +1,8 @@
 # R-06 — A2 six-generator world and kernels, candidate v0.2.1
 
+> **Historical six action/matching rules, still inherited by v0.2.2 unless overridden.** For P0 use the [controlling v0.2.2 complete joint stochastic law and H4 hierarchy](a2-v022-joint-law-hierarchy-20261025.md), which resolves the previously open coupling/parameter-class choices. No independent v0.2.2 implementation result yet.
+
+
 **2026-10-25 · DESIGN AMENDMENT, NOT INDEPENDENT P0 VERIFICATION OR FROZEN PROTOCOL**
 
 This is the **current, self-contained** proposed v0.2.1 specification for Experiment 003. It supersedes [v0.2](a2-v02-six-kernel-design-20261025.md), which remains archived unmodified. Scientific impetus: [Claude's second review](https://github.com/davletovb/social-emergence-lab/issues/50#issuecomment-6395811896) and the [internal, exact-arithmetic desk check PR #53](https://github.com/davletovb/social-emergence-lab/pull/53). The check is AI-assisted **author-side evidence, not an independent P0 oracle**. Six family labels are potentially overlapping parameterized hypotheses, never assumed to be six mutually exclusive kinds of real people.
