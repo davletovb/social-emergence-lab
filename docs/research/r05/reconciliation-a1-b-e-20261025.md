@@ -1,0 +1,63 @@
+# R-05 targeted reconciliation — A1, B and E
+**Date:** 2026-10-25 · **Scope:** source-checked reconciliation of two internal isolated AI screens · **Status:** provisional Tier-1 scientific judgment, **not** R-06 or an empirical study
+
+**Source reports (unedited):** [Sol](independent-reader-20261025.md) · [DeepSeek](independent-reader-deepseek-20261025.md) · [verbatim conflict matrix](two-reader-comparison-20261025.md). Our work below is **a third, non-blinded adjudication**, not a third independent reader. The reader verdicts remain available unchanged. We assessed the **original** questions in the [dossiers](dossiers/), not each reviewer's newly expanded designs.
+
+## Reconciliation rule
+
+A contradiction is resolved as far as *original-source support* permits: compare the **same intervention operator, state/observable units, evidence claim and predecessor**, then classify **supported / contradicted / unresolved**. A conceptual lab proposal alone is not an evidenced human-data route. Structural non-identification must specify restricted model primitives and measurable intervention contrasts; repeating “two equal action distributions are indistinguishable” is tautological. A reader's recommendation to advance is **not** a freeze or owner approval.
+
+## A1 — quality versus feedback versus opportunity networks
+
+**Original physical proposal:** exogenous early-opportunity boost at a fixed time and **separately defined link/opportunity repair or network intervention** at a checkpoint, with frozen prior histories and per-actor exposure measurements. It is NOT automatically a randomized *degree-preserving* rewire that equalizes advantage. In a degree-preserving rewire, the degree sequence is fixed by definition, so any node-level advantage depending **only on degree** may persist. Link repair or targeted edge reallocation can change other network structures, but then its degree and payoff consequences must be calculated, not assumed.
+
+**Source checks (2026-10-25):**
+- [Gelastopoulos, Sage & van de Rijt (2023), *Inferring cumulative advantage from longitudinal records*](https://arxiv.org/abs/2310.01096) — original arXiv abstract explicitly establishes *talent versus path-dependence longitudinal “twin” laws in both directions*. The DeepSeek report gives specific theorem numbers; **those proof details were not all verified in this pass**. Therefore discovering observational equivalence from longitudinal records is **direct prior art**, not a novelty claim.
+- [van de Rijt et al. (2014), randomized success across four web settings](https://doi.org/10.1073/pnas.1316836111) — independent arbitrary early-success manipulation is direct experimental precedent. It does **not** on its own demonstrate a separately randomized network intervention.
+- [Salganik, Dodds & Watts (2006)](https://doi.org/10.1126/science.1121066) — independent experimental music worlds already distinguish social influence from content-quality heterogeneity at a broad level.
+- The lab's prior E001/E002 synthetic records demonstrate internal reproducibility under tested conditions **only**, not a new human mechanism.
+
+**Sol:** S advance if substantive graph contrast; E defer. **DeepSeek:** S defer as twins/early-success already studied; E advance with a hypothetical posthistory graph randomization. **Resolution:** favor DeepSeek's **close-prior-art objection** and Sol's **empirical caution**. **S = DEFER pending a genuinely new, constrained posthistory network-operator prediction** (or exact theorem beyond published twins); **E = DEFER** because a real dual randomization venue, rights, exposure data and network interference plan are not demonstrated. Do not assert the new intervention succeeds or fails from the existing papers.
+
+**Bounded disconfirmer/reopen:** Define three explicit transition kernels, a common physical opportunity operator with separate no-op and degree-preserving negative control, an independent 2–4-agent oracle, and prove an identifiable statistic **not equal to just the classic early-success effect**. Check network interference. If no nontrivial extra statistic or if it duplicates the twins result, stop the candidate.
+
+## B — privately rejected public norm / truthful disclosure × actual sanction removal
+
+**Original proposed 2×2:** factor **D = randomly disclose a truthful aggregate distribution of privately stated preferences** versus nondisclosure, and independently **R = remove the actual sanction availability/cost** versus leave in place. **Every arm uses a pre-treatment private-attitude measurement** (with consent, plausible incentive compatibility and measurement error estimated). **Private elicitation is NOT the randomized D treatment**. **R is NOT anonymity, audience disappearance, or generic information about punishment**. Account for how D may itself shift sanction expectations and R may change empirical beliefs; *separate physical operations do not guarantee separate latent psychological channels*.
+
+**Source checks:**
+- [Bursztyn, González & Yanagizawa-Drott, *Misperceived Social Norms* (2020 AER)](https://doi.org/10.1257/aer.20180975): randomized corrections of mistaken beliefs about others' approval changed willingness to sign up for job matching and subsequent observed applications/interviews. It validates an informational first stage in **that** setting; **does not establish the independent R sanction-removal arm**. [openICPSR V1 metadata](https://www.openicpsr.org/openicpsr/project/119404/version/V1/view?path=%2Fopenicpsr%2F119404%2Ffcr%3Aversions%2FV1%2Freplication_package%2Fdata%2Fclean_data%2F01_main_exp_clean.dta&type=file) explicitly lists a cleaned experimental file with **500 cases and 36 variables**; [package index](https://www.openicpsr.org/openicpsr/project/119404/version/V1/view?path=%2Fopenicpsr%2F119404%2Ffcr%3Aversions%2FV1%2Freplication_package&type=folder) lists survey instrument, code and data. This is **file-level metadata only**; variables, participant rights/restrictions, assignment details and R arm are **not yet audited from files**. Never call this dataset a ready 2×2.
+- [Smerdon, Offerman & Gneezy, *Everybody's doing it* (2020), Experimental Economics](https://doi.org/10.1007/s10683-019-09616-z): the original publisher abstract explicitly **tests coordination persistence against pluralistic ignorance when peers' preferences become known**, reporting support for the latter. Thus basic disclosure-versus-coordination discrimination is **not new**. Full treatment factorial and sanction operations not independently audited in this pass.
+- [Lütz & Wardil (2024)](https://doi.org/10.1016/j.physa.2024.129920): existing private/public state and imitation/memory modeling, so the synthetic basic mechanism is not novel by itself.
+
+**Sol:** S advance; E *conditional* advance. **DeepSeek:** S defer (thin/redundant); E advance but its pre-search operator conflates elicitation and disclosure. **Resolution:** **S = HOLD/DEFER** *as currently defined* until its independent toy demonstrates a truly informative 2×2 boundary beyond Smerdon and Bursztyn; **E = CONDITIONAL TIER-2 FEASIBILITY CANDIDATE**, **not** passed empirical readiness or available retrospective factorial data. A previously completed belief-correction trial alone **cannot** identify R or D×R without assignment to R.
+
+**Actual E feasibility audit required:** source-verified original trial assignment and cohort units; consent/ethics and legal access to linked private attitude + public action; whether sanctions exist and can be *removed without changing other conditions*; truthful D feedback and manipulation checks; separate measurement of perceived punitive risk, empirical peer beliefs, and normative expectations; potential interference and recruitment cost. New human work requires ethics oversight and clear prohibition on deceptive/fabricated information.
+
+**Stop/reopen:** Reopen on a credible, costed real laboratory protocol with orthogonal manipulations or an existing assigned dataset with both; or a formally nontrivial identification theorem. **STOP empirical route** if no feasible R operator or measurement confounds make the claimed contrast impossible.
+
+## E — cross-group exposure and defensive/assimilation responses
+
+**Original proposed operator:** randomized *cross-group content exposure* with common predeclared content (and source/timing accounting) plus appropriate control, measuring **individual pre/post attitudes, assigned and actually consumed exposures, and dropout**. Original dossier mentions a separate exposure-choice control but **does not freeze** a forced-versus-voluntary × partisan identity × social similarity factorial. DeepSeek's later three-arm/identity factorial is a **different augmented protocol**, not automatic novelty credit for the original proposal.
+
+**Source checks:**
+- [Bail et al. (2018), PNAS](https://doi.org/10.1073/pnas.1804840115): original experiment randomized offers/incentives to follow opposing-party Twitter bots for one month; Republicans in treatment became more conservative on measured dimensions, Democrats' change was statistically inconclusive. Outcome is not a universal “contact polarizes.”
+- [Levy (2021), AER](https://doi.org/10.1257/aer.20191777): randomly offered ideologically differentiated Facebook outlet subscriptions, observed exposure, news visits, shares and attitudes; counter-attitudinal exposure lowered negative outparty feelings but did **not** detect a political-opinion effect. Therefore content source, realized exposure and *attitude construct* matter.
+- **Additional particularly close predecessor:** [*Social Identity, Selective Exposure, and Affective Polarization* (Human Communication Research, 2018)](https://doi.org/10.1093/hcr/hqx010) reports **two exposure-choice experiments and one forced-exposure experiment**, with randomized identity salience and, in the latter, randomized messages. The original abstract directly weakens DeepSeek's claim that *just adding forced versus voluntary exposure with identity measures* creates a novel mechanism-separating test. This paper's full methods, factorial operator and measurement constructs remain an important next verification step.
+- [Bail replication dataset metadata](https://datasetcatalog.nlm.nih.gov/dataset?q=0000080928) confirms [Dataverse DOI 10.7910/DVN/NSESEH](https://doi.org/10.7910/DVN/NSESEH), with CC0 listed and explicit privacy-related **coarsening of some variables**; it does not prove usable respondent-level assignment/exposure variables for the novel proposed mechanism.
+
+**Sol:** S defer / E defer due direct experiments. **DeepSeek:** S advance / E advance if a new forced-vs-free and identity arm is added. **Resolution:** prefer Sol's **novelty objection for the original operator**; **S = DEFER; E = DEFER** pending a sharply specified additional mechanism-separating estimand that survives scrutiny of the 2018 choice/forced study. DeepSeek's new factorial is a *candidate amendment* and **cannot** retroactively determine the original candidate's R-05 score.
+
+**Reopen:** Specify a new, minimal operator with predictions not studied by the HCR 2018/Bail/Levy designs, verify assignment/content/response and feasible consent/ethics/field-data access. Otherwise the project would mostly reproduce existing effects.
+
+## Findings / scientific decision at this gate
+
+| Original candidate | Preliminary S status after source reconciliation | Preliminary E status after source reconciliation | Confidence |
+| --- | --- | --- | --- |
+| A1 | **Defer** | **Defer** | Moderate: exact twins and early-success original papers confirmed; network-specific novelty untested |
+| B | **Defer/Hold (synthetic novelty unclear)** | **Conditional Tier-2 feasibility**, **NOT** an identified historical factorial | Moderate: direct Bursztyn and Smerdon evidence; 2×2 R factor absent from checked originals |
+| E | **Defer** | **Defer** | Moderate: direct field trials and earlier choice/forced-identity lab work; full HCR methods await audit |
+
+**No numeric 0–3 score was assigned here**: this is a targeted disputed-candidate source reconciliation. New priors/constructs are explicit. The two original AI reports remain unedited; no “joint conclusion” is fabricated. The three most valuable remaining original questions are not necessarily the same as the three that scored highest in the separate reports.
+
+**Research decision:** proceed to a **provisional, claim-conditional ≤3 Tier-2 shortlist** using [the comparison](comparison.md); this is NOT an owner-selected research topic, completed R-05, frozen R-06, or permission to run experiments.
