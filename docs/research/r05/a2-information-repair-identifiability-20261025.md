@@ -54,6 +54,7 @@ If matching can change, L learns the previous *matched* partner, while C conditi
 | C/L rematch split | previous partner m_old=0, new partner prehistory m_new=1, f=1,kappa=1 | L=1/2; C=3/4 |
 | M/R first-fine contrast | M beta=ln3; R fixed Q; randomized pre-choice f | M difference 1/4 between f=1 and f=0; R difference 0 |
 | S aggregation bound | exogenous H/H+L/L vs H/L+H/L; original restricted fixed types | population mean=1/2 in both; both-cooperate per pair 5/16 vs 3/16 |
+| S endogenous clearing | H1/H2 last action 1, L1/L2 last action 0, tau H=+1 L=-1, omega=1 | assortative matching total score +4, two mixed matchings -4 each; choice picks assortative with probability 1 vs uniform matching 1/3 |
 
 Check vectors are in [a2-information-checks-20261025.csv](a2-information-checks-20261025.csv). Source-independent arithmetic may verify numbers; **independent implementation and scientific acceptance are not yet accomplished**.
 
