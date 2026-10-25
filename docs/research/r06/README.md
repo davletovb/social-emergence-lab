@@ -38,3 +38,29 @@ The output ends with proposed exact multi-period fixtures for L, R and the Q cli
 - [Experiment 003 R-06 protocol DRAFT v0.2](../../../experiments/003-cooperation-mechanism-recovery/protocol-draft-v02-20261025.md) — the single current draft for future verification, **not frozen**.
 
 **Historical v0.1 only:** `a2_kernel_desk_check.py`, its [dated output](a2-kernel-desk-check-output-20261025.txt), and the exact 23+21 earlier fixtures. The desk checker still checks old stage-game and old RL updates; **do not call its 27 checks v0.2 validation**. Re-derive affected payoffs, fine probabilities, contextual R/Q, full matching event distribution and thresholds independently during the next P0 stage. No v0.2 code, simulation, CI, budget or verification is being claimed by this update.
+
+## 2026-10-25 — v0.2 design check (review artifact, not P0)
+
+- [`a2_v02_design_check.py`](a2_v02_design_check.py) — stdlib-only check written from the text of the [v0.2 kernel design](a2-v02-six-kernel-design-20261025.md), backing the [second review comment on #50](https://github.com/davletovb/social-emergence-lab/issues/50#issuecomment-6395811896). It uses exact rational arithmetic on logit and valuation arguments, and floats only for broker probabilities. No random numbers or simulation. Where v0.2 is silent, the R check uses the placeholders A₁=0 and Qmax=10.
+- [`a2-v02-design-check-output-20261025.txt`](a2-v02-design-check-output-20261025.txt) — recorded output at `582c497`.
+
+Run with `python3 docs/research/r06/a2_v02_design_check.py`; it exits non-zero if any check fails.
+
+**Result:** 19 checks: **0 FAIL**, 10 FINDING, 1 NOTE (a calibration-cost illustration).
+
+**Confirmed:**
+- At both primary fines the stage game is a prisoner's dilemma: T=2, R=1, P=0, S=−1 at f=0, and T=3/2, R=1, P=−½, S=−1 at f=½.
+- The leak identity and the own C−D difference `f−1` hold in every cell.
+- Every valuation is ½ at t=1, so the broker starts uniform.
+- `q` stays in [0,1].
+- C ≡ L under fixed matching for a common κ.
+- R ≡ M for α_R=0 on every enumerated node.
+
+**Findings:**
+- The valuation reduces to `σ(γ·x_j·(⅓ + η_i + 1_S·ωτ_i))`, so γ is not separately identified.
+- Common tastes now sort under the `min` broker, and with identical histories the broker sorts on latent η.
+- S is exactly N with `ν_i = δτ_i` and `η_i^N = η_i + ωτ_i` whenever η may correlate with ν. In the random arm S always reduces to two-point N.
+- With a common κ_L, every L offset shares one sign, so mixed-sign heterogeneity excludes L by domain.
+- The C ≡ L fixed-match equivalence covers only homogeneous-κ C.
+
+Like the v0.1 check, this is AI-assisted and **not** the source-independent P0 verification.
