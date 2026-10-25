@@ -1,0 +1,348 @@
+{
+  "schema_version": "r06-v022-fixtures/1",
+  "model_version": "Experiment003-A2-v0.2.2",
+  "scope": "DETERMINISTIC_SOURCE_NEUTRAL_VERIFICATION_INPUT_ONLY",
+  "numeric": {
+    "probability_abs_tolerance": 1e-12,
+    "probability_rel_tolerance": 1e-9,
+    "normalization_abs_tolerance": 1e-10,
+    "post_update_abs_tolerance": 1e-12
+  },
+  "common": {
+    "beta": 1.7,
+    "epsilon": 0.08,
+    "rho": 2.3,
+    "valuation_base": "1/3",
+    "qmax": 10,
+    "actor_order": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "matching_order": [
+      "01|23",
+      "02|13",
+      "03|12"
+    ],
+    "dyad0_rule": "dyad containing actor 0",
+    "fines": [
+      0,
+      0.5
+    ]
+  },
+  "fixed_F": {
+    "M": {
+      "eta": [
+        0.2,
+        -0.15,
+        0.45,
+        -0.4
+      ]
+    },
+    "N": {
+      "eta": [
+        0.2,
+        -0.15,
+        0.45,
+        -0.4
+      ],
+      "nu": [
+        0.3,
+        -0.8,
+        1.1,
+        -0.25
+      ]
+    },
+    "C": {
+      "eta": [
+        0.2,
+        -0.15,
+        0.45,
+        -0.4
+      ],
+      "kappaC": [
+        1.25,
+        -1.4,
+        0.9,
+        1.8
+      ]
+    },
+    "S": {
+      "eta": [
+        0.2,
+        -0.15,
+        0.45,
+        -0.4
+      ],
+      "tau": [
+        1,
+        -1,
+        1,
+        -1
+      ],
+      "delta": 0.7,
+      "omega": 0.4
+    },
+    "L": {
+      "eta": [
+        0.2,
+        -0.15,
+        0.45,
+        -0.4
+      ],
+      "kappaL": [
+        1.25,
+        -1.4,
+        0.9,
+        1.8
+      ],
+      "alphaL": [
+        0.6,
+        0.4,
+        1,
+        0.25
+      ],
+      "zeta": [
+        0.5,
+        1,
+        0,
+        0.8
+      ],
+      "q_init": [
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "R": {
+      "eta": [
+        0.2,
+        -0.15,
+        0.45,
+        -0.4
+      ],
+      "alphaR": [
+        0.7,
+        0.2,
+        0.9,
+        0.4
+      ],
+      "lambdaA": [
+        0.5,
+        0.25,
+        0.75,
+        0
+      ],
+      "aspiration_init": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "q_init_4cells_zero": true
+    }
+  },
+  "public_records": {
+    "first": {
+      "period": 1,
+      "z": "choice",
+      "matching": "01|23",
+      "dyad_fines": [
+        0,
+        0.5
+      ],
+      "actions": [
+        1,
+        0,
+        1,
+        1
+      ]
+    },
+    "next_rematch": {
+      "period": 2,
+      "z": "choice",
+      "matching": "02|13",
+      "dyad_fines": [
+        0.5,
+        0
+      ],
+      "actions": [
+        0,
+        1,
+        0,
+        1
+      ]
+    },
+    "next_repeat": {
+      "period": 2,
+      "z": "random",
+      "matching": "01|23",
+      "dyad_fines": [
+        0,
+        0.5
+      ],
+      "actions": [
+        0,
+        1,
+        0,
+        1
+      ]
+    }
+  },
+  "structural_H4_examples": {
+    "S_distribution": {
+      "delta": 0.7,
+      "omega": 0.4,
+      "atoms": [
+        {
+          "weight": 0.4,
+          "eta": -0.25,
+          "tau": 1
+        },
+        {
+          "weight": 0.6,
+          "eta": 0.1,
+          "tau": -1
+        }
+      ]
+    },
+    "N_pushforward_of_S": {
+      "atoms": [
+        {
+          "weight": 0.4,
+          "eta": 0.15,
+          "nu": 0.7
+        },
+        {
+          "weight": 0.6,
+          "eta": -0.3,
+          "nu": -0.7
+        }
+      ]
+    },
+    "L_pushforward_of_N": {
+      "atoms": [
+        {
+          "weight": 0.4,
+          "eta": 0.15,
+          "kappaL": 1.4,
+          "alphaL": 0,
+          "zeta": 0
+        },
+        {
+          "weight": 0.6,
+          "eta": -0.3,
+          "kappaL": -1.4,
+          "alphaL": 0,
+          "zeta": 0
+        }
+      ]
+    },
+    "M_distribution": {
+      "atoms": [
+        {
+          "weight": 0.4,
+          "eta": 0.15
+        },
+        {
+          "weight": 0.6,
+          "eta": -0.3
+        }
+      ]
+    },
+    "N_M_corner": {
+      "atoms": [
+        {
+          "weight": 0.4,
+          "eta": 0.15,
+          "nu": 0
+        },
+        {
+          "weight": 0.6,
+          "eta": -0.3,
+          "nu": 0
+        }
+      ]
+    },
+    "C_M_corner": {
+      "atoms": [
+        {
+          "weight": 0.4,
+          "eta": 0.15,
+          "kappaC": 0
+        },
+        {
+          "weight": 0.6,
+          "eta": -0.3,
+          "kappaC": 0
+        }
+      ]
+    },
+    "S_M_corner": {
+      "delta": 0,
+      "omega": 0,
+      "atoms": [
+        {
+          "weight": 0.4,
+          "eta": 0.15,
+          "tau": 1
+        },
+        {
+          "weight": 0.6,
+          "eta": -0.3,
+          "tau": -1
+        }
+      ]
+    },
+    "L_M_corner": {
+      "atoms": [
+        {
+          "weight": 0.4,
+          "eta": 0.15,
+          "kappaL": 0,
+          "alphaL": 0.75,
+          "zeta": 0.5
+        },
+        {
+          "weight": 0.6,
+          "eta": -0.3,
+          "kappaL": 0,
+          "alphaL": 0.2,
+          "zeta": 1
+        }
+      ]
+    },
+    "R_M_corner": {
+      "atoms": [
+        {
+          "weight": 0.4,
+          "eta": 0.15,
+          "alphaR": 0,
+          "lambdaA": 0.25
+        },
+        {
+          "weight": 0.6,
+          "eta": -0.3,
+          "alphaR": 0,
+          "lambdaA": 0.75
+        }
+      ]
+    }
+  },
+  "required_tests": [
+    "T1 payoff f0 and fhalf 2x2 paired matrix for all families",
+    "T1 partner choice matching uniform; action joint probabilities at specified F parameters",
+    "T1 first public_record joint path probability under A and under A0 support",
+    "T2 broker probabilities after first record for 3 possible matchings, random/choice",
+    "T2 conditional actions and full 16-vector probabilities after first record, next_rematch or next_repeat",
+    "T2 realized path probabilities for two supplied record pairs under A or A0 where supported",
+    "L state and R aspiration/Q after first record, and after next_rematch; terminal updates not read as actions",
+    "H4 T1 actor-mixture integrated joint distribution, normalisation over all supports",
+    "H4 S distribution and N mapped distribution and L frozen distribution produce identical FULL joint history laws for T<=2 under A and A0; parameter-domain compliance",
+    "H4 M embeddings into N C S L R identical FULL joint law at T<=2 under A and A0",
+    "Fixed F 24 actor relabelings and matching index invariance",
+    "Nonprimary J-shared-U contrast with identical actor marginals, demonstrating primary J conditional product choice is substantive"
+  ]
+}
