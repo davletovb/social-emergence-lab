@@ -1,5 +1,8 @@
 # R-05 / A2 — six-generator formal model, v0.1 candidate specification
 
+> **Historical v0.1 six-generator candidate, superseded by [v0.2 R-06 kernel design](../r06/a2-v02-six-kernel-design-20261025.md) and [v0.2 identification criterion](../r06/a2-v02-set-identification-estimand-20261025.md).** Its stage payoff, ranking broker, learner-noise asymmetry and forced singleton endpoint are **not current protocol decisions**. Retained for source-trace and old exact oracle checks; **no experiments have been run or verified**.
+
+
 **Date:** 2026-10-25 · **Status:** six candidate transition kernels, **not frozen or validated**. **v0.1 physical repair:** retire the leaky hidden-partner-history comparison; proposed prospective primary arm now uses *universally public prior actions and exact payoff histories* (r=1). See [explicit proof, contrast fixtures and limits](a2-information-repair-identifiability-20261025.md). The original v0 remains preserved in Git history. No implementation/model recovery or independent scientific validation.
 
 This extends the [exact M/N/C and fixed-type matching fixtures](a2-analytical-oracle-20261025.md) to six *explicitly different candidate update/choice families* for scientific inspection. The previous hand-calculated reference remains the authoritative restricted oracle; adding four-player partner choice is a **proposed prospective synthetic treatment**, not a replication of the historical Galbiati dyadic experiment. It is also not proof that any two families are distinguishable, let alone all six.

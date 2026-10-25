@@ -1,5 +1,8 @@
 # Experiment 003 — Cooperation mechanism identification and model recovery
 
+> **Historical draft v0.1 — superseded for design by [protocol DRAFT v0.2](protocol-draft-v02-20261025.md) (2026-10-25).** The old payoff, S-only preference broker, fine-blind RL and minimum-singleton primary endpoint are **not current proposals**. Keep this file as an audit trail; prior exact fixtures and PR #51 desk-check outputs **do not validate v0.2**. The v0.2 document is likewise **not frozen, verified or approved for runs**.
+
+
 **Protocol DRAFT v0.1 · 2026-10-25 · R-06 — NOT FROZEN / NOT RUN**  
 **Research direction:** selected by owner 2026-10-25 in [R-05 decision](../../docs/research/r05/decision.md), with outstanding source/scoring exceptions.  
 **Candidate development:** [Issue #36](https://github.com/davletovb/social-emergence-lab/issues/36) · [selection process #37](https://github.com/davletovb/social-emergence-lab/issues/37)  
