@@ -27,3 +27,14 @@ Run from anywhere with `python3 docs/research/r06/a2_kernel_desk_check.py`. It i
 - At f=1 the R learner's reinforcement depends only on the partner's action.
 
 The output ends with proposed exact multi-period fixtures for L, R and the Q clip. They are candidates for P0, not frozen references.
+
+## 2026-10-25 — v0.2 DESIGN RECORDED; next gate is INDEPENDENT VERIFICATION
+
+**Current v0.2 proposal**, superseding the v0.1 desk check as the design to verify:
+
+- [Dated redesign choices](a2-v02-redesign-decisions-20261025.md) — explicit decision log for new PD payoff, reduced fine range, shared matching broker, contextual RL and shared noise.
+- [v0.2 six-kernel/physical-world specification](a2-v02-six-kernel-design-20261025.md) — full equations, t=1 neutral initialization, one common action/noise law and stochastic mutual-acceptability matching accessible to every family.
+- [v0.2 set-valued identification and primary estimand](a2-v02-set-identification-estimand-20261025.md) — true-family coverage gate, multiple admitted explanations, absolute adequacy/empty set, 15 pairwise full-joint-law checks, meaningful design comparison in place of impossible unconditional minimum singleton-rate.
+- [Experiment 003 R-06 protocol DRAFT v0.2](../../../experiments/003-cooperation-mechanism-recovery/protocol-draft-v02-20261025.md) — the single current draft for future verification, **not frozen**.
+
+**Historical v0.1 only:** `a2_kernel_desk_check.py`, its [dated output](a2-kernel-desk-check-output-20261025.txt), and the exact 23+21 earlier fixtures. The desk checker still checks old stage-game and old RL updates; **do not call its 27 checks v0.2 validation**. Re-derive affected payoffs, fine probabilities, contextual R/Q, full matching event distribution and thresholds independently during the next P0 stage. No v0.2 code, simulation, CI, budget or verification is being claimed by this update.
