@@ -11,7 +11,7 @@ Run from anywhere with `python3 docs/research/r06/a2_kernel_desk_check.py`. It i
 
 ## Result
 
-26 checks: **0 FAIL**, 13 FINDING. A FINDING is true as stated but flags a design issue for the v0.2 decisions discussed in the review comment on #50.
+27 checks: **0 FAIL**, 13 FINDING. The Codex review's terminal-withdrawal counterexample is now covered: an unfined final round leaves L and N observationally identical within the study; an unfined earlier round **may**, but need not, separate their next observed action. A FINDING is true as stated but flags a design issue for the v0.2 decisions discussed in the review comment on #50.
 
 **Confirmed:**
 - All 23 [oracle-fixture](../r05/a2-oracle-fixture-20261025.csv) rows and the 19 numeric [information-check](../r05/a2-information-checks-20261025.csv) rows reproduce exactly from the kernel text.
@@ -21,7 +21,7 @@ Run from anywhere with `python3 docs/research/r06/a2_kernel_desk_check.py`. It i
 **Findings:**
 - At f=0 the stage game has R=P=0 and is constant-sum, so it is not a prisoner's dilemma.
 - N is nested in L at `α_L=0`, exactly, for every fine schedule; specification §3 does not list this.
-- L with ζ=1 equals N on an always-fined schedule.
+- L with ζ=1 equals N on an always-fined schedule **or a schedule whose only unfined round is terminal**; some earlier unfined rounds can create divergent future choices, provided observation continues.
 - Among the logit families, only S can cooperate below the material baseline.
 - Argmax clearing gives the same matching for every ω>0. Under sum-of-scores clearing, preferences that weight partner cooperation equally cannot sort; a stable-matching rule sorts on them.
 - At f=1 the R learner's reinforcement depends only on the partner's action.
