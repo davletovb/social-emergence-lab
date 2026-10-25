@@ -1,5 +1,8 @@
 # R-06 — A2 v0.2 set-valued mechanism identification and success criterion
 
+> **Historical v0.2 inference draft — superseded by [v0.2.1 admitted-set criterion](a2-v021-set-estimand-20261025.md).** The latter fixes A0, proposes a calibrated rival-outperformance gate, and distinguishes structurally equivalent alternatives. No coverage has been validated.
+
+
 **Date:** 2026-10-25 · **Design-level estimand adopted for drafting; thresholds, distributions, budget and validation NOT frozen.** Companion to [v0.2 shared-world/six-kernel design](a2-v02-six-kernel-design-20261025.md). This **supersedes v0.1's “minimum of six unique-family recovery rates” as the primary target**, without hiding the old target or altering v0.1's results.
 
 ## 1. Distinguish the truth generator, identifiable family set and finite-data admitted set
