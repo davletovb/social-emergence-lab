@@ -42,7 +42,7 @@ The **same decision noise and material fine response for all families**:
 
 **Fix `gamma=1`** rather than jointly fit gamma and all eta. The prior `gamma` scale was not identifiable because the argument reduced to a single coefficient per actor. This is a **normalization**, not evidence identifying underlying preferences.
 
-At t=1 every valuation `v_i(j)=1/2`. At t≥2 let `x_j,t=2*s_j,t-1∈{-1,+1}`; fix `pi_j,t=(1+s_j,t)/3`. For any actor i and possible partner j, j≠i:
+At t=1 every valuation `v_i(j)=1/2`. At t≥2 let `x_{j,t} = 2*s_{j,t} - 1 ∈ {-1,+1}`, where `s_{j,t}=a_{j,t-1}`; fix `pi_{j,t}=(1+s_{j,t})/3`. For any actor i and possible partner j, j≠i:
 
 `v_i(j)=sigmoid(x_j,t*(1/3+eta_i+indicator[S]*omega*tau_i))`.
 
