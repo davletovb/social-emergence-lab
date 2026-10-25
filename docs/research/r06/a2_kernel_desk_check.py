@@ -310,23 +310,21 @@ def check_nesting(T=4):
         record("nesting", f"N(nu={nu}) == L(alpha_L=0, kappa_L={kL}, q1={q1}) for every fine schedule and history: {n} nodes",
                "FINDING" if cx is None else False, "exact nesting for all T; spec section 3 lists only M-in-L")
 
-    # NEW: L with zeta = 1 is N on always-fined schedules, but not otherwise
-    allfine = [tuple([1] * T)]
-    n, cx = enumerate_fixed_pair(
-        T,
-        lambda t, f, o, p, m1, s: x_N(f, F(1, 2)),
-        lambda t, f, o, p, m1, s: x_L(f, 1, L_state(t, p, s, F(1, 2), F(1, 2), 1)),
-        schedules=allfine,
-    )
-    n2, cx2 = enumerate_fixed_pair(
-        T,
-        lambda t, f, o, p, m1, s: x_N(f, F(1, 2)),
-        lambda t, f, o, p, m1, s: x_L(f, 1, L_state(t, p, s, F(1, 2), F(1, 2), 1)),
-    )
-    record("nesting", f"L(zeta=1) == N on the always-fined schedule ({n} nodes) but differs once any f=0 period occurs",
-           "FINDING" if (cx is None and cx2 is not None) else False,
-           "fine schedules with long fined stretches make L look like N")
-
+    # With zeta=1, f=1 freezes q. An unfined terminal round updates q
+    # only AFTER its action, so it cannot distinguish L from N within T.
+    N_kernel = lambda t, f, o, p, m1, s: x_N(f, F(1, 2))
+    L_kernel = lambda t, f, o, p, m1, s: x_L(f, 1, L_state(t, p, s, F(1, 2), F(1, 2), 1))
+    n, cx = enumerate_fixed_pair(T, N_kernel, L_kernel, schedules=[(1,) * T])
+    nt, cxt = enumerate_fixed_pair(T, N_kernel, L_kernel, schedules=[(1,) * (T - 1) + (0,)])
+    ne, cxe = enumerate_fixed_pair(T, N_kernel, L_kernel, schedules=[(0,) + (1,) * (T - 1)])
+    record("nesting",
+           f"L(zeta=1) == N on terminal withdrawal with no later action ({nt} nodes)",
+           cxt is None,
+           "learning after final choice has no observable effect")
+    record("nesting",
+           f"L(zeta=1) == N always fined ({n} nodes); early withdrawal may separate later",
+           "FINDING" if cx is None and cxt is None and cxe is not None else False,
+           f"early schedule counterexample: {cxe}")
     # S action kernel with all tau=+1 equals N(nu=delta)
     ok = all(x_S(f, d, 1) == x_N(f, d) for f in (0, 1) for d in (F(0), F(1, 2), F(1)))
     record("nesting", "S action kernel with all types tau=+1 equals N(nu=delta)", ok)
