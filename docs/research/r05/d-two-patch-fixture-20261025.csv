@@ -1,0 +1,8 @@
+case,policy,shock_a,prior_contribution_a,eligibility_a,transfer_b_to_a,stock_a_after_shock,stock_b_after_shock,stock_a_after_harvest,stock_b_after_harvest,stock_a_after_regen,stock_b_after_regen,total_post_regen,observable_class
+no_shock,I-R-E-X,0,1,0,0,2,2,1,1,2,2,4,all_equal
+shock,I_need_pooling,1,1,0,1,1,2,1,0,2,0,2,transfer_one
+shock,R_reciprocity,1,1,0,1,1,2,1,0,2,0,2,transfer_one
+shock,E_enforcement,1,1,0,1,1,2,1,0,2,0,2,transfer_one
+shock,X_exclusion,1,1,0,0,1,2,0,1,0,2,2,transfer_zero
+off_support_shock,I_need_pooling,1,0,0,1,1,2,1,0,2,0,2,NEW_history_condition
+off_support_shock,R_reciprocity,1,0,0,0,1,2,0,1,0,2,2,NEW_history_condition
