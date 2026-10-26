@@ -53,7 +53,7 @@ async fn run(root:&Path)->Result<(),String>{
                 // The classifier-facing files have no labels, latent variables,
                 // private beliefs, scores, RNG draws or paired counterfactuals.
                 let public=serde_json::to_vec_pretty(&verified.world.history).map_err(|e|e.to_string())?;
-                fs::write(root.join("public-only").join(format!("{id}.json")),public).map_err(|e|e.to_string())?;
+                fs::write(root.join("public-only").join(format!("society-{fi}-{pi}-{k}.json")),public).map_err(|e|e.to_string())?;
                 manifest.push_str(&format!("{id},{seed},{},{},{periods},4,{}\n",family.name(),policy.name(),e::KIND));
             }
         }
@@ -61,7 +61,7 @@ async fn run(root:&Path)->Result<(),String>{
     // Private audit-only manifest must NOT be supplied to classifiers.
     fs::write(root.join("hiyal-internal").join("truth-manifest.csv"),manifest).map_err(|e|e.to_string())?;
     fs::write(root.join("README.txt"),format!(
-        "EXPLORATORY ENGINEERING ONLY; NO CONFIRMATORY CLAIMS\nmodel={}\nHiyal pin={}\nHiyal journals include latent truth; do not use in classifier.\nPublic-only JSON omits truth and private state. Filenames are audit-only labels: rename/strip before fitting.\n24 societies, 4 periods, 384 actor-periods; 12 societies per policy, 2 per family-policy cell.\nNOT a held-out evaluation. No inferential accuracy or 95% coverage.\n",
+        "EXPLORATORY ENGINEERING ONLY; NO CONFIRMATORY CLAIMS\nmodel={}\nHiyal pin={}\nHiyal journals include latent truth; do not use in classifier.\nPublic-only JSON omits truth and private state. Use blinded public filenames and keep truth-manifest private.\n24 societies, 4 periods, 384 actor-periods; 12 societies per policy, 2 per family-policy cell.\nNOT a held-out evaluation. No inferential accuracy or 95% coverage.\n",
         e::VERSION,social_emergence_lab::runner::hiyal_revision()?
     )).map_err(|e|e.to_string())?;
     Ok(())
