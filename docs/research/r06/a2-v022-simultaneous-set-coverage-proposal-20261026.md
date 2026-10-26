@@ -50,9 +50,9 @@ For in-family truth m★ and certified structural `I(P★)`, define:
 - `B_extra=|C\I|` (extra finite-data compatible candidates),
 - `B_miss=|I\C|` (wrongly excluded genuine alternatives).
 
-Identity:
-`|C\{m★}| = |I\{m★}| + |C\I| − |(I\{m★})\C| − 1[m★∉C]`.
-**Note the final term is required** when the nominated truth is excluded; the simpler previously used equality `|C\{m★}|=B_struct+B_extra−|(I\{m★})\C|` would overstate B by one in that situation. The simpler form is valid **only conditional on m★∈C**. Always report `1[m★∈C]`, `1[I⊆C]`, `C=∅`, `|C|`, and features/unknown-I limitations separately, rather than using B as if all nontruth labels were demonstrably false.
+Exact identity (valid **whether or not the generating family is admitted**):
+`|C\{m★}| = |I\{m★}| + |C\I| − |(I\{m★})\C|`.
+Only compatible **other** labels are counted in the final missing-alternative term; excluding m★ must also be reported separately via `1[m★∈C]`. Do not subtract that same event a second time—the identity remains true without conditioning on truth-label coverage. Always report `1[m★∈C]`, `1[I⊆C]`, `C=∅`, `|C|`, and features/unknown-I limitations separately, rather than using B as if all nontruth labels were demonstrably false.
 
 ## Minimal GO gate for statistical science — no pilot yet
 
