@@ -159,6 +159,12 @@ impl Society {
     pub fn new_fixed(design:Design, actors:[Tuple;4])->Result<Self,String> {
         design.validate()?;
         if actors.iter().any(|t|t.family()!=design.family) {return Err("fixed F family mismatch".into());}
+        // F tests may use distinct fixed actors, but never out-of-domain tuples.
+        for actor in actors {
+            let mut candidate=design.clone();
+            candidate.atoms=vec![Atom{weight:1.0,tuple:actor}];
+            candidate.validate()?;
+        }
         Ok(Self {design,actors,private:PrivateState::default(),history:vec![]})
     }
     fn appraisal(&self,i:usize)->f64 {
@@ -267,20 +273,20 @@ impl EffectPolicy<Society> for Generator {
         if actor.0!=0 || obs.history.len()>=obs.design.periods {return Err("outside exploratory horizon".into());}
         let t=obs.history.len()+1;
         let prefix=format!("agent/0/period/{t}");
-        let regime=if obs.design.policy==Policy::A && u01(rng,&format!("{prefix}/regime"))<0.5 {
+        let regime=if obs.design.policy==Policy::A && u01(rng,&format!("{prefix}/regime"))?<0.5 {
             Regime::Choice
         }else{Regime::Random};
         let matching=draw_cat(rng,&format!("{prefix}/broker"),&obs.broker(regime))?;
         let mut fine_bits=[0;2];
         if obs.design.policy==Policy::A {
             for (d,bit) in fine_bits.iter_mut().enumerate() {
-                *bit=(u01(rng,&format!("{prefix}/fine/{d}"))<0.5) as u8;
+                *bit=(u01(rng,&format!("{prefix}/fine/{d}"))?<0.5) as u8;
             }
         }
         let mut actions=[0;4];
         for (i,act) in actions.iter_mut().enumerate() {
             let p=obs.cooperation(i,matching,fine_bits[dyad(matching,i)]);
-            *act=(u01(rng,&format!("{prefix}/action/{i}"))<p) as u8;
+            *act=(u01(rng,&format!("{prefix}/action/{i}"))?<p) as u8;
         }
         Ok(PublicRecord{period:t,regime,matching,fine_bits,actions,
             payoffs:Society::payoff_for(matching,fine_bits,actions)})
@@ -375,4 +381,91 @@ mod tests {
         assert!(d.validate().is_ok());
         d.atoms[0].weight=f64::NAN; assert!(d.validate().is_err());
     }
+    #[test]
+    fn public_export_schema_contains_no_private_fields() {
+        let r=PublicRecord {
+            period:1,regime:Regime::Random,matching:0,fine_bits:[0,1],
+            actions:[1,0,1,0],
+            payoffs:Society::payoff_for(0,[0,1],[1,0,1,0]),
+        };
+        let json=serde_json::to_value(r).unwrap();
+        let obj=json.as_object().unwrap();
+        let keys:Vec<_>=obj.keys().map(|s|s.as_str()).collect();
+        assert_eq!(keys,vec!["actions","fine_bits","matching","payoffs","period","regime"]);
+        let encoded=serde_json::to_string(&[r]).unwrap();
+        for secret in ["actors","design","family","nu","kappa","belief","aspiration","seed"] {
+            assert!(!encoded.contains(secret), "leaked field {secret}");
+        }
+    }
+    #[test]
+    fn choice_broker_is_conditional_on_real_public_history() {
+        let x=[Tuple::M{eta:0.2},Tuple::M{eta:-0.15},
+            Tuple::M{eta:0.45},Tuple::M{eta:-0.4}];
+        let mut society=fixed(Family::M,x);
+        let actions=[1,0,1,0];
+        let record=PublicRecord{period:1,regime:Regime::Random,matching:0,
+            fine_bits:[0,0],actions,payoffs:Society::payoff_for(0,[0,0],actions)};
+        society.apply(AgentId(0),record).unwrap();
+        let p=society.broker(Regime::Choice);
+        assert!((p.iter().sum::<f64>()-1.0).abs()<1e-12);
+        assert!(p[1]>0.55 && p[0]<0.23 && p[2]<0.23, "{p:?}");
+        assert_eq!(society.broker(Regime::Random),[1.0/3.0;3]);
+    }
+    #[test]
+    fn r_updates_q_using_prior_aspiration_then_updates_aspiration() {
+        let mut s=fixed(Family::R,[Tuple::R{eta:0.0,alpha:1.0,lambda:0.5};4]);
+        let a=[1,0,1,0];
+        let rec=PublicRecord {period:1,regime:Regime::Random,matching:0,
+            fine_bits:[1,0],actions:a,payoffs:Society::payoff_for(0,[1,0],a)};
+        s.apply(AgentId(0),rec).unwrap();
+        // actor 0 cooperated under a half-fine; payoff = -1, prior A=0
+        assert_eq!(s.private.q[0][1][1],-1.0);
+        assert_eq!(s.private.aspiration[0],-0.5);
+        // actor 1 defected; payoff = 1.5, prior aspiration 0
+        assert_eq!(s.private.q[1][0][1],1.5);
+        assert_eq!(s.private.aspiration[1],0.75);
+        assert_eq!(s.private.q[1][0][0],0.0);
+    }
+    #[test]
+    fn s_global_bounds_and_effective_appraisal_checked() {
+        let mut d=pilot_design(Family::S,Policy::A);
+        d.globals.omega=2.1;
+        assert!(d.validate().is_err());
+        d.globals.omega=0.4;
+        d.globals.delta=-0.01;
+        assert!(d.validate().is_err());
+        d.globals.delta=0.7;
+        d.atoms[0].tuple=Tuple::S{eta:3.0,tau:1};
+        assert!(d.validate().is_err());
+    }
+    #[tokio::test]
+    async fn hiyal_trial_setup_and_read_only_replay() {
+        use hiyal::{
+            experiment::{Trial, verify_setup},
+            runtime::ScriptedBackend,
+            scheduler::Scheduling,
+            storage::Store,
+        };
+        use std::{fs,sync::Arc,time::{SystemTime,UNIX_EPOCH}};
+        let nonce=SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
+        let path=std::env::temp_dir().join(format!("exp003-hiyal-{}-{nonce}",std::process::id()));
+        let d=pilot_design(Family::C,Policy::A);
+        let d_setup=d.clone();
+        let mut trial=Trial::create_with_setup(
+            &path,"exp003-unit-replay",303_999,KIND,
+            move |rng|Society::setup(d_setup,rng),
+            Generator,Arc::new(ScriptedBackend),vec![AgentId(0)],
+            Scheduling::RoundRobin,
+        ).unwrap();
+        assert_eq!(trial.run_attempts(4).await.unwrap(),4);
+        trial.checkpoint().unwrap();
+        let expected=trial.store.world().clone();
+        drop(trial);
+        verify_setup(&path,|rng|Society::setup(d.clone(),rng)).unwrap();
+        let view=Store::<Society,PublicRecord>::inspect_read_only(&path).unwrap();
+        assert_eq!(view.logical_step,4);
+        assert_eq!(view.world,expected);
+        fs::remove_dir_all(path).unwrap();
+    }
+
 }
