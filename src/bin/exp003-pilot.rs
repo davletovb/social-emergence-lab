@@ -5,7 +5,7 @@ use hiyal::{
     runtime::ScriptedBackend, scheduler::Scheduling, storage::Store,
 };
 use social_emergence_lab::experiment003::{self as e, Generator, PublicRecord, Society};
-use std::{env,fs,path::Path,sync::Arc};
+use std::{env,fs,io::Read,path::Path,sync::Arc};
 
 const WORLDS_PER_CELL:usize=2;
 const FIRST_SEED:u64=303_000;
@@ -25,7 +25,7 @@ async fn run(root:&Path)->Result<(),String>{
     }}
     fs::create_dir_all(root.join("hiyal-internal")).map_err(|e|e.to_string())?;
     fs::create_dir_all(root.join("public-only")).map_err(|e|e.to_string())?;
-    let mut manifest=String::from("id,seed,model,policy,periods,actors,kind\n");
+    let mut manifest=String::from("id,public_id,seed,model,policy,periods,actors,kind\n");
     for (fi,family) in e::Family::ALL.iter().enumerate(){
         for (pi,policy) in e::Policy::ALL.iter().enumerate(){
             for k in 0..WORLDS_PER_CELL {
@@ -59,8 +59,16 @@ async fn run(root:&Path)->Result<(),String>{
                 // The classifier-facing files have no labels, latent variables,
                 // private beliefs, scores, RNG draws or paired counterfactuals.
                 let public=serde_json::to_vec_pretty(&verified.world.history).map_err(|e|e.to_string())?;
-                fs::write(root.join("public-only").join(format!("society-{fi}-{pi}-{k}.json")),public).map_err(|e|e.to_string())?;
-                manifest.push_str(&format!("{id},{seed},{},{},{periods},4,{}\n",family.name(),policy.name(),e::KIND));
+                // Export identifiers are random and disconnected from source
+                // family/policy/seed ordering. The private manifest holds the join.
+                // OS entropy is used for *filenames only*, never model draws.
+                let mut opaque=[0u8;16];
+                fs::File::open("/dev/urandom").and_then(|mut f|f.read_exact(&mut opaque))
+                    .map_err(|e|e.to_string())?;
+                let public_id:String=opaque.iter().map(|b|format!("{b:02x}")).collect();
+                let public_file=root.join("public-only").join(format!("{public_id}.json"));
+                fs::write(&public_file,public).map_err(|e|e.to_string())?;
+                manifest.push_str(&format!("{id},{public_id},{seed},{},{},{periods},4,{}\n",family.name(),policy.name(),e::KIND));
             }
         }
     }
@@ -70,7 +78,7 @@ async fn run(root:&Path)->Result<(),String>{
     // Private audit-only manifest must NOT be supplied to classifiers.
     fs::write(root.join("hiyal-internal").join("truth-manifest.csv"),manifest).map_err(|e|e.to_string())?;
     fs::write(root.join("README.txt"),format!(
-        "EXPLORATORY ENGINEERING ONLY; NO CONFIRMATORY CLAIMS\nmodel={}\nHiyal pin={}\nHiyal journals include latent truth; do not use in classifier.\nPublic-only JSON omits truth and private state. Use blinded public filenames and keep truth-manifest private.\n24 societies, 4 periods, 384 actor-periods; 12 societies per policy, 2 per family-policy cell.\nNOT a held-out evaluation. No inferential accuracy or 95% coverage.\n",
+        "EXPLORATORY ENGINEERING ONLY; NO CONFIRMATORY CLAIMS\nmodel={}\nHiyal pin={}\nHiyal journals include latent truth; do not use in classifier.\nPublic-only JSON omits truth and private state. Opaque filename mapping is in hiyal-internal/truth-manifest.csv; keep it private.\n24 societies, 4 periods, 384 actor-periods; 12 societies per policy, 2 per family-policy cell.\nNOT a held-out evaluation. No inferential accuracy or 95% coverage.\n",
         e::VERSION,social_emergence_lab::runner::hiyal_revision()?
     )).map_err(|e|e.to_string())?;
     Ok(())
