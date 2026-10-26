@@ -18,8 +18,8 @@ async fn main(){
 }
 async fn run(root:&Path)->Result<(),String>{
     if root.exists(){return Err("output exists; refusing overwrite".into());}
-    let max=6*2*WORLDS_PER_CELL*4*4;
-    if max!=384 {return Err("pilot bound mismatch".into());}
+    const LIMIT_ACTOR_PERIODS:usize=384;
+    let mut actual_actor_periods:usize=0;
     for family in e::Family::ALL {for policy in e::Policy::ALL {
         e::pilot_design(family,policy).validate()?;
     }}
@@ -43,6 +43,12 @@ async fn run(root:&Path)->Result<(),String>{
                 )?;
                 let accepted=trial.run_attempts(periods as u64).await?;
                 if accepted!=periods as u64 {return Err("unexpected rejection".into());}
+                actual_actor_periods=actual_actor_periods.checked_add(
+                    (accepted as usize).checked_mul(4).ok_or("actor-period overflow")?
+                ).ok_or("actor-period overflow")?;
+                if actual_actor_periods>LIMIT_ACTOR_PERIODS {
+                    return Err("exploratory budget exceeded".into());
+                }
                 trial.checkpoint()?;
                 drop(trial);
                 verify_setup(&dir, |rng|Society::setup(design.clone(),rng))?;
@@ -57,6 +63,9 @@ async fn run(root:&Path)->Result<(),String>{
                 manifest.push_str(&format!("{id},{seed},{},{},{periods},4,{}\n",family.name(),policy.name(),e::KIND));
             }
         }
+    }
+    if actual_actor_periods!=LIMIT_ACTOR_PERIODS {
+        return Err("pilot incomplete: actor-period budget not exhausted".into());
     }
     // Private audit-only manifest must NOT be supplied to classifiers.
     fs::write(root.join("hiyal-internal").join("truth-manifest.csv"),manifest).map_err(|e|e.to_string())?;
