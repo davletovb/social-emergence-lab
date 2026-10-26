@@ -59,6 +59,14 @@ because `β≥0.1>0` and `0≤ε≤0.5<1`. This inequality persists under any pe
 
 The first-period selected M/N full-record TV is **0 under A0 and 0.33386583 under A**. That is an illustrative numerical difference, not a lower bound on every pair of family distributions nor power at K societies.
 
+### 2.4 Separately expressed Python cross-check (author-side only)
+
+A stdlib Python reference, [`tools/exp003-exact/check_cross_language.py`](../../../tools/exp003-exact/check_cross_language.py), re-derives all 384 record masses for the **fixed M/N T1** and **C/L conditional T2** witnesses without importing the Rust model or source. It explicitly reconstructs dyadic fines, mutual-choice broker softmax, the simultaneous Bernoulli action product and the current-versus-previous partner distinction.
+
+**Execution:** a same-session Python stdlib implementation passed 3 check groups locally: the independent fixed-witness M/N first-record TV, C/L after-rematch full-record TV, and elementary broker/marginal bounds. Values reproduced the Rust run to floating precision: M/N `A=0.33386582682695076, A0=0`; C/L `A=0.13021565405157565, A0=0.11552928931500243`. The Python source here is a separately expressed, streamlined equivalent of that locally executed computation. Because it was prepared by the **same author/session** and checks **only two fixed witness families**, it is **corroboration, not the required blinded independent B Python P0 or whole-H4 cross-language replay**. It also does not independently rerun the correlated S→N→L integration.
+
+For reproducibility, run `python3 tools/exp003-exact/check_cross_language.py` with Python 3.10+; it uses no third-party packages.
+
 ## 3. Interpretation and unresolved questions
 
 The first **research takeaway** is a distinction among three levels of distinguishability:
