@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 
 pub mod analytic;
 pub mod design;
+pub mod experiment003;
 pub mod hiyal_study;
 pub mod mobility;
 pub mod reference;
