@@ -1,5 +1,7 @@
 # Experiment 003 / R-06 — adversarial reverse-C identification audit
 
+> **2026-10-27 review amendment (v0.2):** The reviewer identified a shorter **R⊄C witness at T=2**, superseding the original T≥3 **minimum-horizon claim**. The original T3 path and original output remain valid historical, nonminimal evidence. The corrected result is that **N⊄C, S⊄C, L⊄C, and R⊄C all hold at T≥2** for the selected legal truths, under A and A0. See the new T2 argument in §2A and the separate v0.2 [result JSON](results/reverse-C-H4-witnesses-v02-20261027.json). This is an author-side amendment, still awaiting independent mathematical P0 acceptance.
+
 **Date:** 2026-10-27 UTC  
 **Normative model inputs:** [v0.2.2 J and H4 law](../../docs/research/r06/a2-v022-joint-law-hierarchy-20261025.md), inherited [v0.2.1 six action/update kernels](../../docs/research/r06/a2-v021-six-kernel-design-20261025.md).  
 **Relationship to prior work:** builds on the merged [PR #63](https://github.com/davletovb/social-emergence-lab/pull/63), which proposed the *opposite* C-not-subset directions using fresh random matching.
@@ -72,7 +74,35 @@ This proves the one-truth witness `𝓟_N^{d,T,H4} ⊄ 𝓟_C^{d,T,H4}` for both
 
 Combine, but do not conflate, this with merged PR #63's opposite one-direction **C⊄N/S/L** witness to propose **pairwise incomparability** of C with N, S and L for T≥2. Both sides remain **author-derived**, not independently accepted. The T=1 C=N=L family-law collapse is explicitly preserved.
 
-## 3. R ⊄ C at T≥3 through a positive-probability public path
+## 2A. Review correction: R ⊄ C already at T≥2
+
+The frozen R update makes this direction possible after only **one**, rather than two, positive cooperative payoffs. Choose the same homogeneous legal R truth as the historical T3 example: `β=1, ε=0, α_R=1, λ_A=0, η=0`, initially `Q_1=A_1=0`.
+
+Let the positive-probability first-period observable event be `H_1={z_1=random, μ_1=0=01|23, fine bits [0,0], actions [1,1,0,0]}`. At T1 every actor has `p=σ(−1)=q` because R's initial Q values are zero. Thus `P(H_1)=w_d q²(1−q)²`, where `w_A=(1/2)(1/3)(1/4)=1/24` and `w_A0=1/3`. Actor 0 received payoff `u_{0,1}=1`, so the **post-T1** transition with `α_R=1, λ_A=0` raises **only** `Q_{0,2}(1,0): 0→1` and leaves `Q_{0,2}(0,0)=0`; its aspiration remains zero.
+
+At T2 define the *entirely public* condition `D_2=H_1∩{z_2=random, μ_2=1=02|13, f_{0,2}=0}`. Here the new partner of actor 0 is actor 2, who defected at T1 (`a_{2,1}=0`). Every admissible C H4 rival has conditional actor-0 cooperation probability **≤ c* = 0.48751040626053** on `D_2`. The selected R's conditional probability is instead
+
+`p_R(a_{0,2}=1|D_2)=σ(−1+Q_{0,2}(1,0)−Q_{0,2}(0,0))=σ(0)=1/2>c*`.
+
+The **other** T2 dyad fine and actors 1,2,3 T2 actions are marginalized. The T2 random matching and fine assignment are independent of previous histories, so
+
+```text
+P_R(D2) = w_d q²(1−q)² v_d,
+v_A=(1/2)(1/3)(1/2)=1/12; v_A0=1/3.
+
+P_R(D2): A=0.00013422309823941982,
+         A0=0.004295139143661434.
+
+TV(P_R^d,P_C^d) ≥ P_R(D2) × (0.5−c*)
+  A:  0.0000016763919674633255
+  A0: 0.000053644542958826415
+```
+
+As in §1, the **range-one** measurable function `g=1_{D_2∩{a_{0,2}=1}}−c*1_{D_2}` gives the bound directly for **every H4 C rival**, independent of latent κ/η distribution or conditioning. The selected one-atom R truth and both policies make `P_R(D_2)>0`. This proves a **candidate R⊄C at T≥2**, not sample-efficient detection. It also resolves the original author's T2 UNKNOWN as a genuine previously overlooked direction.
+
+The original two-update T3 example in the following section remains mathematically possible, but its TV lower bounds are **smaller** because they use an unnecessarily rare history. That section is retained for reproducibility and is **not** a statement of minimal horizon.
+
+## 3. Historical (nonminimal) R ⊄ C at T≥3 through a public path
 
 No unknown-parameter optimization is needed. Select a homogeneous one-atom **R** truth with `β=1, ε=0, ρ=1, η=0, α_R=1, λ_A=0`, legal aspiration `A_1=0`, context Q entries initialized to zero and `Qmax=10`.
 
@@ -109,7 +139,7 @@ P_R(D₃) = [first assignment]^2 * [third assignment]
 | A | 2.748944044845174e-7 | **6.69500298067994e-8** |
 | A0 | 7.037296754803645e-5 | **1.7139207630540646e-5** |
 
-These tiny but strictly positive lower bounds prove a **witnessed direction R⊄C for T≥3**, conditional on the frozen R learning rule. They imply neither sample-efficient classification nor R⊄C at T=2, which **remains UNKNOWN**. Together with PR #63's opposite **C⊄R** result, they propose *C/R incomparability only for T≥3*. **No human interpretation is warranted.**
+These **historical, nonminimal T3** bounds remain strictly positive under the frozen R law. The **T2** argument in §2A establishes the stronger minimum horizon, so the candidate C/R two-direction noninclusion already holds for **T≥2** when combined with PR #63. Neither argument supplies finite-K power or independently accepted scientific certification. **No human interpretation is warranted.**
 
 ## 4. Updated conservative 15-pair scientific register
 
@@ -128,22 +158,22 @@ The table below distinguishes previously constructive embeddings from newly prop
 | N/R | — | — | UNKNOWN |
 | C/S | PR63 C⊄S | **S⊄C, T≥2** | candidate incomparable, T≥2 |
 | C/L | PR63 C⊄L | **L⊄C, T≥2** | candidate incomparable, T≥2 |
-| C/R | PR63 C⊄R | **R⊄C, T≥3** | candidate incomparable T≥3; reverse T2 UNKNOWN |
+| C/R | PR63 C⊄R | **R⊄C, T≥2 (review amendment)** | candidate incomparable T≥2; T1 R=M remains |
 | S/L | S⊆L via N | — | reverse unknown |
 | S/R | — | — | UNKNOWN |
 | L/R | — | — | UNKNOWN |
 
-**Status:** This table is **not** an accepted independent 15-pair classification. Existing structural overlaps remain; all zero-effect and boundary cases belong to the H4 family and must not be removed to manufacture exclusive labels. In particular the old T=1 equalities C=N=L and R=M still hold, and PR63's C exclusion at T≥2 cannot be applied at T=1.
+**Status:** This table is **not** an accepted independent 15-pair classification. Existing structural overlaps remain; all zero-effect and boundary cases belong to the H4 family and must not be removed to manufacture exclusive labels. In particular the old T=1 equalities C=N=L and R=M still hold, and PR63's C exclusion at T≥2 cannot be applied at T=1. In the corrected R direction, one reinforcement update is enough to exceed C's fine-0 ceiling at T2.
 
 ## 5. Adversarial audit: strongest failure modes to test
 
 The proof above is deliberately framed as **complete public-event and history-law** inequalities, not as conditional kernel comparisons at an arbitrarily selected latent vector. A real independent reviewer must attempt to break each step:
 
 1. **Conditional selection:** Does the bounded C response still hold after conditioning on the current random matching, fine, partner's previous contribution, and arbitrary earlier public history? Yes *if and only if* the C offset is exactly κ times the **current** partner's previous *binary* action and no other latent offset enters that decision.
-2. **R timing/contexts:** Verify that the frozen R update reads the previous aspiration, that `λ_A=0` keeps aspiration zero, that both prior fine contexts are 0, that action 1's Q increments twice and action 0's Q never updates, and that `Qmax=10` does not clip these two steps.
+2. **R timing/contexts:** For the **new minimal T2 witness**, verify that the first-period zero-fine cooperation payoff 1 increments actor0 Q(1,0) once *after* T1 and that this is used at T2. The original T3 example still checks the second increment, prior aspiration, `λ_A=0`, Qmax clipping and proper fine/action context. An implementation test should apply both public records to all four actors without writing the payoff/update result by hand.
 3. **Legality of the conditioned events:** Check all matching indices, dyad-fine indices, signed parameter bounds, and finite positive action probabilities in both policies.
 4. **All-H4 rival coverage:** No restriction to a fixed-vector F or to one/two atoms is needed for the *C* inequality: the per-actor pointwise ceiling is independent of its atom tuple. The witnesses are chosen *one-atom truths*, which is an allowed subcase.
-5. **Dual bound normalization:** Do not use `TV≥|E h|/2` when `h` has oscillation 1; the valid sharper inequality is `TV≥E_truth h−E_C h` for `h=1_B−c*1_D`. The proof must keep `D` and `B` as public events; payoff is fully determined, not extra random mass.
+5. **Dual bound normalization:** The general `TV≥|E_P h−E_Q h|/2` bound remains **valid but loose** when `h` has oscillation one; a sharper inequality is `TV≥E_truth h−E_C h` for `h=1_B−c*1_D`. The proof must keep `D` and `B` as public events; payoff is fully determined, not extra random mass.
 6. **Scope and causality:** The event could be extraordinarily rare (especially for R), so a strictly positive total-variation bound is not a finite-K power assertion. Neither exogenous fine/matching policy measures empirical realism.
 
 The [stdlib Python audit](../../tools/exp003-exact/check_reverse_c_invariants.py) evaluates *only the stated closed-form values and path arithmetic*; it neither imports the Rust simulator nor proves all-H4 coverage by running a finite sample. **No independent mathematical reviewer was engaged; P0 remains OPEN.**
