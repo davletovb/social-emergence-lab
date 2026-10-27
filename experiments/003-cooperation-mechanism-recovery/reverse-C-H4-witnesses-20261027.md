@@ -176,7 +176,7 @@ The proof above is deliberately framed as **complete public-event and history-la
 5. **Dual bound normalization:** The general `TV≥|E_P h−E_Q h|/2` bound remains **valid but loose** when `h` has oscillation one; a sharper inequality is `TV≥E_truth h−E_C h` for `h=1_B−c*1_D`. The proof must keep `D` and `B` as public events; payoff is fully determined, not extra random mass.
 6. **Scope and causality:** The event could be extraordinarily rare (especially for R), so a strictly positive total-variation bound is not a finite-K power assertion. Neither exogenous fine/matching policy measures empirical realism.
 
-The [stdlib Python audit](../../tools/exp003-exact/check_reverse_c_invariants.py) evaluates *only the stated closed-form values and path arithmetic*; it neither imports the Rust simulator nor proves all-H4 coverage by running a finite sample. **No independent mathematical reviewer was engaged; P0 remains OPEN.**
+The reviewed [stdlib Python audit](../../tools/exp003-exact/check_reverse_c_invariants.py) now **derives the R public-history action likelihoods, material payoffs, contextual Q/aspiration updates and actor-specific t2 cooperation for all four actors**, rather than hard-coding t2 mass. It does not import the Rust implementation. A separate [Rust model conformance checker](../../tools/exp003-exact/src/bin/reverse_c.rs) applies the stated public records to the *actual simulator*, and its R T2/T3 probabilities agree with Python to numerical precision. These same-author checks do **not** by themselves prove full-H4 coverage or constitute independent P0. **No source-isolated independent mathematical reviewer was engaged; P0 remains OPEN.**
 
 ## 6. Acceptance tasks
 
@@ -184,3 +184,8 @@ The [stdlib Python audit](../../tools/exp003-exact/check_reverse_c_invariants.py
 2. Independently reconstruct C's all-H4 ceiling, N/S/L legal embeddings, and the R-positive-path updated Q/aspiration histories. Accept, modify or refute each *direction separately*.
 3. Independently check the full 15-pair register for horizon/policy and any new counterexample; do not mark any unknown reverse direction by symmetry.
 4. Keep the composite-null confidence set, simultaneous coverage, model adequacy and real-world generalization gates separate. **Independent P0, global 15-pair resolution and 95% coverage remain OPEN.**
+
+
+## 7. Executed review-amended checks (v0.2)
+
+The original [v0.1 executed result](results/reverse-C-H4-witnesses-20261027.json) is preserved unchanged as historical T3 evidence. The [distinct v0.2 report](results/reverse-C-H4-witnesses-v02-20261027.md) and machine-readable summary record the corrected T2 witness. The initial targeted review run [#40503052644](https://github.com/davletovb/social-emergence-lab/actions/runs/40503052644) caught a **Rust float literal syntax typo before testing the model**; this was fixed in the PR and the corrected targeted [run #40503316441](https://github.com/davletovb/social-emergence-lab/actions/runs/40503316441) succeeded with **3 Rust + 6 Python tests**. It also ran both independently expressed code paths and compared full selected R truth event probabilities and bounds across languages. Results are still author-side, not independent scientific validation.
