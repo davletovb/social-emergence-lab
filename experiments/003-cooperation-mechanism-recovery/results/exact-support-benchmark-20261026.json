@@ -89,5 +89,10 @@
     "artifact_zip_sha256": "127193ef3ce8ab4a0de9cc4d51a555e3301f02948e798fd59c2dbcb19396960a",
     "artifact_expiration_utc": "2026-11-25T18:19:03Z",
     "tests_passed": 3
+  },
+  "data_access_policy": {
+    "purpose": "AUDIT_WITNESS_RESULT_NOT_CLASSIFIER_DATA",
+    "may_be_used_as_classifier_input": false,
+    "explanation": "The report contains constructed truth-family labels, exact model comparisons, parameter mappings and synthetic witnesses. Never feed these records to a mechanism classifier, model fitter or held-out validation."
   }
 }
