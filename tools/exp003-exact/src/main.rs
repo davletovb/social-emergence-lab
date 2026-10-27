@@ -262,7 +262,38 @@ mod tests{
     #[test]
     fn complete_bounded_comparisons(){
         let v=evaluate();
-        assert_eq!(v["tested_policies"].as_array().unwrap().len(),2);
+        let policies=v["tested_policies"].as_array().unwrap();
+        assert_eq!(policies.len(),2);
+        // Pin the exact reported witness values, not just their signs or that
+        // both policies are present. Changes to the underlying model must be
+        // reviewed alongside changes to the archived result report.
+        for (index,expected_cl,expected_mn,expected_prefix) in [
+            (0usize, 0.13021565405157567, 0.33386582682695076, 0.0006941543970427322),
+            (1usize, 0.11552928931500243, 0.0, 0.0023487305203184652),
+        ] {
+            let p=&policies[index];
+            let name=if index==0 {"A"}else{"A0"};
+            assert_eq!(p["policy"].as_str(),Some(name));
+            for (field,expected) in [
+                ("C_L_rematching",expected_cl),
+                ("M_N_fine",expected_mn),
+            ] {
+                let value_key=if field=="C_L_rematching"{
+                    "t2_conditional_complete_record_tv_under_fixed_mapping"
+                }else{"t1_joint_tv_for_selected_M_vs_N"};
+                let actual=p[field][value_key].as_f64().unwrap();
+                assert!((actual-expected).abs()<TOL,
+                    "{name} {field}/{value_key}: actual {actual}, expected {expected}");
+            }
+            let h4=&p["nested_S_N_L_two_atom_H4"];
+            let actual_prefix=h4["selected_t1_prefix_probability"].as_f64().unwrap();
+            assert!((actual_prefix-expected_prefix).abs()<TOL);
+            assert!(h4["t1_max_absolute_difference_S_N_L"].as_f64().unwrap()<TOL);
+            assert!(h4["t1_t2_joint_prefix_suffix_max_absolute_difference_S_N_L"].as_f64().unwrap()<TOL);
+            let alias=&p["t1_class_collapse"];
+            assert!(alias["t1_C_N_L_max_absolute_difference"].as_f64().unwrap()<TOL);
+            assert!(alias["t1_M_R_max_absolute_difference"].as_f64().unwrap()<TOL);
+        }
     }
     #[test]
     fn correct_public_dyad_fine_indexing(){
