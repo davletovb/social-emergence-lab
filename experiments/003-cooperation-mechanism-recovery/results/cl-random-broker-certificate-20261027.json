@@ -59,6 +59,14 @@
     "archive_zip_sha256": "15ad845e805b1a82828083c0d13db8ade525841e0404d494e1fa6079b087825a",
     "expiry_utc": "2026-11-26T08:53:03Z",
     "executed_rust_tests": "3 passed; 0 failed",
-    "scientific_limit": "author-derived theorem, not independent P0 or calibrated inference"
+    "scientific_limit": "author-derived theorem, not independent P0 or calibrated inference",
+    "original_rust_implementation_commit": "67ebffa3bf976a176de5717cf4e162b873b130e6",
+    "original_mathematical_document_commit": "2ce2572ab3f17ed9576fe214950f1e39de47450f",
+    "executed_source_checkout_commit": "e1e15f268b1d50a27504267573b45d8e890a0352",
+    "source_revision_interpretation": "Historical source_revision was the original mathematics/document commit, not the executable checkout SHA; the original Rust code existed by 67ebffa and the workflow ran checkout e1e15f2.",
+    "python_run_id": 40476930928,
+    "python_run_url": "https://github.com/davletovb/social-emergence-lab/actions/runs/40476930928",
+    "python_tests_passed": 3,
+    "numeric_outputs_unchanged": true
   }
 }
