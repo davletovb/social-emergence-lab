@@ -1,0 +1,247 @@
+{
+  "C_target_limit": "three non-isomorphic T1 prefixes, fined history under A, exact T1 manifold alpha-zeta mesh plus local search; A0 zeta structurally inert through T2. No global free-rival lower bound",
+  "M_target_bound": "analytic public event lower bound for selected N truth valid versus ALL unrestricted M H4 under A",
+  "model": "Experiment003-A2-v0.2.2",
+  "no_stochastic_draws": true,
+  "policies": [
+    {
+      "C_to_L": {
+        "alpha_zeta_manifold_grid": "11x11 alpha/zeta, with beta=1 epsilon=0 kappa=1, exact T1 matching",
+        "best_local_one_atom_fit": {
+          "T1_full_record_tv": 0,
+          "alpha": 1,
+          "beta": 1,
+          "epsilon": 0,
+          "eta": 0,
+          "kappa": 1,
+          "mean_three_T2_suffix_conditional_tvs": 0.14284071603896106,
+          "objective": 0.11427257283116886,
+          "rho": 1,
+          "zeta": 0
+        },
+        "candidate_evaluations": 425,
+        "coordinate_scales": [
+          1,
+          0.5,
+          0.25,
+          0.125
+        ],
+        "dimension": 7,
+        "fixed_frozen_partner_mapping": {
+          "T1_full_record_tv": 0,
+          "alpha": 1,
+          "beta": 1,
+          "epsilon": 0,
+          "eta": 0,
+          "kappa": 1,
+          "mean_three_T2_suffix_conditional_tvs": 0.14284071603896106,
+          "objective": 0.11427257283116886,
+          "rho": 1,
+          "zeta": 0
+        },
+        "h4_restriction": "one identical homogeneous actor tuple; NO multiple H4 atoms",
+        "objective": "0.2 * TV(full 384-record T1 law) + 0.8/3 * sum TV(complete 384-record T2 suffix | one distinct t1 prefix)",
+        "parameter_bounds": {
+          "alpha": [
+            0,
+            1
+          ],
+          "beta": [
+            0.1,
+            10
+          ],
+          "epsilon": [
+            0,
+            0.5
+          ],
+          "eta": [
+            -3.3333333333333335,
+            2.6666666666666665
+          ],
+          "kappa": [
+            -4,
+            4
+          ],
+          "rho": [
+            0.1,
+            10
+          ],
+          "zeta": [
+            0,
+            1
+          ]
+        },
+        "parameters": [
+          "beta",
+          "epsilon",
+          "rho",
+          "eta",
+          "kappa",
+          "alpha",
+          "zeta"
+        ],
+        "policy": "A",
+        "prefixes": "three NON-ISOMORPHIC t1 records: random matching mu0/no fine/[1,0,1,0]; mu1/no fine/[1,0,0,0]; mu2/fine bits [1,0]/[1,1,0,0]",
+        "rival_family": "L",
+        "scope": "local deterministic pattern search over ONE-ATOM H4, not global one-atom infimum, not full 4-atom H4, not T2 full joint TV or exclusion certificate; positive residual proves nothing about attainable free-rival equality",
+        "starts": 3,
+        "sweeps_per_scale": 2,
+        "target": {
+          "beta": 1,
+          "epsilon": 0,
+          "eta": 0,
+          "kappa": 1,
+          "rho": 1
+        },
+        "target_self_match_objective": 0,
+        "truth_family": "C"
+      },
+      "N_to_M": {
+        "all_H4_M_A_full_law_tv_lower_bound": 0.11865363843605503,
+        "all_H4_M_max_half_fine_cooperation": 0.49375130175789483,
+        "best_grid_beta": 1,
+        "best_grid_epsilon": 0,
+        "bound_logic": "analytic event inequality valid for any M H4 law under A, independent of eta/rho and matching; no statistical test",
+        "candidate_evaluations": 2100,
+        "candidate_grid": "beta = 0.1,...,10.0 (100 values); epsilon = 0,0.025,...,0.5 (21 values)",
+        "grid_logic": "grid minimum is an attainable upper bound on continuous restricted-one-atom infimum, never a separation certificate",
+        "grid_min_T1_full_law_tv": 0.33386582682695076,
+        "h4_restriction": "one identical homogeneous actor tuple, no free actor types",
+        "policy": "A",
+        "rival_family": "M",
+        "target_beta": 4,
+        "target_epsilon": 0,
+        "target_nu": 0.75,
+        "truth_family": "N"
+      },
+      "policy": "A"
+    },
+    {
+      "C_to_L": {
+        "alpha_zeta_manifold_grid": "11 alpha points with zeta=0, because zeta unidentifiable at T2 under A0",
+        "best_local_one_atom_fit": {
+          "T1_full_record_tv": 0,
+          "alpha": 1,
+          "beta": 1,
+          "epsilon": 0,
+          "eta": 0,
+          "kappa": 1,
+          "mean_three_T2_suffix_conditional_tvs": 0.08985611391166858,
+          "objective": 0.07188489112933487,
+          "rho": 1,
+          "zeta": 0
+        },
+        "candidate_evaluations": 311,
+        "coordinate_scales": [
+          1,
+          0.5,
+          0.25,
+          0.125
+        ],
+        "dimension": 7,
+        "fixed_frozen_partner_mapping": {
+          "T1_full_record_tv": 0,
+          "alpha": 1,
+          "beta": 1,
+          "epsilon": 0,
+          "eta": 0,
+          "kappa": 1,
+          "mean_three_T2_suffix_conditional_tvs": 0.08985611391166858,
+          "objective": 0.07188489112933487,
+          "rho": 1,
+          "zeta": 0
+        },
+        "h4_restriction": "one identical homogeneous actor tuple; NO multiple H4 atoms",
+        "objective": "0.2 * TV(full 384-record T1 law) + 0.8/3 * sum TV(complete 384-record T2 suffix | one distinct t1 prefix)",
+        "parameter_bounds": {
+          "alpha": [
+            0,
+            1
+          ],
+          "beta": [
+            0.1,
+            10
+          ],
+          "epsilon": [
+            0,
+            0.5
+          ],
+          "eta": [
+            -3.3333333333333335,
+            2.6666666666666665
+          ],
+          "kappa": [
+            -4,
+            4
+          ],
+          "rho": [
+            0.1,
+            10
+          ],
+          "zeta": [
+            0,
+            1
+          ]
+        },
+        "parameters": [
+          "beta",
+          "epsilon",
+          "rho",
+          "eta",
+          "kappa",
+          "alpha",
+          "zeta"
+        ],
+        "policy": "A0",
+        "prefixes": "three NON-ISOMORPHIC t1 records: random mu0/no fine/[1,0,1,0]; mu1/no fine/[1,0,0,0]; mu2/no fine/[1,1,1,1]; zeta inert at T2 under A0",
+        "rival_family": "L",
+        "scope": "local deterministic pattern search over ONE-ATOM H4, not global one-atom infimum, not full 4-atom H4, not T2 full joint TV or exclusion certificate; positive residual proves nothing about attainable free-rival equality",
+        "starts": 3,
+        "sweeps_per_scale": 2,
+        "target": {
+          "beta": 1,
+          "epsilon": 0,
+          "eta": 0,
+          "kappa": 1,
+          "rho": 1
+        },
+        "target_self_match_objective": 0,
+        "truth_family": "C"
+      },
+      "N_to_M": {
+        "all_H4_M_A_full_law_tv_lower_bound": null,
+        "all_H4_M_max_half_fine_cooperation": 0.49375130175789483,
+        "best_grid_beta": 1,
+        "best_grid_epsilon": 0,
+        "bound_logic": "analytic event inequality valid for any M H4 law under A, independent of eta/rho and matching; no statistical test",
+        "candidate_evaluations": 2100,
+        "candidate_grid": "beta = 0.1,...,10.0 (100 values); epsilon = 0,0.025,...,0.5 (21 values)",
+        "grid_logic": "grid minimum is an attainable upper bound on continuous restricted-one-atom infimum, never a separation certificate",
+        "grid_min_T1_full_law_tv": 0,
+        "h4_restriction": "one identical homogeneous actor tuple, no free actor types",
+        "policy": "A0",
+        "rival_family": "M",
+        "target_beta": 4,
+        "target_epsilon": 0,
+        "target_nu": 0.75,
+        "truth_family": "N"
+      },
+      "policy": "A0"
+    }
+  ],
+  "status": "EXPLORATORY_NUMERICAL_NO_GLOBAL_H4_IDENTIFICATION",
+  "target_level": "one-atom homogeneous actor-iid H4 only",
+  "version": "restricted-H4-one-atom-free-rival-feasibility-v0.2-post-review",
+  "review_provenance": {
+    "amendment_commit": "9b4c257f4f1c97e38f6d8696808711b44f45cbd2",
+    "execution_workflow_sha": "6f755996ccc7e758352ba43158057158711fa855",
+    "execution_run_id": 40448588745,
+    "execution_url": "https://github.com/davletovb/social-emergence-lab/actions/runs/40448588745",
+    "artifact_id": 12709043959,
+    "artifact_zip_sha256": "4ddd9576d0ebd5204515923b8128ed9c290b00fd1344326fd45c5fedcf392011",
+    "raw_json_sha256": "a5ced2a183598072b640bbd458b0d1ca751b0847a61ddd3065ed053014528bd4",
+    "expires_at_utc": "2026-11-26T04:14:34Z",
+    "original_v01_retained": true,
+    "status": "EXPLORATORY_REVIEW_AMENDMENT_NOT_CERTIFIED"
+  }
+}
