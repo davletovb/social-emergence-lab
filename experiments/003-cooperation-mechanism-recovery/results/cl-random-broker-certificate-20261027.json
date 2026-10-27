@@ -1,0 +1,64 @@
+{
+  "analytic_exclusion": "The one-atom C truth with kappa=beta=1,epsilon=0 responds differently to partners with previous actions 0 and 1. For E=[1,0,1,0], P_C(B0)-P_C(B1)=P_C(E)*k*[sigmoid(-1)-sigmoid(0)] != 0. Therefore C truth is not representable by ANY L H4 law under A or A0 for T>=2.",
+  "analytic_identity": "Under z2=random and equal actor0 fine, mu2 is independent of ALL latent types and histories; L actor0 t2 response depends only on its previously updated belief, not current partner; therefore P_L(B0)=P_L(B1) for every legal H4 mixture.",
+  "claim_limits": "No classification of reverse L in C, no C/L disjointness, no full 15-pair completion, no frequentist error rate, no human validity.",
+  "model": "Experiment003-A2-v0.2.2",
+  "policies": [
+    {
+      "C_first_action_event_probability": 0.060056840862198896,
+      "C_joint_B0_probability": 0.001345981012039281,
+      "C_joint_B1_probability": 0.002502368369258287,
+      "C_signed_event_contrast": -0.0011563873572190062,
+      "TV_lower_bound_C_truth_vs_any_L_H4": 0.0005781936786095031,
+      "all_H4_L_exact_event_contrast": "0 by random-broker conditional-independence invariant, not by numerical optimization",
+      "numerical_C_event_contrast": -0.0011563873572190066,
+      "policy": "A",
+      "public_first_action_event": "a1=[1,0,1,0], marginalizing all other period-1 variables",
+      "sample_correlated_two_atom_L_contrast": 0,
+      "sample_correlated_two_atom_L_first_action_event_probability": 0.04291699639758311,
+      "scope": "positive structural nonmembership for this C truth vs ALL admissible L H4; does not prove general C/L disjointness or L not subset C",
+      "selected_C_truth": {
+        "G": "one atom, identical eta=0 for four actors",
+        "beta": 1,
+        "epsilon": 0,
+        "kappa": 1
+      },
+      "t2_conditioning": "z2=random, actor0 fine=0, a0_2=1, comparing mu2=0 (partner1) vs mu2=1 (partner2)"
+    },
+    {
+      "C_first_action_event_probability": 0.055226744748529843,
+      "C_joint_B0_probability": 0.004950919743435842,
+      "C_joint_B1_probability": 0.009204457458088306,
+      "C_signed_event_contrast": -0.004253537714652464,
+      "TV_lower_bound_C_truth_vs_any_L_H4": 0.002126768857326232,
+      "all_H4_L_exact_event_contrast": "0 by random-broker conditional-independence invariant, not by numerical optimization",
+      "numerical_C_event_contrast": -0.004253537714652464,
+      "policy": "A0",
+      "public_first_action_event": "a1=[1,0,1,0], marginalizing all other period-1 variables",
+      "sample_correlated_two_atom_L_contrast": 0,
+      "sample_correlated_two_atom_L_first_action_event_probability": 0.03275758208182439,
+      "scope": "positive structural nonmembership for this C truth vs ALL admissible L H4; does not prove general C/L disjointness or L not subset C",
+      "selected_C_truth": {
+        "G": "one atom, identical eta=0 for four actors",
+        "beta": 1,
+        "epsilon": 0,
+        "kappa": 1
+      },
+      "t2_conditioning": "z2=random, actor0 fine=0, a0_2=1, comparing mu2=0 (partner1) vs mu2=1 (partner2)"
+    }
+  ],
+  "status": "ANALYTIC_MODEL_LAW_WITNESS_NUMERICALLY_CHECKED_NOT_INDEPENDENT_P0",
+  "version": "cl-random-rematching-invariant-certificate-v0.1",
+  "provenance": {
+    "model_revision": "74d25d1bd3ee208a714da5f598457bbc7042d33b",
+    "source_revision": "2ce2572ab3f17ed9576fe214950f1e39de47450f",
+    "workflow_revision": "e1e15f268b1d50a27504267573b45d8e890a0352",
+    "workflow_run_id": 40476576980,
+    "workflow_url": "https://github.com/davletovb/social-emergence-lab/actions/runs/40476576980",
+    "artifact_id": 12721576499,
+    "archive_zip_sha256": "15ad845e805b1a82828083c0d13db8ade525841e0404d494e1fa6079b087825a",
+    "expiry_utc": "2026-11-26T08:53:03Z",
+    "executed_rust_tests": "3 passed; 0 failed",
+    "scientific_limit": "author-derived theorem, not independent P0 or calibrated inference"
+  }
+}
