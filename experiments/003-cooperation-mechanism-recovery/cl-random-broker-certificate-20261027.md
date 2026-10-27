@@ -68,3 +68,53 @@ Source `tools/exp003-exact/src/bin/cl_invariant.rs` re-derives the C first-event
 The argument must be independently scrutinized for conditioning, latent posterior selection, whether the random regime is indeed observed, dyad-fine support and payoff ordering, and the distinction between one-sided C⊄L and full 15-pair hierarchy classification. Preserve UNKNOWN for `L⊆C` and do not retroactively tick the remaining P0 items. A source-separated Python scalar check of `q,r,g,u,v,Δ` is useful numerical corroboration but cannot substitute for blinded reviewer provenance.
 
 **Scientific acceptance:** R-06 P0 remains open; the proof is a candidate for independent role-A review. It advances a *specific theorem about this synthetic model* beyond the v0.1/v0.2 local searches without implying human behavior.
+
+## 2026-10-27 — review-driven extension v0.2 (preserves original one-E certificate)
+
+The original derivation and bounds above remain a valid *one-event* C-not-L witness. In [PR #63's mathematical review](https://github.com/davletovb/social-emergence-lab/pull/63#pullrequestreview-5664605720), the reviewer observed that this random-regime observable invariant holds for **M, N, S, and R as well as L**. The broader statement is subject to fresh independent review, not silently backdated to the v0.1 calculation.
+
+### Family-wide random-regime invariant
+
+For every legal H4 representation in **each** of the five families `m∈{M,N,S,L,R}`, actor 0's conditional response at the start of period 2 depends on its own current fine and some function of **historical** and **latent** information, but **not the identity of its currently assigned period-2 partner**:
+
+- M: offset 0.
+- N: offset `ν_0`.
+- S: offset `δτ_0`; `τ_0` and `η_0` may be arbitrarily correlated under the joint H4 atom, but `z_2=random` ignores the induced broker valuation.
+- L: offset `κ_0 q_{0,2}`, where `q_{0,2}` was fixed after the first-period update.
+- R: offset `Q_{0,2}(1,f)-Q_{0,2}(0,f)`; this uses the **current fine context** and previously updated Q values, but does not inspect the new partner or new matching.
+
+Because `z_2=random` is independent of H4 latent types and the public past, `μ_2` is then fresh uniform and independent. The fine on actor 0's newly realized dyad is likewise independent and has the *same distribution* for `μ_2=0` and `μ_2=1` (actor 0 is in dyad 0 in both). Hence, **conditional on any first-period public action vector E**, the matching-conditioned joint event contrast `P_m(B_{0,E})-P_m(B_{1,E})=0` for every M/N/S/L/R H4 mixture, with **arbitrary ≤4 joint atoms** and legal common scalars. Conditioning on E changes the latent posterior, but does so identically for both *future* random matchings. No atom cap or independence of latent tuple coordinates is used in this argument.
+
+### A stronger witness by aggregating all 16 first-period action patterns
+
+For each complete t1 action vector `a` with `a_1≠a_2`, define `B_{j,a}` as above, with first-period actions `a`, t2 `z=random`, `μ=j`, actor 0's fine zero, and actor 0 cooperating. Define the **single measurable bounded function**
+
+`h = Σ_{a: a_1≠a_2} (a_1−a_2) [1_{B_{0,a}}−1_{B_{1,a}}]`.
+
+A realized history has exactly one first-period action vector and exactly one second-period matching; therefore **`|h|≤1`** and the total-variation bound `TV≥|E_C h−E_m h|/2` is valid. Every M/N/S/L/R law has `E_m h=0`.
+
+In the homogeneous C witness, actor 0 reacts to the newly assigned partner's t1 action, so for every `a` with `a_1≠a_2`, multiplying by `a_1−a_2` makes the contrast `+k_dΔ P_C(a_1=a)` where `Δ=σ(0)−σ(−1)` and `k_A=1/12, k_{A0}=1/3`. Summing all eight t1 action vectors with `a_1≠a_2` gives
+
+`TV(P_C^d,P_m^d) ≥ (k_dΔ/2) P_C^d(a_{1,1}≠a_{2,1})` for **each** `m∈{M,N,S,L,R}` (notation `a_{i,t}`: actor i's action in period t).
+
+Let `q=σ(−1/2)`, `r=σ(0)=1/2` and `p̄=(q+r)/2`. Under A0 the first-period action difference probability is `2q(1−q)`. Under A there are two matching types in which actors 1 and 2 are in **different** dyads (their assigned fines are independent) and one where they are in the **same** dyad (their fine is shared); thus
+
+`P_C^A(a_{1,1}≠a_{2,1})=(2/3)×2p̄(1−p̄)+(1/3)×[q(1−q)+r(1−r)]`.
+
+The numeric bounds are:
+
+| Policy | P_C(t1 actions of actors 1 and 2 differ) | TV lower bound versus **any** M/N/S/L/R H4 |
+|---|---:|---:|
+| A | 0.490002474801063 | **0.004717469806363266** |
+| A0 | 0.470007424403189 | **0.018099874571358386** |
+
+These are **stronger but still small** structural model-law bounds for *one C truth*, not test-power claims. They use eight first-period action events for **actor 0**. Summing analogous actor-level statistics over all four actors without ensuring the resulting function remains bounded would **not** justify a larger TV lower bound; an optimized multi-actor statistic is a separate, unperformed task.
+
+### Implications and limitations
+
+**Subject to independent review**, the proposed result strengthens to
+`𝓟_C^{d,T,H4} ⊄ 𝓟_m^{d,T,H4}` **for every `m∈{M,N,S,L,R}`, both d∈{A,A0}, and T≥2**, by the same selected C truth and all-H4 random-regime equality. Since M⊆C was already proved by a constructive embedding, the C/M relationship is one example of directional strict inclusion, not disjointness. It does **not** prove any reverse exclusion `𝓟_m⊄𝓟_C` for N/S/L/R, and it does not change the T=1 equivalence results.
+
+The Rust numerical sample checks cover two-atom examples of the five partner-independent families, but are **not** a proof of the universal law. The independent-formula Python C check now explicitly enumerates all public t1 matching/fine allocations and independently computes actor 0's response under each of the two current matchings; the Python L check computes both current matching cells separately. Both remain **same-author** checks, not isolated P0 submissions.
+
+**Provenance:** The original v0.1 mathematical certificate, runs and raw JSON remain preserved. The v0.2 extension must be associated with its own post-review execution and hashes, not retroactively assigned to the original v0.1 execution. R-06 statistical calibration, independent mathematical P0 and full 15-pair acceptance remain OPEN.
