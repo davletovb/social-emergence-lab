@@ -1,7 +1,7 @@
 {
   "analytic_exclusion": "The one-atom C truth with kappa=beta=1,epsilon=0 responds differently to partners with previous actions 0 and 1. For E=[1,0,1,0], P_C(B0)-P_C(B1)=P_C(E)*k*[sigmoid(-1)-sigmoid(0)] != 0. Therefore C truth is not representable by ANY L H4 law under A or A0 for T>=2.",
   "analytic_identity": "Under z2=random and equal actor0 fine, mu2 is independent of ALL latent types and histories; L actor0 t2 response depends only on its previously updated belief, not current partner; therefore P_L(B0)=P_L(B1) for every legal H4 mixture.",
-  "claim_limits": "No classification of reverse L in C, no C/L disjointness, no full 15-pair completion, no frequentist error rate, no human validity.",
+  "claim_limits": "The reverse proposition L ⊄ C has NOT been established; nor have N ⊄ C, S ⊄ C or R ⊄ C. No full 15-pair classification, family disjointness, confidence-set calibration, finite-sample power, or empirical human inference.",
   "model": "Experiment003-A2-v0.2.2",
   "policies": [
     {
