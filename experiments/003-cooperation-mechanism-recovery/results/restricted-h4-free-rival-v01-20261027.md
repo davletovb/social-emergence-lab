@@ -1,5 +1,7 @@
 # Experiment 003 — restricted H4 free-rival fitting: first feasibility result
 
+**Retrospective review correction (2026-10-27):** The v0.1 C/L three-prefix diagnostic unintentionally used *three isomorphic relabelings* of two mixed-action dyads, with no fines in any prefix. It effectively tested one conditional pattern three times; ζ was **completely inert** through T2. Moreover, the coordinate optimizer could stall at a nonsmooth exact-T1 match. Its positive residual and “no improvement” result therefore supply **no global, or even strong local, C/L exclusion evidence**. The values below are preserved as *historical original run results*, not silently replaced. A separate, amended v0.2 re-execution uses non-isomorphic histories, an A-fined prefix, and a T1-preserving α/ζ subspace search. See [v0.2 corrected report](restricted-h4-free-rival-v02-20261027.md).
+
 **Date:** 2026-10-27 UTC  
 **Model:** `Experiment003-A2-v0.2.2`, [v0.1 pre-execution protocol](../restricted-h4-rival-feasibility-protocol-20261027.md)  
 **Scientific status:** **EXPLORATORY / SAME-IMPLEMENTATION MODEL DIAGNOSTIC**. There is no global C/L H4 exclusion, independent free-H4 optimization, completed 15-pair classification, calibrated confidence set, or empirical human social-behavior result.
