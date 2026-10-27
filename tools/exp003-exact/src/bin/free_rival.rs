@@ -151,14 +151,19 @@ fn true_c(policy:e::Policy)->e::Society{
     let g=e::Globals{beta:1.0,epsilon:0.0,rho:1.0,delta:0.0,omega:0.0};
     homogeneous(e::Family::C,policy,g,e::Tuple::C{eta:0.0,kappa:1.0})
 }
-fn prefixes()->[e::PublicRecord;3]{
-    let actions=[[1,0,1,0],[0,1,1,0],[1,1,0,0]];
+// Post-review amendment v0.2: three NON-isomorphic first-period histories.
+// A: mixed (1,0)/(1,0); mixed (1,0)/(0,0); and fined mixed dyads.
+// A0: the first two plus an all-contribution event. Under A0 there are no
+// fines, so zeta is structurally inert at period 2 regardless of the prefix.
+fn prefixes(policy:e::Policy)->[e::PublicRecord;3]{
+    let actions=[[1,0,1,0],[1,0,0,0],[1,1,0,0]];
     std::array::from_fn(|i|{
-        let fine_bits=[0,0];
+        let fine_bits=if i==2 && policy==e::Policy::A {[1,0]}else{[0,0]};
+        let a=if i==2 && policy==e::Policy::A0 {[1,1,1,1]}else{actions[i]};
         e::PublicRecord{
             period:1,regime:e::Regime::Random,matching:i,
-            fine_bits,actions:actions[i],
-            payoffs:e::Society::payoff_for(i,fine_bits,actions[i])
+            fine_bits,actions:a,
+            payoffs:e::Society::payoff_for(i,fine_bits,a)
         }
     })
 }
@@ -178,7 +183,7 @@ fn reference_c(policy:e::Policy)->Reference{
     let c=true_c(policy);
     let t1=full_period(&c,1);
     assert!(normalize(&t1));
-    let suffixes=prefixes().map(|r|suffix_law(&c,r));
+    let suffixes=prefixes(policy).map(|r|suffix_law(&c,r));
     Reference{t1,suffixes}
 }
 fn conditional_objective(target:&Reference,rival:&e::Society)->(f64,f64,f64){
@@ -187,7 +192,7 @@ fn conditional_objective(target:&Reference,rival:&e::Society)->(f64,f64,f64){
     // search, but NOT a full T2 joint TV, likelihood, or inference statistic.
     let t1=tv(&target.t1,&full_period(rival,1));
     let mut mean_suffix=0.0;
-    for (pr,src) in prefixes().into_iter().zip(target.suffixes.iter()){
+    for (pr,src) in prefixes(rival.design.policy).into_iter().zip(target.suffixes.iter()){
         mean_suffix+=tv(src,&suffix_law(rival,pr))/3.0;
     }
     (0.2*t1+0.8*mean_suffix,t1,mean_suffix)
@@ -214,6 +219,25 @@ fn fit_l(policy:e::Policy)->(BestL,BestL,usize){
     let mut evals=0;
     let baseline=evaluate_l(&target,policy,init_map,&mut evals);
     let mut winner=baseline;
+    // Additional EXACT-T1-MATCH submanifold search. Keep beta=1,
+    // epsilon=0, kappa=1: all t1 action laws exactly match C for
+    // arbitrary alpha/zeta. Search along this manifold to avoid
+    // TV1's nonsmooth cusp trapping independent-coordinate moves.
+    // Under A0 zeta cannot affect the T2 selected law, so fix it to 0.
+    for ai in 0..=10 {
+        let z_count=if policy==e::Policy::A {11}else{1};
+        for zi in 0..z_count{
+            let alpha=ai as f64/10.0;
+            let zeta=zi as f64/10.0;
+            let candidate=evaluate_l(&target,policy,LParams{
+                alpha,zeta,..init_map
+            },&mut evals);
+            assert!(candidate.t1_tv<RUST_TOL);
+            if candidate.objective<winner.objective {
+                winner=candidate;
+            }
+        }
+    }
     for start in starts{
         let mut current=evaluate_l(&target,policy,start,&mut evals);
         // Coordinate pattern search with four decreasing step scales and two
@@ -258,8 +282,13 @@ fn c_vs_l(policy:e::Policy)->Value{
         "h4_restriction":"one identical homogeneous actor tuple; NO multiple H4 atoms",
         "target":{"beta":1.0,"epsilon":0.0,"rho":1.0,"eta":0.0,"kappa":1.0},
         "target_self_match_objective":self_match.0,
-        "prefixes":"three fixed positive-mass random/no-fine period-1 records, matchings 0,1,2 and actions [1,0,1,0], [0,1,1,0], [1,1,0,0]",
-        "objective":"0.2 * TV(full 384-record T1 law) + 0.8/3 * sum TV(complete 384-record T2 suffix | one fixed prefix)",
+        "prefixes":if policy==e::Policy::A {
+            "three NON-ISOMORPHIC t1 records: random matching mu0/no fine/[1,0,1,0]; mu1/no fine/[1,0,0,0]; mu2/fine bits [1,0]/[1,1,0,0]"
+        }else{
+            "three NON-ISOMORPHIC t1 records: random mu0/no fine/[1,0,1,0]; mu1/no fine/[1,0,0,0]; mu2/no fine/[1,1,1,1]; zeta inert at T2 under A0"
+        },
+        "objective":"0.2 * TV(full 384-record T1 law) + 0.8/3 * sum TV(complete 384-record T2 suffix | one distinct t1 prefix)",
+        "alpha_zeta_manifold_grid":if policy==e::Policy::A{"11x11 alpha/zeta, with beta=1 epsilon=0 kappa=1, exact T1 matching"}else{"11 alpha points with zeta=0, because zeta unidentifiable at T2 under A0"},
         "dimension":7,"parameters":["beta","epsilon","rho","eta","kappa","alpha","zeta"],
         "parameter_bounds":{"beta":[0.1,10.0],"epsilon":[0.0,0.5],"rho":[0.1,10.0],
             "eta":[-3.0-1.0/3.0,3.0-1.0/3.0],"kappa":[-4.0,4.0],
@@ -278,12 +307,12 @@ fn evaluate()->Value{
     }
     json!({
         "model":"Experiment003-A2-v0.2.2",
-        "version":"restricted-H4-one-atom-free-rival-feasibility-v0.1",
+        "version":"restricted-H4-one-atom-free-rival-feasibility-v0.2-post-review",
         "status":"EXPLORATORY_NUMERICAL_NO_GLOBAL_H4_IDENTIFICATION",
         "no_stochastic_draws":true,
         "target_level":"one-atom homogeneous actor-iid H4 only",
         "M_target_bound":"analytic public event lower bound for selected N truth valid versus ALL unrestricted M H4 under A",
-        "C_target_limit":"a three-prefix weighted conditional discrepancy and multistart bounded local search; no free-rival lower bound",
+        "C_target_limit":"three non-isomorphic T1 prefixes, fined history under A, exact T1 manifold alpha-zeta mesh plus local search; A0 zeta structurally inert through T2. No global free-rival lower bound",
         "policies":policies
     })
 }
@@ -300,7 +329,7 @@ mod tests{
             assert!(normalize(&q)&&normalize(&m));
             let count=q.iter().filter(|v|**v>0.0).count();
             assert_eq!(count,if policy==e::Policy::A{384}else{48});
-            for pr in prefixes(){
+            for pr in prefixes(policy){
                 assert!(probability(&c,pr)>0.0);
                 let law=suffix_law(&c,pr);assert!(normalize(&law));
             }
@@ -314,6 +343,34 @@ mod tests{
         assert!(best.tv+RUST_TOL>=lower);
         let (control,_) = scan_m_grid(e::Policy::A0);
         assert!(control.tv<RUST_TOL);
+    }
+    #[test]
+    fn prefixes_are_distinct_and_activate_fine_learning_only_under_a(){
+        let a=prefixes(e::Policy::A);
+        let null=prefixes(e::Policy::A0);
+        assert_eq!(a[0].fine_bits,[0,0]);
+        assert_eq!(a[1].fine_bits,[0,0]);
+        assert_eq!(a[2].fine_bits,[1,0]);
+        assert!(null.iter().all(|r|r.fine_bits==[0,0]));
+        assert_eq!(null[2].actions,[1,1,1,1]);
+        assert_eq!(a[1].actions,[1,0,0,0]);
+        // The first two are nonisomorphic as the number of contributions
+        // and the multiset of two dyad action compositions differ.
+        assert_ne!(a[0].actions.iter().sum::<u8>(),a[1].actions.iter().sum::<u8>());
+        // Relative to the same prior history, zeta is observable under A
+        // in this selected fined prefix, while it cannot affect an A0 T2
+        // law because the only prior fine is zero.
+        let mut p=LParams{beta:1.0,epsilon:0.0,rho:1.0,eta:0.0,
+            kappa:1.0,alpha:0.75,zeta:0.0};
+        let l0=l_candidate(e::Policy::A,p);
+        p.zeta=1.0;
+        let l1=l_candidate(e::Policy::A,p);
+        assert!(tv(&suffix_law(&l0,a[2]),&suffix_law(&l1,a[2]))>1e-4);
+        let n0=l_candidate(e::Policy::A0,LParams{zeta:0.0,..p});
+        let n1=l_candidate(e::Policy::A0,LParams{zeta:1.0,..p});
+        for r in null {
+            assert!(tv(&suffix_law(&n0,r),&suffix_law(&n1,r))<RUST_TOL);
+        }
     }
     #[test]
     fn one_atom_free_l_search_never_worse_than_proposed_fixed_mapping(){
