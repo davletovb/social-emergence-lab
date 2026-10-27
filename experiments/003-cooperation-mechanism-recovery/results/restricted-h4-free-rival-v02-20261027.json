@@ -243,5 +243,19 @@
     "expires_at_utc": "2026-11-26T04:14:34Z",
     "original_v01_retained": true,
     "status": "EXPLORATORY_REVIEW_AMENDMENT_NOT_CERTIFIED"
+  },
+  "data_access_policy": {
+    "purpose": "EXPLORATORY_AUDIT_LABELLED_RESULTS_ONLY",
+    "may_be_used_as_classifier_input": false,
+    "includes_known_truth": true,
+    "instruction": "Never ingest these truth-labelled optimizer diagnostics as unlabelled public histories or held-out classifier evaluation."
+  },
+  "review_regression": {
+    "run_id": 40448935380,
+    "url": "https://github.com/davletovb/social-emergence-lab/actions/runs/40448935380",
+    "rust_tests_passed": 4,
+    "python_tests_passed": 2,
+    "raw_result_reproduction_sha256": "a5ced2a183598072b640bbd458b0d1ca751b0847a61ddd3065ed053014528bd4",
+    "scientific_status": "SAME_AUTHOR_NOT_INDEPENDENT"
   }
 }
