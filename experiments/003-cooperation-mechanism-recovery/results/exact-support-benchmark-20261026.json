@@ -1,0 +1,98 @@
+{
+  "arithmetic": "exhaustive 384-category event enumeration with IEEE-754 f64 sigmoid/softmax; not exact symbolic/rational arithmetic",
+  "inference_limits": "No fitting of unconstrained competing H4 nuisances, no statistical calibration, no global pair lattice or achieved coverage claims",
+  "model": "Experiment003-A2-v0.2.2",
+  "no_stochastic_draws": true,
+  "status": "DETERMINISTIC_FINITE_SUPPORT_NUMERICAL_BENCHMARK_NOT_CONFIRMATORY",
+  "tested_policies": [
+    {
+      "C_L_rematching": {
+        "first_record_public_probability": 0.0023011143645220765,
+        "policy": "A",
+        "scope": "counterexample to alphaL=1, zeta=0, kappaL=kappaC parameter mapping, NOT a free-rival H4 family noninclusion proof",
+        "t2_actor0_cooperation_given_rematch_C": 0.5,
+        "t2_actor0_cooperation_given_rematch_L": 0.2689414213699951,
+        "t2_conditional_complete_record_tv_under_fixed_mapping": 0.13021565405157567,
+        "t2_conditional_max_record_difference": 0.007950147477603295
+      },
+      "M_N_fine": {
+        "half_fine_M_cooperate": 0.37754066879814546,
+        "half_fine_N_cooperate": 0.7310585786300049,
+        "logical_scope": "witness M is compatible with selected N at A0 T1; conditional half-fine refutes ALL M representations under A for this N truth; no finite-data power claim",
+        "policy": "A",
+        "t1_joint_tv_for_selected_M_vs_N": 0.33386582682695076,
+        "zero_fine_M_cooperate": 0.2689414213699951,
+        "zero_fine_N_cooperate": 0.2689414213699951
+      },
+      "nested_S_N_L_two_atom_H4": {
+        "H4_joint_atoms": 2,
+        "actor_assignments_enumerated": 16,
+        "policy": "A",
+        "scope": "complete finite-support numerical integration of one declared two-atom H4 example and all 384 possible next records; not the full unrestricted H4 law class",
+        "selected_t1_prefix_probability": 0.0006941543970427322,
+        "t1_max_absolute_difference_S_N_L": 0,
+        "t1_public_events": 384,
+        "t1_t2_joint_prefix_suffix_max_absolute_difference_S_N_L": 0,
+        "t2_public_suffixes_enumerated": 384
+      },
+      "policy": "A",
+      "t1_class_collapse": {
+        "policy": "A",
+        "scope": "chosen legal homogeneous witnesses; full H4 T1 class equalities follow separately from legal parameter maps",
+        "t1_C_N_L_max_absolute_difference": 0,
+        "t1_M_R_max_absolute_difference": 0
+      }
+    },
+    {
+      "C_L_rematching": {
+        "first_record_public_probability": 0.018408914916176612,
+        "policy": "A0",
+        "scope": "counterexample to alphaL=1, zeta=0, kappaL=kappaC parameter mapping, NOT a free-rival H4 family noninclusion proof",
+        "t2_actor0_cooperation_given_rematch_C": 0.5,
+        "t2_actor0_cooperation_given_rematch_L": 0.2689414213699951,
+        "t2_conditional_complete_record_tv_under_fixed_mapping": 0.11552928931500243,
+        "t2_conditional_max_record_difference": 0.03850976310500081
+      },
+      "M_N_fine": {
+        "half_fine_M_cooperate": 0.37754066879814546,
+        "half_fine_N_cooperate": 0.7310585786300049,
+        "logical_scope": "witness M is compatible with selected N at A0 T1; conditional half-fine refutes ALL M representations under A for this N truth; no finite-data power claim",
+        "policy": "A0",
+        "t1_joint_tv_for_selected_M_vs_N": 0,
+        "zero_fine_M_cooperate": 0.2689414213699951,
+        "zero_fine_N_cooperate": 0.2689414213699951
+      },
+      "nested_S_N_L_two_atom_H4": {
+        "H4_joint_atoms": 2,
+        "actor_assignments_enumerated": 16,
+        "policy": "A0",
+        "scope": "complete finite-support numerical integration of one declared two-atom H4 example and all 384 possible next records; not the full unrestricted H4 law class",
+        "selected_t1_prefix_probability": 0.0023487305203184652,
+        "t1_max_absolute_difference_S_N_L": 0,
+        "t1_public_events": 384,
+        "t1_t2_joint_prefix_suffix_max_absolute_difference_S_N_L": 0,
+        "t2_public_suffixes_enumerated": 384
+      },
+      "policy": "A0",
+      "t1_class_collapse": {
+        "policy": "A0",
+        "scope": "chosen legal homogeneous witnesses; full H4 T1 class equalities follow separately from legal parameter maps",
+        "t1_C_N_L_max_absolute_difference": 0,
+        "t1_M_R_max_absolute_difference": 0
+      }
+    }
+  ],
+  "provenance": {
+    "execution_url": "https://github.com/davletovb/social-emergence-lab/actions/runs/40376577546",
+    "execution_sha": "2293b57e943cc826635d9804f5c12c8217b57ab2",
+    "artifact_id": 12675655142,
+    "artifact_zip_sha256": "127193ef3ce8ab4a0de9cc4d51a555e3301f02948e798fd59c2dbcb19396960a",
+    "artifact_expiration_utc": "2026-11-25T18:19:03Z",
+    "tests_passed": 3
+  },
+  "data_access_policy": {
+    "purpose": "AUDIT_WITNESS_RESULT_NOT_CLASSIFIER_DATA",
+    "may_be_used_as_classifier_input": false,
+    "explanation": "The report contains constructed truth-family labels, exact model comparisons, parameter mappings and synthetic witnesses. Never feed these records to a mechanism classifier, model fitter or held-out validation."
+  }
+}
