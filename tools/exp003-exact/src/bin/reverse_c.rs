@@ -58,7 +58,7 @@ fn verify(policy:e::Policy)->serde_json::Value {
     // implementation's transition ordering. Do not call T3 minimal.
     let a2=record(2,1,[1,0,1,0]);
     let mass2=s.joint_action_probability(1,[0,0],a2.actions);
-    assert!((mass2-.25*q*(1.0-q)).abs()<1e-14);
+    assert!((mass2-0.25*q*(1.0-q)).abs()<1e-14);
     assert_eq!(a2.payoffs,[1.0,0.0,1.0,0.0]);
     s.apply(AgentId(0),a2).expect("public t2 record");
     assert!((s.cooperation(0,0,0)-sigma(1.0)).abs()<1e-14);
