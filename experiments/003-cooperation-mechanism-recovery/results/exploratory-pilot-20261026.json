@@ -1,0 +1,243 @@
+{
+  "cell_summary": {
+    "C/A": {
+      "actor_periods": 32,
+      "choice_periods": 4,
+      "cooperation_rate": 0.3125,
+      "cooperations": 10,
+      "dyads": 16,
+      "half_fine_dyads": 7,
+      "mean_payoff_per_actor_period": 0.1875,
+      "random_periods": 4,
+      "societies": 2,
+      "society_cooperation_rates": [
+        0.3125,
+        0.3125
+      ]
+    },
+    "C/A0": {
+      "actor_periods": 32,
+      "choice_periods": 0,
+      "cooperation_rate": 0.125,
+      "cooperations": 4,
+      "dyads": 16,
+      "half_fine_dyads": 0,
+      "mean_payoff_per_actor_period": 0.125,
+      "random_periods": 8,
+      "societies": 2,
+      "society_cooperation_rates": [
+        0.125,
+        0.125
+      ]
+    },
+    "L/A": {
+      "actor_periods": 32,
+      "choice_periods": 4,
+      "cooperation_rate": 0.375,
+      "cooperations": 12,
+      "dyads": 16,
+      "half_fine_dyads": 12,
+      "mean_payoff_per_actor_period": 0.15625,
+      "random_periods": 4,
+      "societies": 2,
+      "society_cooperation_rates": [
+        0.3125,
+        0.4375
+      ]
+    },
+    "L/A0": {
+      "actor_periods": 32,
+      "choice_periods": 0,
+      "cooperation_rate": 0.125,
+      "cooperations": 4,
+      "dyads": 16,
+      "half_fine_dyads": 0,
+      "mean_payoff_per_actor_period": 0.125,
+      "random_periods": 8,
+      "societies": 2,
+      "society_cooperation_rates": [
+        0.1875,
+        0.0625
+      ]
+    },
+    "M/A": {
+      "actor_periods": 32,
+      "choice_periods": 4,
+      "cooperation_rate": 0.1875,
+      "cooperations": 6,
+      "dyads": 16,
+      "half_fine_dyads": 8,
+      "mean_payoff_per_actor_period": 0,
+      "random_periods": 4,
+      "societies": 2,
+      "society_cooperation_rates": [
+        0.1875,
+        0.1875
+      ]
+    },
+    "M/A0": {
+      "actor_periods": 32,
+      "choice_periods": 0,
+      "cooperation_rate": 0.1875,
+      "cooperations": 6,
+      "dyads": 16,
+      "half_fine_dyads": 0,
+      "mean_payoff_per_actor_period": 0.1875,
+      "random_periods": 8,
+      "societies": 2,
+      "society_cooperation_rates": [
+        0.1875,
+        0.1875
+      ]
+    },
+    "N/A": {
+      "actor_periods": 32,
+      "choice_periods": 2,
+      "cooperation_rate": 0.125,
+      "cooperations": 4,
+      "dyads": 16,
+      "half_fine_dyads": 9,
+      "mean_payoff_per_actor_period": -0.109375,
+      "random_periods": 6,
+      "societies": 2,
+      "society_cooperation_rates": [
+        0.0625,
+        0.1875
+      ]
+    },
+    "N/A0": {
+      "actor_periods": 32,
+      "choice_periods": 0,
+      "cooperation_rate": 0.125,
+      "cooperations": 4,
+      "dyads": 16,
+      "half_fine_dyads": 0,
+      "mean_payoff_per_actor_period": 0.125,
+      "random_periods": 8,
+      "societies": 2,
+      "society_cooperation_rates": [
+        0.1875,
+        0.0625
+      ]
+    },
+    "R/A": {
+      "actor_periods": 32,
+      "choice_periods": 3,
+      "cooperation_rate": 0.3125,
+      "cooperations": 10,
+      "dyads": 16,
+      "half_fine_dyads": 10,
+      "mean_payoff_per_actor_period": 0.125,
+      "random_periods": 5,
+      "societies": 2,
+      "society_cooperation_rates": [
+        0.4375,
+        0.1875
+      ]
+    },
+    "R/A0": {
+      "actor_periods": 32,
+      "choice_periods": 0,
+      "cooperation_rate": 0.15625,
+      "cooperations": 5,
+      "dyads": 16,
+      "half_fine_dyads": 0,
+      "mean_payoff_per_actor_period": 0.15625,
+      "random_periods": 8,
+      "societies": 2,
+      "society_cooperation_rates": [
+        0.1875,
+        0.125
+      ]
+    },
+    "S/A": {
+      "actor_periods": 32,
+      "choice_periods": 4,
+      "cooperation_rate": 0.34375,
+      "cooperations": 11,
+      "dyads": 16,
+      "half_fine_dyads": 12,
+      "mean_payoff_per_actor_period": 0.125,
+      "random_periods": 4,
+      "societies": 2,
+      "society_cooperation_rates": [
+        0.5625,
+        0.125
+      ]
+    },
+    "S/A0": {
+      "actor_periods": 32,
+      "choice_periods": 0,
+      "cooperation_rate": 0.15625,
+      "cooperations": 5,
+      "dyads": 16,
+      "half_fine_dyads": 0,
+      "mean_payoff_per_actor_period": 0.15625,
+      "random_periods": 8,
+      "societies": 2,
+      "society_cooperation_rates": [
+        0.1875,
+        0.125
+      ]
+    }
+  },
+  "descriptive_cooperation_rate_A_minus_A0": {
+    "C": 0.1875,
+    "L": 0.25,
+    "M": 0,
+    "N": 0,
+    "R": 0.15625,
+    "S": 0.1875
+  },
+  "design": {
+    "actor_periods": 384,
+    "actors": 4,
+    "families": [
+      "M",
+      "N",
+      "C",
+      "S",
+      "L",
+      "R"
+    ],
+    "periods_per_society": 4,
+    "policies": [
+      "A",
+      "A0"
+    ],
+    "seed_end": 303023,
+    "seed_start": 303000,
+    "societies": 24,
+    "societies_per_family_policy": 2
+  },
+  "independent_identical_second_run": true,
+  "limitations": [
+    "Not independently fitted, pre-registered or calibrated",
+    "Only two independent societies per family-policy cell",
+    "A and A0 societies use different seeds; not matched forks",
+    "Family labels and latent states are audit-only, never classifier input",
+    "Descriptive differences cannot establish causal identification, statistical coverage or human behavior",
+    "Pilot data must not be reused as blind confirmatory data"
+  ],
+  "model": "Experiment003-A2-v0.2.2",
+  "status": "EXPLORATORY_SYNTHETIC_NOT_CONFIRMATORY",
+  "archive": {
+    "run_id": 40373999633,
+    "artifact_id": 12674496041,
+    "retention_expires_utc": "2026-11-25T18:01:45Z",
+    "workflow_source_sha": "6e3c64fb400d34d9d0d74f5878880633a3878225",
+    "merged_model_sha": "fd96766d34f2c71e1b68e332ab3908eae5a304fd",
+    "artifact_zip_sha256": "90e53da34613456c12d176cff455f34dceb029fcc0e43950c36701896dd3e661",
+    "embedded_evidence_tar_sha256": "ab038c9133c4caff4e974d45f4a9c01a4912ece509a4676cc9fa28bd0dee8bee",
+    "public_history_audit_sha256": "e76305dbf493bae3963f8467059432ad39d9524ade2f37d8bf5451cf53620c56",
+    "experiment003_tests_passed": 10,
+    "verification": "Hiyal per-trial verify_setup, inspect_read_only, public-schema/payoff/policy audit, repeat-seed history equality"
+  },
+  "data_access_policy": {
+    "purpose": "AUDIT_SUMMARY_ONLY_NOT_CLASSIFIER_DATA",
+    "may_be_used_as_classifier_input": false,
+    "contains_outcome_group_labels": true,
+    "excluded": "All files in this results/ directory and private Hiyal truth-manifest.csv must be excluded from model selection/classifier training, validation and identification fitting; only public-only/ exports from run artifact have the six permitted observed fields.",
+    "removed_from_public_json": "24 per-society truth-labelled rows; retained exclusively in expiring, access-controlled evidence artifact"
+  }
+}
