@@ -1,0 +1,99 @@
+{
+  "model": "Experiment003-A2-v0.2.2 J/H4",
+  "version": "reverse-C-witness-review-amendment-v0.2-20261027",
+  "status": "AUTHOR_SIDE_ANALYTIC_WITNESS_AND_EXECUTED_CONFORMANCE_NOT_INDEPENDENT_P0",
+  "universal_C_conditional_cooperation_ceiling": 0.48751040626053,
+  "witness_directions_at_T_ge_2": [
+    "N not subset C",
+    "S not subset C",
+    "L not subset C",
+    "R not subset C"
+  ],
+  "R_selected_truth": {
+    "beta": 1,
+    "epsilon": 0,
+    "alpha_R": 1,
+    "lambda_A": 0,
+    "eta": 0,
+    "Q_at_t1": "all zero",
+    "aspiration_at_t1": 0
+  },
+  "R_public_T1": {
+    "regime": "Random",
+    "matching": "mu0=01|23",
+    "fine_bits": [
+      0,
+      0
+    ],
+    "actions": [
+      1,
+      1,
+      0,
+      0
+    ],
+    "actor0_payoff": 1,
+    "actor0_Q_1_0_after_t1": 1
+  },
+  "T2_condition": "t2 random mu1=02|13, actor0 fine0, actor2 previous action0; t2 actor0 contributes",
+  "R_T2": [
+    {
+      "policy": "A",
+      "condition_probability": 0.00013422309823941982,
+      "truth_t2_cooperation": 0.5,
+      "TV_lower_bound_vs_any_C_H4": 0.0000016763919674633255
+    },
+    {
+      "policy": "A0",
+      "condition_probability": 0.004295139143661434,
+      "truth_t2_cooperation": 0.5,
+      "TV_lower_bound_vs_any_C_H4": 0.000053644542958826415
+    }
+  ],
+  "historic_R_T3_nonminimal": [
+    {
+      "policy": "A",
+      "TV_lower_bound_vs_any_C_H4": 6.69500298067994e-8
+    },
+    {
+      "policy": "A0",
+      "TV_lower_bound_vs_any_C_H4": 0.000017139207630540646
+    }
+  ],
+  "N_S_L_T2": [
+    {
+      "policy": "A",
+      "TV_lower_bound_vs_any_C_H4": 0.010905257882751379
+    },
+    {
+      "policy": "A0",
+      "TV_lower_bound_vs_any_C_H4": 0.050948707375938415
+    }
+  ],
+  "variational_dual": "h=1_B-c*1_D with oscillation 1; TV(P,Q) >= E_P h-E_Q h when E_Q h<=0; /2 bound remains valid but weaker",
+  "implementation_verification": {
+    "initial_failed_run": "https://github.com/davletovb/social-emergence-lab/actions/runs/40503052644",
+    "initial_failure": "Rust float syntax .25 instead of 0.25, pre-test compile error corrected",
+    "reviewed_success_url": "https://github.com/davletovb/social-emergence-lab/actions/runs/40503316441",
+    "runner_head_commit": "141993d03a6f23922d5692b34f4e96b4b48ab128",
+    "rust_unit_tests_passed": 3,
+    "python_unit_tests_passed": 6,
+    "cross_language_selected_event_values_matched": true,
+    "executed_python_raw_json_sha256": "c5467b3688b976e2402b0317ed4b924dec556541601f852d4c7e8e6fed7816",
+    "executed_rust_raw_json_sha256": "40e4126844ff6250ba7ab5424c54701ad9b03f94a701ed00e3d1033b622e5cf9",
+    "artifact_id": 12732939351,
+    "evidence_zip_sha256": "294a1e8833e7b1646bed5ebfd693fc6cf98b13ea494180ff25afaeb0377fba4b",
+    "artifact_expiration_utc": "2026-11-26T12:23:34Z"
+  },
+  "data_access_policy": {
+    "audit_only": true,
+    "truth_labelled": true,
+    "usable_as_classifier_input": false
+  },
+  "limitations": [
+    "No independent source-isolated mathematical review",
+    "No full 15-pair global H4 classification",
+    "No calibrated inference or 95% coverage",
+    "No empirical human sociology claim",
+    "Historic v0.1 T3 results retained, do not overwrite"
+  ]
+}

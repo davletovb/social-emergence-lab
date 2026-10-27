@@ -1,0 +1,116 @@
+{
+  "N_S_L": [
+    {
+      "C_supremum": 0.48751040626053,
+      "TV_lower_bound_truth_vs_any_C_H4": 0.010905257882751379,
+      "family_witnesses": {
+        "L": {
+          "alpha": 0,
+          "kappa": 3,
+          "zeta": 0
+        },
+        "N": {
+          "nu": 1.5
+        },
+        "S": {
+          "delta": 1.5,
+          "omega": 0,
+          "tau": 1
+        }
+      },
+      "horizon_minimum": 2,
+      "model": "selected homogeneous N(beta=1,eps=0,nu=1.5), identically embedded in S and L",
+      "policy": "A",
+      "public_condition_D_probability": 0.08081026127101756,
+      "truth_t1_actor_cooperation_probability": 0.6767589549159297,
+      "truth_t2_cooperation_if_partner_previous_defection": 0.6224593312018546
+    },
+    {
+      "C_supremum": 0.48751040626053,
+      "TV_lower_bound_truth_vs_any_C_H4": 0.050948707375938415,
+      "family_witnesses": {
+        "L": {
+          "alpha": 0,
+          "kappa": 3,
+          "zeta": 0
+        },
+        "N": {
+          "nu": 1.5
+        },
+        "S": {
+          "delta": 1.5,
+          "omega": 0,
+          "tau": 1
+        }
+      },
+      "horizon_minimum": 2,
+      "model": "selected homogeneous N(beta=1,eps=0,nu=1.5), identically embedded in S and L",
+      "policy": "A0",
+      "public_condition_D_probability": 0.3775406687981454,
+      "truth_t1_actor_cooperation_probability": 0.6224593312018546,
+      "truth_t2_cooperation_if_partner_previous_defection": 0.6224593312018546
+    }
+  ],
+  "R": [
+    {
+      "C_supremum": 0.48751040626053,
+      "Q_actor0_coop_fine0_at_t3": 2,
+      "TV_lower_bound_truth_vs_any_C_H4": 6.69500298067994e-8,
+      "horizon_minimum": 3,
+      "model": "selected homogeneous R(beta=1,eps=0,alpha_R=1,lambda_A=0)",
+      "policy": "A",
+      "public_condition_D_probability": 2.748944044845174e-7,
+      "public_path": "t1 random mu0 fines00 actions1100; t2 random mu1 fines00 actions1010; t3 random mu0 actor0 fine0 (a1,t2=0)",
+      "t1_action_mass": 0.03865625229295291,
+      "t2_action_mass": 0.04915298331037046,
+      "truth_t3_cooperation_if_current_partner_previous_defection": 0.7310585786300049
+    },
+    {
+      "C_supremum": 0.48751040626053,
+      "Q_actor0_coop_fine0_at_t3": 2,
+      "TV_lower_bound_truth_vs_any_C_H4": 0.000017139207630540646,
+      "horizon_minimum": 3,
+      "model": "selected homogeneous R(beta=1,eps=0,alpha_R=1,lambda_A=0)",
+      "policy": "A0",
+      "public_condition_D_probability": 0.00007037296754803645,
+      "public_path": "t1 random mu0 fines00 actions1100; t2 random mu1 fines00 actions1010; t3 random mu0 actor0 fine0 (a1,t2=0)",
+      "t1_action_mass": 0.03865625229295291,
+      "t2_action_mass": 0.04915298331037046,
+      "truth_t3_cooperation_if_current_partner_previous_defection": 0.7310585786300049
+    }
+  ],
+  "model": "Experiment003-A2-v0.2.2 J/H4",
+  "proof_scope": {
+    "C_ceiling": "0.25+0.5*sigmoid(-0.1), all H4 C at zero current fine and previous action of currently matched partner zero",
+    "unproved": [
+      "R not subset C at T=2",
+      "independent P0 approval or full 15-pair classification",
+      "95% H4 confidence-set coverage and finite-sample power",
+      "human sociological generalization"
+    ],
+    "witness_noninclusions": [
+      "N not subset C, A and A0, T>=2",
+      "S not subset C, via legal N law embedding, A and A0, T>=2",
+      "L not subset C, via legal N law embedding, A and A0, T>=2",
+      "R not subset C, via explicit R history, A and A0, T>=3"
+    ]
+  },
+  "status": "AUTHOR_SIDE_NORMATIVE_EQUATION_AUDIT_NOT_INDEPENDENT_P0",
+  "execution": {
+    "workflow_url": "https://github.com/davletovb/social-emergence-lab/actions/runs/40500484247",
+    "source_base_commit": "3e3ce3a0b90e5e79a5906de121d87c50a7b1be86",
+    "workflow_checkout_commit": "d63fa920759a003d08873e6cd60a566f909d0e95",
+    "artifact_id": 12732526550,
+    "artifact_zip_sha256": "4d4c545105172e6411581b163a27fdc913a29a1cbfbd3994bfc07b70d8211a58",
+    "raw_result_sha256": "4dd3bf279c53a29f8a5b05ebf207ecddb5e83cefe5a3ca7f27fe3d00a1bf2185",
+    "artifact_expires_utc": "2026-11-26T12:01:11Z",
+    "python_tests_passed": 4,
+    "python_tests_failed": 0,
+    "is_independent_p0": false
+  },
+  "data_access_policy": {
+    "audit_only": true,
+    "classifier_input": false,
+    "truth_labelled": true
+  }
+}
