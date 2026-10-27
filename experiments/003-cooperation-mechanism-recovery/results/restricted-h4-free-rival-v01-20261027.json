@@ -1,0 +1,246 @@
+{
+  "C_target_limit": "a three-prefix weighted conditional discrepancy and multistart bounded local search; no free-rival lower bound",
+  "M_target_bound": "analytic public event lower bound for selected N truth valid versus ALL unrestricted M H4 under A",
+  "model": "Experiment003-A2-v0.2.2",
+  "no_stochastic_draws": true,
+  "policies": [
+    {
+      "C_to_L": {
+        "best_local_one_atom_fit": {
+          "T1_full_record_tv": 0,
+          "alpha": 1,
+          "beta": 1,
+          "epsilon": 0,
+          "eta": 0,
+          "kappa": 1,
+          "mean_three_T2_suffix_conditional_tvs": 0.13021565405157565,
+          "objective": 0.10417252324126053,
+          "rho": 1,
+          "zeta": 0
+        },
+        "candidate_evaluations": 303,
+        "coordinate_scales": [
+          1,
+          0.5,
+          0.25,
+          0.125
+        ],
+        "dimension": 7,
+        "fixed_frozen_partner_mapping": {
+          "T1_full_record_tv": 0,
+          "alpha": 1,
+          "beta": 1,
+          "epsilon": 0,
+          "eta": 0,
+          "kappa": 1,
+          "mean_three_T2_suffix_conditional_tvs": 0.13021565405157565,
+          "objective": 0.10417252324126053,
+          "rho": 1,
+          "zeta": 0
+        },
+        "h4_restriction": "one identical homogeneous actor tuple; NO multiple H4 atoms",
+        "objective": "0.2 * TV(full 384-record T1 law) + 0.8/3 * sum TV(complete 384-record T2 suffix | one fixed prefix)",
+        "parameter_bounds": {
+          "alpha": [
+            0,
+            1
+          ],
+          "beta": [
+            0.1,
+            10
+          ],
+          "epsilon": [
+            0,
+            0.5
+          ],
+          "eta": [
+            -3.3333333333333335,
+            2.6666666666666665
+          ],
+          "kappa": [
+            -4,
+            4
+          ],
+          "rho": [
+            0.1,
+            10
+          ],
+          "zeta": [
+            0,
+            1
+          ]
+        },
+        "parameters": [
+          "beta",
+          "epsilon",
+          "rho",
+          "eta",
+          "kappa",
+          "alpha",
+          "zeta"
+        ],
+        "policy": "A",
+        "prefixes": "three fixed positive-mass random/no-fine period-1 records, matchings 0,1,2 and actions [1,0,1,0], [0,1,1,0], [1,1,0,0]",
+        "rival_family": "L",
+        "scope": "local deterministic pattern search over ONE-ATOM H4, not global one-atom infimum, not full 4-atom H4, not T2 full joint TV or exclusion certificate; positive residual proves nothing about attainable free-rival equality",
+        "starts": 3,
+        "sweeps_per_scale": 2,
+        "target": {
+          "beta": 1,
+          "epsilon": 0,
+          "eta": 0,
+          "kappa": 1,
+          "rho": 1
+        },
+        "target_self_match_objective": 0,
+        "truth_family": "C"
+      },
+      "N_to_M": {
+        "all_H4_M_A_full_law_tv_lower_bound": 0.11865363843605503,
+        "all_H4_M_max_half_fine_cooperation": 0.49375130175789483,
+        "best_grid_beta": 1,
+        "best_grid_epsilon": 0,
+        "bound_logic": "analytic event inequality valid for any M H4 law under A, independent of eta/rho and matching; no statistical test",
+        "candidate_evaluations": 2100,
+        "candidate_grid": "beta = 0.1,...,10.0 (100 values); epsilon = 0,0.025,...,0.5 (21 values)",
+        "grid_logic": "grid minimum is an attainable upper bound on continuous restricted-one-atom infimum, never a separation certificate",
+        "grid_min_T1_full_law_tv": 0.33386582682695076,
+        "h4_restriction": "one identical homogeneous actor tuple, no free actor types",
+        "policy": "A",
+        "rival_family": "M",
+        "target_beta": 4,
+        "target_epsilon": 0,
+        "target_nu": 0.75,
+        "truth_family": "N"
+      },
+      "policy": "A"
+    },
+    {
+      "C_to_L": {
+        "best_local_one_atom_fit": {
+          "T1_full_record_tv": 0,
+          "alpha": 1,
+          "beta": 1,
+          "epsilon": 0,
+          "eta": 0,
+          "kappa": 1,
+          "mean_three_T2_suffix_conditional_tvs": 0.11552928931500243,
+          "objective": 0.09242343145200195,
+          "rho": 1,
+          "zeta": 0
+        },
+        "candidate_evaluations": 300,
+        "coordinate_scales": [
+          1,
+          0.5,
+          0.25,
+          0.125
+        ],
+        "dimension": 7,
+        "fixed_frozen_partner_mapping": {
+          "T1_full_record_tv": 0,
+          "alpha": 1,
+          "beta": 1,
+          "epsilon": 0,
+          "eta": 0,
+          "kappa": 1,
+          "mean_three_T2_suffix_conditional_tvs": 0.11552928931500243,
+          "objective": 0.09242343145200195,
+          "rho": 1,
+          "zeta": 0
+        },
+        "h4_restriction": "one identical homogeneous actor tuple; NO multiple H4 atoms",
+        "objective": "0.2 * TV(full 384-record T1 law) + 0.8/3 * sum TV(complete 384-record T2 suffix | one fixed prefix)",
+        "parameter_bounds": {
+          "alpha": [
+            0,
+            1
+          ],
+          "beta": [
+            0.1,
+            10
+          ],
+          "epsilon": [
+            0,
+            0.5
+          ],
+          "eta": [
+            -3.3333333333333335,
+            2.6666666666666665
+          ],
+          "kappa": [
+            -4,
+            4
+          ],
+          "rho": [
+            0.1,
+            10
+          ],
+          "zeta": [
+            0,
+            1
+          ]
+        },
+        "parameters": [
+          "beta",
+          "epsilon",
+          "rho",
+          "eta",
+          "kappa",
+          "alpha",
+          "zeta"
+        ],
+        "policy": "A0",
+        "prefixes": "three fixed positive-mass random/no-fine period-1 records, matchings 0,1,2 and actions [1,0,1,0], [0,1,1,0], [1,1,0,0]",
+        "rival_family": "L",
+        "scope": "local deterministic pattern search over ONE-ATOM H4, not global one-atom infimum, not full 4-atom H4, not T2 full joint TV or exclusion certificate; positive residual proves nothing about attainable free-rival equality",
+        "starts": 3,
+        "sweeps_per_scale": 2,
+        "target": {
+          "beta": 1,
+          "epsilon": 0,
+          "eta": 0,
+          "kappa": 1,
+          "rho": 1
+        },
+        "target_self_match_objective": 0,
+        "truth_family": "C"
+      },
+      "N_to_M": {
+        "all_H4_M_A_full_law_tv_lower_bound": null,
+        "all_H4_M_max_half_fine_cooperation": 0.49375130175789483,
+        "best_grid_beta": 1,
+        "best_grid_epsilon": 0,
+        "bound_logic": "analytic event inequality valid for any M H4 law under A, independent of eta/rho and matching; no statistical test",
+        "candidate_evaluations": 2100,
+        "candidate_grid": "beta = 0.1,...,10.0 (100 values); epsilon = 0,0.025,...,0.5 (21 values)",
+        "grid_logic": "grid minimum is an attainable upper bound on continuous restricted-one-atom infimum, never a separation certificate",
+        "grid_min_T1_full_law_tv": 0,
+        "h4_restriction": "one identical homogeneous actor tuple, no free actor types",
+        "policy": "A0",
+        "rival_family": "M",
+        "target_beta": 4,
+        "target_epsilon": 0,
+        "target_nu": 0.75,
+        "truth_family": "N"
+      },
+      "policy": "A0"
+    }
+  ],
+  "status": "EXPLORATORY_NUMERICAL_NO_GLOBAL_H4_IDENTIFICATION",
+  "target_level": "one-atom homogeneous actor-iid H4 only",
+  "version": "restricted-H4-one-atom-free-rival-feasibility-v0.1",
+  "provenance": {
+    "model_commit": "8cebdbb646b0bd31caa679370bfb33805d5fc8da",
+    "executable_source_commit": "8386ff176bd5285e68b2597ab309f1235f591b41",
+    "workflow_commit": "61ba7ec250b3c9e2d95aec08388c65f0f296c11b",
+    "run_id": 40439330773,
+    "workflow_url": "https://github.com/davletovb/social-emergence-lab/actions/runs/40439330773",
+    "workflow_artifact_id": 12705991040,
+    "uploaded_zip_sha256": "703bf203c3a759dbad4acaa23a89508b6295e06b602b87938507c0345ec4f81c",
+    "executed_result_sha256": "470b764ad74e4b783aa2a55399bc95a140fc01ec8872329575a47e1269c534f5",
+    "artifact_expiration_utc": "2026-11-26T02:36:11Z",
+    "test_result": "3 passed, 0 failed",
+    "scope": "author-side exploratory deterministic finite grid + local search, no independent verification"
+  }
+}
