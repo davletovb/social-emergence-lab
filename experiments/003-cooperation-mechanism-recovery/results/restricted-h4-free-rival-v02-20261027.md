@@ -33,6 +33,10 @@ C/L objective definition remains the predeclared form `D=0.2 TV(complete first-p
 
 The original raw v0.2 JSON SHA-256 is `a5ced2a183598072b640bbd458b0d1ca751b0847a61ddd3065ed053014528bd4`; evidence artifact `exp003-restricted-h4-review-v02` ID `12709043959`, ZIP SHA-256 `4ddd9576d0ebd5204515923b8128ed9c290b00fd1344326fd45c5fedcf392011`, expires **2026-11-26 04:14:34 UTC**. The artifact contains original raw JSON, locked dependency graph and source SHA-256. Keep it outside GitHub Actions if long-term verification is required.
 
+### Final post-result regression check (separate from initial v0.2 run)
+
+The retrospectively pinned v0.2 Rust numeric outputs **were subsequently executed**, not merely written, in targeted [Actions run #40448935380](https://github.com/davletovb/social-emergence-lab/actions/runs/40448935380): **4 Rust tests passed**, including nonisomorphic-history/fine-effect checks and pinned v0.2 numeric output assertions; **2 tests in the exact committed Python file** `tools/exp003-exact/check_free_rival.py` also passed using only standard-library analytical/grid enumeration. The reviewed `cargo run --locked` reproduced the **same raw v0.2 JSON SHA-256 `a5ced2a183598072b640bbd458b0d1ca751b0847a61ddd3065ed053014528bd4`** and left the committed Cargo.lock unchanged. These are same-author cross-language numeric checks of N/M, **not** the independent P0 verifier or a C/L global bound.
+
 A same-author stdlib [Python analytic/grid check](../../../tools/exp003-exact/check_free_rival.py) separately expresses the homogeneous N/M T1 joint action law and analytic all-M event bound without importing the Rust implementation; it does not independently verify the C/L search or the full H4 population model.
 
 **R-06 P0 remains OPEN.** A meaningful next advance requires a rigorously **certified continuous nuisance search** or a provably valid model-law separating invariant, not a bigger local optimizer or the v0.1/v0.2 residuals.
