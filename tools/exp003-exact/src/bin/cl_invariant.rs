@@ -46,6 +46,33 @@ fn l_mixture(p:e::Policy)->e::Design {
     d.validate().unwrap();
     d
 }
+// Selected heterogeneous two-atom *conformance* examples for all five
+// partner-independent families; the universal result is analytic, not tested
+// by the choice of these two atoms.
+fn other_mixture(fam:e::Family,p:e::Policy)->e::Design {
+    if fam==e::Family::L{return l_mixture(p);}
+    assert!(fam!=e::Family::C);
+    let mut d=e::pilot_design(fam,p);
+    d.globals=e::Globals{beta:1.7,epsilon:0.08,rho:2.3,delta:0.7,omega:0.4};
+    d.atoms=vec![
+        e::Atom{weight:0.4,tuple:match fam {
+            e::Family::M=>e::Tuple::M{eta:0.1},
+            e::Family::N=>e::Tuple::N{eta:0.1,nu:0.7},
+            e::Family::S=>e::Tuple::S{eta:0.1,tau:1},
+            e::Family::R=>e::Tuple::R{eta:0.1,alpha:0.8,lambda:0.5},
+            _=>unreachable!(),
+        }},
+        e::Atom{weight:0.6,tuple:match fam {
+            e::Family::M=>e::Tuple::M{eta:-0.2},
+            e::Family::N=>e::Tuple::N{eta:-0.2,nu:-0.5},
+            e::Family::S=>e::Tuple::S{eta:-0.2,tau:-1},
+            e::Family::R=>e::Tuple::R{eta:-0.2,alpha:0.3,lambda:0.2},
+            _=>unreachable!(),
+        }},
+    ];
+    d.validate().unwrap();
+    d
+}
 #[derive(Clone,Copy,Debug)]
 struct EventResult{
     first_actions_probability:f64,
@@ -61,6 +88,9 @@ impl EventResult{
 // All other first- and second-period observations are marginalized.
 // The 1/2 event indicator contrast is a valid full-public-history TV bound.
 fn observable_event(d:&e::Design)->EventResult {
+    observable_event_for(d,E_ACTIONS)
+}
+fn observable_event_for(d:&e::Design,actions:[u8;4])->EventResult {
     d.validate().unwrap();
     assert!(d.atoms.len()<=2,"bounded numerical diagnostic only");
     let mut first=0.0;
@@ -87,12 +117,12 @@ fn observable_event(d:&e::Design)->EventResult {
                 let match_prob=pristine.broker(z)[mu];
                 for (bits,fine_mass) in fine_possibilities(d.policy){
                     let prior=regime_mass*match_prob*fine_mass
-                        *pristine.joint_action_probability(mu,bits,E_ACTIONS);
+                        *pristine.joint_action_probability(mu,bits,actions);
                     let mass=weight*prior;
                     first+=mass;
                     let pr=e::PublicRecord{
-                        period:1,regime:z,matching:mu,fine_bits:bits,actions:E_ACTIONS,
-                        payoffs:e::Society::payoff_for(mu,bits,E_ACTIONS)
+                        period:1,regime:z,matching:mu,fine_bits:bits,actions,
+                        payoffs:e::Society::payoff_for(mu,bits,actions)
                     };
                     let mut after=pristine.clone();
                     after.apply(AgentId(0),pr).unwrap();
@@ -136,12 +166,53 @@ fn analytic_c(p:e::Policy)->EventResult {
         matching1_joint_probability:prob_e*factor*coop1,
     }
 }
+// Combine ALL 16 disjoint first-period action patterns for actor0, instead
+// of fixing only E=[1,0,1,0]. Let h=sum_{a: a1!=a2}
+// (a1-a2) [1_{B0,a}-1_{B1,a}]. Since the first-period action vectors
+// partition the sample and mu0/mu1 are disjoint, |h|<=1. All M,N,S,L,R
+// still satisfy E[h]=0; the chosen C has a positive signed contrast.
+fn pooled_c(p:e::Policy)->(f64,f64,f64){
+    let mut computed=0.0;
+    let mut different=0.0;
+    let source=c_truth(p);
+    for mask in 0..16 {
+        let action=std::array::from_fn(|i|((mask>>i)&1) as u8);
+        if action[1]==action[2] {continue;}
+        let v=observable_event_for(&source,action);
+        different+=v.first_actions_probability;
+        computed+=(action[1] as f64-action[2] as f64)*v.contrast();
+    }
+    let q=sig(-0.5);
+    let r=0.5;
+    // At t1, C acts with q at zero fine and r at half fine.
+    // Matchings 0 and 1 place actors 1/2 in separate dyads, so their
+    // averaged fines give independent Bernoulli with pbar=(q+r)/2.
+    // Matching 2 pairs actors 1/2 in the SAME dyad, with common fine.
+    let exact_different=if p==e::Policy::A{
+        let pbar=(q+r)/2.0;
+        (2.0/3.0)*(2.0*pbar*(1.0-pbar))
+            +(1.0/3.0)*(q*(1.0-q)+r*(1.0-r))
+    }else{2.0*q*(1.0-q)};
+    let k=policy_z(p,e::Regime::Random)/3.0*
+        (if p==e::Policy::A {0.5}else{1.0});
+    let exact_signed=k*(sig(0.0)-sig(-1.0))*exact_different;
+    assert!((different-exact_different).abs()<TOL);
+    assert!((computed-exact_signed).abs()<TOL);
+    (different,computed,computed.abs()/2.0)
+}
 fn evaluate()->Value {
     let mut policies=Vec::new();
     for p in e::Policy::ALL{
         let analytic=analytic_c(p);
         let enumerated=observable_event(&c_truth(p));
         let lm=observable_event(&l_mixture(p));
+        let mut other_contrasts=serde_json::Map::new();
+        for fam in [e::Family::M,e::Family::N,e::Family::S,e::Family::L,e::Family::R]{
+            let sample=observable_event(&other_mixture(fam,p));
+            assert!(sample.contrast().abs()<TOL,"family {} violated invariant",fam.name());
+            other_contrasts.insert(fam.name().into(),json!(sample.contrast()));
+        }
+        let (p_different,pooled_signed,pooled_bound)=pooled_c(p);
         assert!((analytic.first_actions_probability-enumerated.first_actions_probability).abs()<TOL);
         assert!((analytic.matching0_joint_probability-enumerated.matching0_joint_probability).abs()<TOL);
         assert!((analytic.matching1_joint_probability-enumerated.matching1_joint_probability).abs()<TOL);
@@ -161,16 +232,20 @@ fn evaluate()->Value {
             "numerical_C_event_contrast":enumerated.contrast(),
             "sample_correlated_two_atom_L_contrast":lm.contrast(),
             "sample_correlated_two_atom_L_first_action_event_probability":lm.first_actions_probability,
-            "scope":"positive structural nonmembership for this C truth vs ALL admissible L H4; does not prove general C/L disjointness or L not subset C"
+            "C_probability_first_period_actor1_actor2_differ":p_different,
+            "C_aggregated_first_action_signed_contrast":pooled_signed,
+            "TV_lower_bound_C_truth_vs_any_M_N_S_L_R_H4_aggregated":pooled_bound,
+            "example_other_family_two_atom_contrasts":other_contrasts,
+            "scope":"candidate one-truth nonmembership C outside each of M,N,S,L,R; reverse inclusion, overall pair class relation and statistical inference remain open"
         }));
     }
     json!({
         "model":"Experiment003-A2-v0.2.2",
-        "version":"cl-random-rematching-invariant-certificate-v0.1",
+        "version":"cl-random-rematching-invariant-certificate-v0.2-review-extension",
         "status":"ANALYTIC_MODEL_LAW_WITNESS_NUMERICALLY_CHECKED_NOT_INDEPENDENT_P0",
-        "analytic_identity":"Under z2=random and equal actor0 fine, mu2 is independent of ALL latent types and histories; L actor0 t2 response depends only on its previously updated belief, not current partner; therefore P_L(B0)=P_L(B1) for every legal H4 mixture.",
+        "analytic_identity":"Under z2=random and equal actor0 fine, mu2 is independent of all latent parameters/history. Every M,N,S,L,R current action offset is independent of the newly assigned partner, so these families all satisfy P(B0)=P(B1) for arbitrary H4 mixtures.",
         "analytic_exclusion":"The one-atom C truth with kappa=beta=1,epsilon=0 responds differently to partners with previous actions 0 and 1. For E=[1,0,1,0], P_C(B0)-P_C(B1)=P_C(E)*k*[sigmoid(-1)-sigmoid(0)] != 0. Therefore C truth is not representable by ANY L H4 law under A or A0 for T>=2.",
-        "claim_limits":"No classification of reverse L in C, no C/L disjointness, no full 15-pair completion, no frequentist error rate, no human validity.",
+        "claim_limits":"Does not establish reverse direction L not subset C, or any other reverse inclusion, family disjointness, complete 15-pair classification, finite-sample calibration or human validity.",
         "policies":policies
     })
 }
@@ -197,6 +272,31 @@ mod tests{
             let r=observable_event(&d);
             assert!(r.first_actions_probability>0.);
             assert!(r.contrast().abs()<TOL);
+        }
+    }
+    #[test]
+    fn all_other_partner_independent_families_obey_random_regime_invariant(){
+        for p in e::Policy::ALL{
+            for fam in [e::Family::M,e::Family::N,e::Family::S,e::Family::L,e::Family::R]{
+                let d=other_mixture(fam,p);
+                assert_eq!(d.atoms.len(),2);
+                let event=observable_event(&d);
+                assert!(event.first_actions_probability>0.0);
+                assert!(event.contrast().abs()<TOL,"{}",fam.name());
+            }
+        }
+    }
+    #[test]
+    fn pooled_all_first_action_patterns_improve_bound(){
+        for (p,expected) in [
+            (e::Policy::A,0.004717469806363266),
+            (e::Policy::A0,0.018099874571358386),
+        ]{
+            let (p_different,signed,bound)=pooled_c(p);
+            assert!(p_different>0.45 && p_different<0.51);
+            assert!(signed>0.0);
+            assert!((bound-expected).abs()<1e-13);
+            assert!(bound>analytic_c(p).tv_lower_bound()*5.0);
         }
     }
     #[test]
