@@ -338,11 +338,16 @@ mod tests{
     #[test]
     fn analytic_all_m_h4_bound_is_a_valid_witness(){
         let (pm,lower)=universal_m_a_lower_bound();
-        assert!(pm<0.5 && lower>0.1);
+        assert!((pm-0.49375130175789483).abs()<RUST_TOL);
+        assert!((lower-0.11865363843605503).abs()<RUST_TOL);
         let (best,_) = scan_m_grid(e::Policy::A);
+        assert!((best.tv-0.33386582682695076).abs()<RUST_TOL);
         assert!(best.tv+RUST_TOL>=lower);
         let (control,_) = scan_m_grid(e::Policy::A0);
         assert!(control.tv<RUST_TOL);
+        // 0.3339 is an attainable grid UPPER bound on the true infimum,
+        // whereas 0.11865 is an analytic all-H4 M LOWER bound.
+        assert!(best.tv-lower>0.2);
     }
     #[test]
     fn prefixes_are_distinct_and_activate_fine_learning_only_under_a(){
@@ -379,6 +384,13 @@ mod tests{
             assert!(n<MAX_CANDIDATE_EVALS);
             assert!(best.objective<=baseline.objective+RUST_TOL);
             assert!(best.objective.is_finite());
+            // Pin v0.2 amended, nonisomorphic-prefix results separately
+            // from original (and superseded) v0.1 numerical values.
+            let (expected_obj,expected_evals)=if policy==e::Policy::A{
+                (0.11427257283116886,425)
+            }else{(0.07188489112933487,311)};
+            assert!((best.objective-expected_obj).abs()<RUST_TOL);
+            assert_eq!(n,expected_evals);
         }
     }
 }
