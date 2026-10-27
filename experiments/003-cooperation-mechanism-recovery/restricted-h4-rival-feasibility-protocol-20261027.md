@@ -1,6 +1,6 @@
 # Experiment 003 R-06 — restricted one-atom H4 rival-fit feasibility protocol
 
-**Version:** `restricted-H4-one-atom-free-rival-feasibility-v0.1` · **2026-10-27** · **registered before executable results**.
+**Version:** `restricted-H4-one-atom-free-rival-feasibility-v0.1` (historical first run), subsequently **review-amended to v0.2 before the separate v0.2 execution** · **2026-10-27**. The original protocol was committed 47 seconds after source code, but **before** the first executable results: this is a documented/frozen engineering design, not independent prospective scientific preregistration.
 
 **Status:** bounded exploratory numerical / engineering feasibility only. No claim of complete H4 optimization, certified confidence-set test, globally identified family, independent mathematical verification, or human-social observation.
 
@@ -40,3 +40,31 @@ All one-period public outcomes are enumerated from the 384 combinations of regim
 - Explicitly report which quantities are **analytic certified** (the M half-fine event inequality by an elementary proof), which are **complete finite grid** (M 2,100 candidate points), and which are **local heuristic** (L 7-dimensional coordinate optimization). Do not mark R-06's independent P0, global H4 inclusion results or valid 95% statistical coverage complete.
 
 **Next feasibility gate after results:** decide whether a genuinely certified *continuous* one-atom solver with interval/branch-and-bound bounds is computationally practical before advancing to free unknown two-to-four-atom H4. A proprietary black-box optimizer or a finite grid alone is not proof.
+
+## Post-review amendment v0.2 (2026-10-27; authored BEFORE revised execution)
+
+The first [v0.1 execution](results/restricted-h4-free-rival-v01-20261027.md) and its exact results remain immutable and honestly labelled. Reviewer [PR #62](https://github.com/davletovb/social-emergence-lab/pull/62) identified three real v0.1 limitations:
+
+1. The three first-period histories were all relabelings of the same two mixed pairs, so the repeated conditional TVs provided no additional structural contrast.
+2. Every prefix used zero fine, rendering `ζ` inert in this objective.
+3. Coordinate-wise movements away from exact `T1` matching could incur a nonsmooth TV penalty, obscuring opportunities along its exactly fitting parameter manifold.
+
+**Frozen replacement design for v0.2:** The source C truth, source N truth, fine/cooperation certificate, 2,100-point M grid and seven-dimensional general legal L parameter bounds are unchanged. The three *new* **non-isomorphic** C/L first-period records are all random-regime and have (matching, actions, fine bits) under intervention **A**:
+
+- `(μ0, [1,0,1,0], [0,0])`: two pairs of mixed actions.
+- `(μ1, [1,0,0,0], [0,0])`: one mixed and one all-defect dyad.
+- `(μ2, [1,1,0,0], [1,0])`: two mixed dyads, with a half-fine on the first dyad. This exercises `ζ` in the L belief update.
+
+Under control **A0**, the third event is `(μ2, [1,1,1,1], [0,0])`: two all-cooperation pairs. Under A0 there are **no fines in any T1 history**, so ζ cannot influence the T2 conditional laws *by construction*; it remains a free but uninformative structural coordinate in the general L family. The restricted α-grid therefore fixes ζ=0 for this A0 diagnostic, **not** as a scientific parameter exclusion.
+
+**Objective unchanged:** `D=0.2 TV(T1 complete law) + (0.8/3)∑ TV(T2 complete law | each of three specified prefixes)`; the new three conditionals are now non-redundant. Not full T2 joint law TV.
+
+**Nonsmooth-manifold guard:** In addition to the v0.1 starts and coordinate search, perform a deterministic **11×11 α/ζ grid** under A while fixing `β=1,ε=0,κ_L=1,η=0,ρ=1` (thus T1 exact match), and **11 α points** with ζ=0 under A0. These are additional *feasible*, non-certifying rival candidates, evaluated before the unchanged three multistart coordinate sweeps; keep the same hard cap of 2,000 evaluations per policy. Any improvement on the previous frozen-partner map is allowed, but a residual **cannot** establish a global one-atom or four-atom H4 noninclusion. Add a regression test establishing that the selected fined A prefix responds to ζ whereas A0 cannot.
+
+**Numerical assertions:** the published v0.1 grid minimum `0.33386582682695076` (A), `0` (A0), and the original v0.1 C/L residuals `0.10417252324126053` and `0.09242343145200195` are *historical* rather than valid predicted v0.2 C/L residuals. Pin the **v0.2** results to a declared tolerance only after the revised code has been executed; do not present retrospectively pinned values as preregistered targets.
+
+**Analytic M TV interval:** the all-M H4 event argument gives a **lower bound** 0.11865, whereas the finite M grid gives a feasible **upper bound** 0.33387 on the unknown continuous minimum. These are not estimates with a confidence interval: the bounds are a provably true structural lower bound and a candidate upper bound, leaving a current **gap ≈0.21521** for the selected N truth under A. Continuous/global optimization could reduce the upper bound without violating the lower bound.
+
+**Cross-language arithmetic:** a separately expressed standard-library Python check may validate the M event bound and the homogeneous M/N T1 full-record TV. Such same-author Python checks do **not** constitute independent P0 scientific verification. No Python cross-check of the full C/L seven-dimensional optimizer is implied.
+
+**Version separation:** Keep v0.1 report+JSON unchanged, create a distinct v0.2 report+JSON and separate one-off workflow artifact. Do not edit or replace past numerical evidence; no permanent/main GitHub Actions workflow. The scientific P0 acceptance gates remain open.
