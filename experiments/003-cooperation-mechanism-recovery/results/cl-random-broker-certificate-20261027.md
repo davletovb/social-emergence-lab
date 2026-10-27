@@ -1,5 +1,7 @@
 # Experiment 003 R-06 — C versus L random-rematching invariant: executed witness
 
+**Original v0.1 analysis; 2026-10-27 review extension:** See the [separate, executed v0.2 five-family and pooled-event report](cl-random-broker-certificate-v02-20261027.md). The original numeric results below remain unchanged. The new extension enlarges the *proposed* one-direction noninclusion from L to M/N/S/L/R and improves the TV lower bound using disjoint t1 action histories. Independent P0 review is still pending.
+
 **UTC:** 2026-10-27 · **Model:** A2 v0.2.2 J/H4 · **Status:** candidate author-derived *synthetic* law theorem and independent-formula numerical diagnostics, **not** an independently verified P0 theorem or statistical identification procedure.
 
 ## Mathematical claim and its precise strength
@@ -10,7 +12,7 @@ It is NOT a proof of **L⊄C** or C/L incomparability/disjointness, and not a st
 
 ## Executed bounded computation
 
-[One-off Rust Actions #40476576980](https://github.com/davletovb/social-emergence-lab/actions/runs/40476576980), source at `e1e15f268b1d50a27504267573b45d8e890a0352`, **3 Rust tests passed**. The executable enumerated all publicly allowed t1 regime/matching/fine combinations for fixed first actions `[1,0,1,0]` and checked joint observable contrasts for the chosen C truth, plus a 2-atom correlated L H4 population integrated across 16 actor type configurations. The tests compare independent analytic first-event C formulas against the Rust v0.2.2 model event masses.
+[One-off Rust Actions #40476576980](https://github.com/davletovb/social-emergence-lab/actions/runs/40476576980), executed checkout SHA `e1e15f268b1d50a27504267573b45d8e890a0352` (original Rust implementation introduced in `67ebffa3bf976a176de5717cf4e162b873b130e6`; mathematical document commit `2ce2572ab3f17ed9576fe214950f1e39de47450f`), **3 Rust tests passed**. The executable enumerated all publicly allowed t1 regime/matching/fine combinations for fixed first actions `[1,0,1,0]` and checked joint observable contrasts for the chosen C truth, plus a 2-atom correlated L H4 population integrated across 16 actor type configurations. The tests compare independent analytic first-event C formulas against the Rust v0.2.2 model event masses.
 
 [One-off stdlib Python Actions #40476930928](https://github.com/davletovb/social-emergence-lab/actions/runs/40476930928), **3 Python tests passed**, independently expressing the chosen C exponential formulas and the selected joint two-atom L mixture without importing the Rust model or its binary. This is a **separately expressed same-author arithmetic cross-check**, not an externally isolated Python P0 or exhaustive independent H4 implementation.
 
