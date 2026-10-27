@@ -1,0 +1,85 @@
+{
+  "analytic_exclusion": "The one-atom C truth with kappa=beta=1,epsilon=0 responds differently to partners with previous actions 0 and 1. For E=[1,0,1,0], P_C(B0)-P_C(B1)=P_C(E)*k*[sigmoid(-1)-sigmoid(0)] != 0. Therefore C truth is not representable by ANY L H4 law under A or A0 for T>=2.",
+  "analytic_identity": "Under z2=random and equal actor0 fine, mu2 is independent of all latent parameters/history. Every M,N,S,L,R current action offset is independent of the newly assigned partner, so these families all satisfy P(B0)=P(B1) for arbitrary H4 mixtures.",
+  "claim_limits": "The reverse proposition L ⊄ C has NOT been established; nor have N ⊄ C, S ⊄ C or R ⊄ C. No full 15-pair classification, family disjointness, confidence-set calibration, finite-sample power, or empirical human inference.",
+  "model": "Experiment003-A2-v0.2.2",
+  "policies": [
+    {
+      "C_aggregated_first_action_signed_contrast": 0.009434939612726536,
+      "C_first_action_event_probability": 0.060056840862198896,
+      "C_joint_B0_probability": 0.001345981012039281,
+      "C_joint_B1_probability": 0.002502368369258287,
+      "C_probability_first_period_actor1_actor2_differ": 0.4900024748010629,
+      "C_signed_event_contrast": -0.0011563873572190062,
+      "TV_lower_bound_C_truth_vs_any_L_H4": 0.0005781936786095031,
+      "TV_lower_bound_C_truth_vs_any_M_N_S_L_R_H4_aggregated": 0.004717469806363268,
+      "all_H4_L_exact_event_contrast": "0 by random-broker conditional-independence invariant, not by numerical optimization",
+      "example_other_family_two_atom_contrasts": {
+        "L": 0,
+        "M": 0,
+        "N": 0,
+        "R": 0,
+        "S": 0
+      },
+      "numerical_C_event_contrast": -0.0011563873572190066,
+      "policy": "A",
+      "public_first_action_event": "a1=[1,0,1,0], marginalizing all other period-1 variables",
+      "sample_correlated_two_atom_L_contrast": 0,
+      "sample_correlated_two_atom_L_first_action_event_probability": 0.04291699639758311,
+      "scope": "candidate one-truth nonmembership C outside each of M,N,S,L,R; reverse inclusion, overall pair class relation and statistical inference remain open",
+      "selected_C_truth": {
+        "G": "one atom, identical eta=0 for four actors",
+        "beta": 1,
+        "epsilon": 0,
+        "kappa": 1
+      },
+      "t2_conditioning": "z2=random, actor0 fine=0, a0_2=1, comparing mu2=0 (partner1) vs mu2=1 (partner2)"
+    },
+    {
+      "C_aggregated_first_action_signed_contrast": 0.036199749142716765,
+      "C_first_action_event_probability": 0.055226744748529843,
+      "C_joint_B0_probability": 0.004950919743435842,
+      "C_joint_B1_probability": 0.009204457458088306,
+      "C_probability_first_period_actor1_actor2_differ": 0.4700074244031889,
+      "C_signed_event_contrast": -0.004253537714652464,
+      "TV_lower_bound_C_truth_vs_any_L_H4": 0.002126768857326232,
+      "TV_lower_bound_C_truth_vs_any_M_N_S_L_R_H4_aggregated": 0.018099874571358383,
+      "all_H4_L_exact_event_contrast": "0 by random-broker conditional-independence invariant, not by numerical optimization",
+      "example_other_family_two_atom_contrasts": {
+        "L": 0,
+        "M": 0,
+        "N": 0,
+        "R": 0,
+        "S": 0
+      },
+      "numerical_C_event_contrast": -0.004253537714652464,
+      "policy": "A0",
+      "public_first_action_event": "a1=[1,0,1,0], marginalizing all other period-1 variables",
+      "sample_correlated_two_atom_L_contrast": 0,
+      "sample_correlated_two_atom_L_first_action_event_probability": 0.03275758208182439,
+      "scope": "candidate one-truth nonmembership C outside each of M,N,S,L,R; reverse inclusion, overall pair class relation and statistical inference remain open",
+      "selected_C_truth": {
+        "G": "one atom, identical eta=0 for four actors",
+        "beta": 1,
+        "epsilon": 0,
+        "kappa": 1
+      },
+      "t2_conditioning": "z2=random, actor0 fine=0, a0_2=1, comparing mu2=0 (partner1) vs mu2=1 (partner2)"
+    }
+  ],
+  "status": "ANALYTIC_MODEL_LAW_WITNESS_NUMERICALLY_CHECKED_NOT_INDEPENDENT_P0",
+  "version": "cl-random-rematching-invariant-certificate-v0.2-review-extension",
+  "review_provenance": {
+    "execution_url": "https://github.com/davletovb/social-emergence-lab/actions/runs/40479399016",
+    "execution_commit": "395f123ca4abf44981acb9048e6ca11392dd3de5",
+    "original_rust_execution_run": 40476576980,
+    "original_python_execution_run": 40476930928,
+    "artifact_id": 12721986906,
+    "zip_sha256": "afbd2b2a3d110de39929230a0174d3a6487bbe52c195bb1929c5a70e9d1afdd3",
+    "raw_executed_json_sha256": "14e99e792dca58d8c25bedceafc136af642aec23342692495e666808b788e01d",
+    "artifact_expiration_utc": "2026-11-26T09:15:57Z",
+    "rust_tests_passed": 5,
+    "python_tests_passed": 4,
+    "author_side_not_independent_P0": true
+  }
+}
