@@ -10,10 +10,10 @@ Evaluate from the frozen equations whether each existential family-law noninclus
 
 - N not contained in C for T≥2.
 - S and L not contained in C for T≥2.
-- R not contained in C for T≥3.
+- R not contained in C: **find the earliest horizon, starting at T=1**, at which a legal witness can exist, or mark it unknown.
 
 For each, provide a constructive lawful truth or counterexample, reason over the **entire** unknown H4 rival class, and check the observable event conditioning, parameter boundaries, matching/dyad-fine assignments, and reinforcement update order. Explicitly separate failure of inclusion from family disjointness and from the reverse inclusion question.
 
-If a bounded measurable event statistic is used, derive its TV normalization. Identify any known horizon exceptions, especially T=1 and R at T=2. A finite grid, chosen fixed-actor vector, or a synthetic simulation is not a substitute for all-H4 rival handling.
+If a bounded measurable event statistic is used, derive its TV normalization. Derive the **minimum admissible horizon** rather than assuming the author's originally claimed T≥3. Explicitly examine T=1, T=2, and T=3 for R as well as N/S/L, without reading author results before the isolated analysis. A finite grid, chosen fixed-actor vector, or a synthetic simulation is not a substitute for all-H4 rival handling.
 
 Deliver a self-contained proof/counterexample/UNKNOWN matrix with citations to exact normative equation sections and all material assumptions. Reconcile it against the author report only **after** the source-isolated mathematics is complete. Do not mark P0 or the 95% coverage gate complete on this checklist alone.
