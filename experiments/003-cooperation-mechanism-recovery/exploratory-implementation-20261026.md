@@ -1,5 +1,8 @@
 # Experiment 003 — exploratory implementation track (2026-10-26)
 
+> **Status update — 2026-10-28:** This file is an **as-written, pre-execution engineering record**. Its dated statements that the pilot had not yet launched and some checks had not run were true **at that point**, but were **superseded** by merged [PR #59](https://github.com/davletovb/social-emergence-lab/pull/59), the executed and replay-verified [24-society pilot](results/exploratory-pilot-20261026.md), [exact-support benchmark](results/exact-support-benchmark-20261026.md), [reviewed bounded free-rival checks](results/restricted-h4-free-rival-v02-20261027.md) and [subsequent H4 mathematical witness work](README.md). These later results are **exploratory and author-side**, not independent P0 certification. See [the current Experiment 003 overview](README.md) and [open acceptance tracker #65](https://github.com/davletovb/social-emergence-lab/issues/65) before treating any older “not yet performed” item as current.
+
+
 **Research version:** A2 v0.2.2 J/H4, inheriting the v0.2.1 six mechanisms. **Status:** engineering implementation, NOT a preregistered confirmatory experiment, complete independent verifier, model-recovery proof or empirically validated sociology. This explicit owner authorization supersedes the earlier *no implementation/pilot* restriction **for the separate exploratory track only**. Issue #50 R-06 scientific acceptance remains unchecked.
 
 ## Current branch
