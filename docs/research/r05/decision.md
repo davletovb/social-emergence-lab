@@ -1,5 +1,8 @@
 # R-05 decision — select A2 for Experiment 003
 
+> **Temporal scope:** This is the **original 2026-10-25 topic-choice record**, not a 2026-10-28 statement that no code or pilot has ever been authorized. Subsequent separate exploratory authorization produced a merged six-family Rust model, a bounded [24-society pilot](../../../experiments/003-cooperation-mechanism-recovery/results/exploratory-pilot-20261026.md) and author-side H4 studies. The **original R-05 screening exceptions were not cured retroactively**; independent scientific sign-off and confirmatory approval remain open under [Issue #65](https://github.com/davletovb/social-emergence-lab/issues/65). For the present chronology see [current status](../../current-research-status.md).
+
+
 **Decision date:** 2026-10-25 (Asia/Tashkent)  
 **Decision maker:** repository owner, explicitly in conversation: “Ok let’s pick A2 for the next experiment.”  
 **Choice:** **A2 — Cooperation Mechanism Identification and Model Recovery** (the cooperation variant of the mechanism-identifiability portfolio, tracked in [Issue #36](https://github.com/davletovb/social-emergence-lab/issues/36)).  
