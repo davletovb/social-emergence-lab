@@ -149,6 +149,36 @@ def selected_R_outside_L_under_A():
             "signed_fine_reversal_contrast":signed,
             "TV_lower_bound_vs_any_L_H4":signed/2}
 
+
+def independent_actor_moment_audit():
+    """The suggested N/S t1 Hankel test confuses iid actors and shared type."""
+    nus=(-1.5,0.0,1.5)
+    ps=[sig(nu-1) for nu in nus]
+    weights=[1/3]*3
+    latent=[sum(w*p**k for w,p in zip(weights,ps)) for k in range(5)]
+    observed=[]
+    for k in range(5):
+        # Each of k separate actors has an independent H4 latent draw.
+        observed.append(sum(math.prod(weights[i]*ps[i] for i in labels)
+                            for labels in itertools.product(range(3),repeat=k)))
+    def det3(ms):
+        a,b,c=([ms[i+j] for j in range(3)] for i in range(3))
+        return a[0]*(b[1]*c[2]-b[2]*c[1])-a[1]*(b[0]*c[2]-b[2]*c[0])+a[2]*(b[0]*c[1]-b[1]*c[0])
+    avg=observed[1]
+    beta_s=-math.log(avg/(1-avg))
+    assert .1<=beta_s<=10
+    return {
+        "truth":"N three equal iid actor atoms with eta=0, nu=-1.5,0,1.5; beta=1 eps=0",
+        "sampling":"independent actor draws from deterministic G, NOT a common latent type",
+        "latent_E_p_powers_unobserved":latent,
+        "observable_first_k_cooperators_no_fines":observed,
+        "latent_hankel_determinant":det3(latent),
+        "observable_hankel_determinant":det3(observed),
+        "A0_T1_exact_S_alias":"one S atom, delta=omega=eta=epsilon=0",
+        "A0_T1_exact_S_alias_beta":beta_s,
+        "scope":"the proposed cross-actor moment witness is invalid, no global N subset S claim"
+    }
+
 def evaluate():
     policies=[]
     for policy in ("A","A0"):
