@@ -291,23 +291,42 @@ class ObservableTests(unittest.TestCase):
         self.assertGreater(w["R_t2_zero_fine"],w["R_t2_half_fine"])
         self.assertAlmostEqual(w["TV_lower_bound_vs_any_L_H4"],
                                4.9310612526720534e-5,places=16)
-    def test_N_family_stationarity_under_arbitrary_latent_params(self):
-        # Arbitrary joint H4 ν/η correlation does not change this marginal
-        # identity when current matching uses publicly random regime.
-        atoms=[(.2,-1.2),(.3,.7),(.5,1.9)]
+    def test_three_family_two_period_H4_stationarity_by_full_law(self):
         for policy in ("A","A0"):
-            avg=sum(w*p_action(0,nu) for w,nu in atoms)
-            t1=time_event_weight(policy)*avg
-            t2=time_event_weight(policy)*avg
-            self.assertAlmostEqual(t1,t2,places=15)
-    def test_dual_statistics_bounded_and_sign_correct(self):
-        # t1-t2 contrast h in [-1,1] has oscillation 2; fine-cell
-        # contrast h similarly. Both yield TV >= contrast/2.
+            for family in ("M","N","S"):
+                with self.subTest(policy=policy,family=family):
+                    first,second=stationary_full_two_period_mass(policy,family)
+                    self.assertGreater(first,0)
+                    self.assertAlmostEqual(first,second,places=12)
+
+    def test_reviewer_Hankel_proposal_invalid_under_actor_iid_H4(self):
+        v=independent_actor_moment_audit()
+        self.assertGreater(v["latent_hankel_determinant"],5e-5)
+        self.assertAlmostEqual(v["observable_hankel_determinant"],0,places=14)
+        pbar=v["observable_first_k_cooperators_no_fines"][1]
+        self.assertAlmostEqual(v["observable_first_k_cooperators_no_fines"][2],pbar*pbar,places=14)
+        # With A0 at T1, neutral broker and no fines, this specific N
+        # three-type marginal law equals a lawful one-atom S(delta=0)
+        # with a different allowed beta, for EVERY 4-action vector.
+        beta_s=v["A0_T1_exact_S_alias_beta"]
+        for actions in itertools.product((0,1),repeat=4):
+            self.assertAlmostEqual(p_tuple([pbar]*4,actions),
+                                   p_tuple([sig(-beta_s)]*4,actions),places=14)
+
+    def test_dual_contrasts_as_public_disjoint_event_masses(self):
+        w=selected_R_outside_L_under_A()
+        m=w["P_first_public_H"]
+        e0=m*.5*w["R_t2_zero_fine"]
+        ehalf=m*.5*w["R_t2_half_fine"]
+        self.assertAlmostEqual(e0-ehalf,w["signed_fine_reversal_contrast"],places=15)
+        self.assertAlmostEqual((e0-ehalf)/2,w["TV_lower_bound_vs_any_L_H4"],places=15)
         for policy in ("A","A0"):
-            r=selected_R_outside_N_and_S(policy)
-            l=selected_L_outside_N_and_S(policy)
-            self.assertGreater(r,0)
-            self.assertGreater(l,0)
+            r1,r2=t1_enumerated(policy,"R")
+            l1,l2=t1_enumerated(policy,"L")
+            self.assertAlmostEqual(time_event_weight(policy)*(r1-r2)/2,
+                                   selected_R_outside_N_and_S(policy),places=14)
+            self.assertAlmostEqual(time_event_weight(policy)*(l2-l1)/2,
+                                   selected_L_outside_N_and_S(policy),places=14)
 
 if __name__=="__main__":
     import sys
