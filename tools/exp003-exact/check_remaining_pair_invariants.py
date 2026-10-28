@@ -99,8 +99,10 @@ def analytic_L_rates(policy):
     return p0,p2
 
 def time_event_weight(policy):
-    # P(z_t=random, actor0 current dyad fine zero), t=1 or t=2
-    return .25 if policy=="A" else 1.
+    # P(actor0 fine zero), marginalizing both current matching regimes.
+    # Action offset is partner-independent for M/N/S/R/L, and fines are
+    # assigned independently AFTER matching, so no z restriction is needed.
+    return .5 if policy=="A" else 1.
 
 def selected_N_outside_R(policy):
     # Every R truth at t1 has zero Q: p(no fine) <= c*.
@@ -109,8 +111,8 @@ def selected_N_outside_R(policy):
     return time_event_weight(policy)*(p-C0)
 
 def selected_R_outside_N_and_S(policy):
-    # For every N/S H4 rival, P(z_t=random, f0t=0, a0t=1)
-    # is exactly the same at t1 and t2, even after H4 averaging.
+    # For every N/S H4 rival, P(f0t=0, a0t=1) across both
+    # current regimes is identical at t1 and t2.
     t1,t2=t1_enumerated(policy,"R")
     ref1,ref2=analytic_R_rates(policy)
     assert abs(t1-ref1)<1e-12 and abs(t2-ref2)<1e-12
@@ -126,8 +128,9 @@ def selected_L_outside_N_and_S(policy):
     return time_event_weight(policy)*(t2-t1)/2
 
 def selected_R_outside_L_under_A():
-    # D=public t1 random/mu0/fines00/actions1100,
-    # t2 random/mu1, then compare fine actor0=0 vs fine actor0=1/2.
+    # H=public t1 random/mu0/fines00/actions1100;
+    # marginalize BOTH t2 matching regimes and all matchings while comparing
+    # independently assigned fine actor0=0 versus fine actor0=1/2.
     # Every L H4 has nondecreasing conditional p(f), since L belief
     # is fixed before t2 fine; current fine is independent of latent.
     # R with contextual Q after reward 1 has reversed fine effect.
@@ -137,8 +140,9 @@ def selected_R_outside_L_under_A():
     p0=p_R_actor0(state,0)
     ph=p_R_actor0(state,1)
     assert abs(p0-.5)<1e-14 and ph<p0
-    # t2 P(random)*P(mu1)*P(fine actor0 exact bit)=1/12.
-    signed=first_public_mass*(1/12)*(p0-ph)
+    # Current broker probabilities sum to one in either regime; conditional
+    # actor response uses only its OWN prior Q or L belief and current fine.
+    signed=first_public_mass*.5*(p0-ph)
     # two disjoint fine0/fine1 events, h=1_Bzero-1_Bhalf ∈[-1,1]
     return {"P_first_public_H":first_public_mass,
             "R_t2_zero_fine":p0,"R_t2_half_fine":ph,
@@ -152,7 +156,7 @@ def evaluate():
         L1,L2=t1_enumerated(policy,"L")
         policies.append({
             "policy":policy,
-            "t1_and_t2_random_zero_fine_event_base":time_event_weight(policy),
+            "t1_and_t2_zero_fine_event_base_all_regimes":time_event_weight(policy),
             "selected_N_vs_any_R_T1_TV_lower_bound":selected_N_outside_R(policy),
             "selected_R_zero_fine_t1_cooperation":R1,
             "selected_R_zero_fine_t2_cooperation":R2,
@@ -169,7 +173,8 @@ def evaluate():
         "universal_R_t1_zero_fine_cooperation_ceiling":C0,
         "policies":policies,
         "R_vs_L_A_only":selected_R_outside_L_under_A(),
-        "unknown":["R not subset L under A0","N not subset S (reverse S subset N)","L not subset R? resolved via N subset L and N not subset R","full all-15 inclusion map","statistical H4 coverage"],
+        "unknown":["R not subset L under A0","N not subset S: the proposed T1 Hankel argument is INVALID for actor-iid H4","full all-15 inclusion map","statistical H4 coverage"],
+        "N_three_type_T1_moment_audit":independent_actor_moment_audit(),
     }
 
 class ObservableTests(unittest.TestCase):
@@ -185,25 +190,25 @@ class ObservableTests(unittest.TestCase):
         for policy in ("A","A0"):
             lower=selected_N_outside_R(policy)
             self.assertGreater(lower,0)
-            self.assertAlmostEqual(lower,{"A":.03373723123533115,
+            self.assertAlmostEqual(lower,{"A":.0674744624706623,
                                           "A0":.1349489249413246}[policy],places=13)
     def test_R_noninclusion_in_N_S_after_one_update(self):
         for policy in ("A","A0"):
             lower=selected_R_outside_N_and_S(policy)
             self.assertGreater(lower,0)
-            self.assertAlmostEqual(lower,{"A":.003517539205663403,
+            self.assertAlmostEqual(lower,{"A":.007035078411326806,
                                           "A0":.028140313645307224}[policy],places=13)
     def test_L_noninclusion_in_N_S_after_learning(self):
         for policy in ("A","A0"):
             lower=selected_L_outside_N_and_S(policy)
             self.assertGreater(lower,0)
-            self.assertAlmostEqual(lower,{"A":.0075701106116867894,
+            self.assertAlmostEqual(lower,{"A":.015140221223373579,
                                           "A0":.01366867648617881}[policy],places=13)
     def test_R_current_fine_reversal_refutes_any_L_under_A(self):
         w=selected_R_outside_L_under_A()
         self.assertGreater(w["R_t2_zero_fine"],w["R_t2_half_fine"])
         self.assertAlmostEqual(w["TV_lower_bound_vs_any_L_H4"],
-                               8.218435421120089e-6,places=17)
+                               4.9310612526720534e-5,places=16)
     def test_N_family_stationarity_under_arbitrary_latent_params(self):
         # Arbitrary joint H4 ν/η correlation does not change this marginal
         # identity when current matching uses publicly random regime.
