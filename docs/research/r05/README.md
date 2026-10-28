@@ -1,6 +1,8 @@
 # R-05 research topic dossiers — source-bounded first pass
 
-**Created:** 2026-10-24 · **Issue:** [#37](https://github.com/davletovb/social-emergence-lab/issues/37) · **Status:** Six dossiers exist; **earlier Tier-1 shortlist retracted for uneven closest-predecessor scrutiny**; scientific screening gate **REOPENED**. **NO TOPIC SELECTED**, R-06 not approved.
+> **Current-status reconciliation — 2026-10-28:** The opening screening snapshot below describes R-05 **as it stood on 2026-10-24**, before the owner selected **A2 cooperation mechanism identification** for Experiment 003 on **2026-10-25**. The selection and its unresolved screening exceptions are recorded in [the R-05 owner decision](decision.md). The candidate v0.2.2 model, implemented Rust runner, 24-society exploratory pilot and later H4 analyses are summarized in the [current research status](../../current-research-status.md) and [Experiment 003 overview](../../../experiments/003-cooperation-mechanism-recovery/README.md). **R-05's incomplete original-source/scoring gates were not retrospectively passed**, and Experiment 003's scientific P0 remains open in [Issue #65](https://github.com/davletovb/social-emergence-lab/issues/65). Preserve the dated early dossier judgments as history, not as the repository's current topic status.
+
+**Created:** 2026-10-24 · **Issue:** [#37](https://github.com/davletovb/social-emergence-lab/issues/37) · **Status:** Six dossiers exist; **earlier Tier-1 shortlist retracted for uneven closest-predecessor scrutiny**; scientific screening gate **REOPENED**. **NO TOPIC HAD BEEN SELECTED AT THAT DATE**; R-06 was not approved.
 
 ## Artifacts
 - [Dossiers](dossiers/) — six equal-template narrow candidate briefs, first original-source scan with explicit tier/access notes and claim/evidence contracts.
@@ -8,7 +10,7 @@
 - [Qualitative disconfirmers](assumptions-and-disconfirmers.md) — transparency about prior-art challenges; written alongside/after source inspection, **not** fabricated numeric prescores.
 - [Correction record](review-corrections-20261024.md) — new published close precedents and why the initial shortlist was withdrawn.
 - [Status-blinded rescreen packet](blinded-screening-packet.md) — identical prompts/evidence with prior verdicts removed; **no second independent reader result is claimed**.
-- **Next stage (not yet produced):** `comparison.md` (deep original methods/rights check, six anchored rubric dimensions scored *only after* evidence, uncertainty/U, second blind scorer, sensitivity and ties), then `decision.md` (winner or “none ready”, prerequisites and owner's recorded approval).
+- **Then-next stage (subsequently produced with documented exceptions; see [decision](decision.md)):** `comparison.md` (deep original methods/rights check, six anchored rubric dimensions scored *only after* evidence, uncertainty/U, second blind scorer, sensitivity and ties), then `decision.md` (winner or “none ready”, prerequisites and owner's recorded approval).
 
 ## Reusable dossier template
 1. Narrow question, contribution type and **strongest permitted conclusion**.
@@ -20,7 +22,7 @@
 
 All six have the same *structure*, but the actual original articles accessible differ: no claim of identical research depth or that abstract checks equal full peer-reviewed source audits. No Github Actions or simulation runs used to create this first pass.
 
-## Required corrected next gate
+## Required corrected next gate (historical, before the 2026-10-25 owner-choice exception)
 
 Do not treat six written files as six source-complete scientific dossiers. Finish an **equally demanding closest-original-study comparison** for all topics, obtain the independent dossier-only rescreen and document source uncertainty. The previous provisional Tier-2 trio (inequality, hidden consensus, gatekeeping) is **withdrawn**. Only then issue a new shortlist of **up to three narrow questions**, proceed to fuller Tier-2 source verification, 0–3 scores, owner decision or “none ready.”
 
