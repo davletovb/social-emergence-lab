@@ -207,6 +207,58 @@ def evaluate():
         "N_three_type_T1_moment_audit":independent_actor_moment_audit(),
     }
 
+
+def stationary_full_two_period_mass(policy, family):
+    """Numerically integrate iid H4, T1 J law, t2 choice broker, fine0 event.
+
+    Target N/S/M mechanisms have fixed actor offsets and an actor-level
+    matching-appraisal nuisance that may correlate with action preference.
+    """
+    atoms={
+        "M":[(.4,-.9,0.),(.6,.4,0.)],
+        "N":[(.25,-.8,-1.1),(.75,.7,1.5)],
+        "S":[(.4,-.6,1.),(.6,.4,-1.)],
+    }[family]
+    beta,eps,rho,delta,omega=1.7,.08,2.3,.8,.7
+    fine_states=((0,0),) if policy=="A0" else tuple(itertools.product((0,1),repeat=2))
+    regimes=(("random",1.),) if policy=="A0" else (("random",.5),("choice",.5))
+    def offset(a):
+        return 0 if family=="M" else (a[2] if family=="N" else delta*a[2])
+    def chance(f,o):
+        return eps/2+(1-eps)*sig(beta*(f-1+o))
+    def matching_broker(actor_types,prior_actions):
+        weights=[]
+        for pairs in PAIRS:
+            w=0.
+            for i,j in pairs:
+                ci=1/3+actor_types[i][1]+(omega*actor_types[i][2] if family=="S" else 0)
+                cj=1/3+actor_types[j][1]+(omega*actor_types[j][2] if family=="S" else 0)
+                w+=min(sig(ci*(2*prior_actions[j]-1)),sig(cj*(2*prior_actions[i]-1)))
+            weights.append(math.exp(rho*w))
+        z=sum(weights)
+        return [v/z for v in weights]
+    first=second=mass_check=0.
+    for types in itertools.product(range(len(atoms)),repeat=4):
+        actor_types=[atoms[j] for j in types]
+        latent_mass=math.prod(a[0] for a in actor_types)
+        chance0=chance(0,offset(actor_types[0]))
+        for mu in range(3):
+            for fines in fine_states:
+                probabilities=[chance(fine_amount(mu,fines,i),offset(actor_types[i])) for i in range(4)]
+                for actions in itertools.product((0,1),repeat=4):
+                    mass=latent_mass*p_tuple(probabilities,actions)/(3*len(fine_states))
+                    mass_check+=mass
+                    if fines[0]==0 and actions[0]==1:
+                        first+=mass
+                    for z,z_mass in regimes:
+                        broker=[1/3]*3 if z=="random" else matching_broker(actor_types,actions)
+                        for mu2,p_mu in enumerate(broker):
+                            # New fine draw after matching. Actor0's current
+                            # zero-fine cooperation uses fixed type, not mu2.
+                            second+=mass*z_mass*p_mu*(.5 if policy=="A" else 1.)*chance0
+    assert abs(mass_check-1)<1e-11
+    return first,second
+
 class ObservableTests(unittest.TestCase):
     def test_complete_t1_law_enumeration_and_analytic_close(self):
         for policy in ("A","A0"):
