@@ -59,6 +59,10 @@ def p_L_actor0(belief,finebit):
     return p_action(finebit/2,3*belief)
 def t1_enumerated(policy,family):
     assert family in ("R","L")
+    # pi0 is deliberately only a mass-normalization cross-check: for a
+    # homogeneous R/L truth the first-period conditional zero-fine response
+    # is constant. The substantive dynamics check is pi2, which applies
+    # matching- and fine-dependent updates to all four actor states.
     pi0=0.
     pi2=0.
     p_first=0.
