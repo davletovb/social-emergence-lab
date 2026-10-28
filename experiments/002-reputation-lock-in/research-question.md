@@ -1,6 +1,8 @@
 # Experiment 002 — Can truthful reputation correction restore opportunity access?
 
-**Status:** scoped, falsifiable computational study **proposed**. Not implemented, simulated or preregistered; literature differentiation is preliminary. No claim of a discovered sociological law.
+> **Current-status reconciliation — 2026-10-28:** This file is the **original question and pre-execution design**, not the current execution status. Experiment 002 was subsequently implemented in Rust through V0–V3 and executed: [V2 36 matched-parent study](results/v2-36-paired-20261021/README.md), [V3 Stage A](results/v3-stage-a-20261022/README.md) and [Stage B](results/v3-stage-b-20261022/README.md) (**432 parents across nine cells**). None of the V3 cells met the positive active-regeneration criterion; the defensible narrow reading is **slow relaxation of inherited opportunity links**, not continuing active post-correction reputation lock-in. Stage B was amended after Stage A and remains exploratory. Original V0 and V3 raw evidence is in [replay-verified GitHub Releases](../../docs/experiment-002-evidence-custody-20261022.md); permanent V1/V2 custody and independent human validation are open. See [current research status](../../docs/current-research-status.md). Do not retroactively present this original proposal as preregistered.
+
+**Historical status at initial drafting:** scoped, falsifiable computational study **proposed**. At the time it was not implemented, simulated or preregistered; literature differentiation was preliminary. No claim of a discovered sociological law.
 
 ## Core problem
 

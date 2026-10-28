@@ -1,6 +1,8 @@
 # Experiment 002 — formal causal model and computational specification
 
-**Status:** falsifiable design proposal. Not implemented, run, preregistered, or demonstrated to be novel. All numeric parameters below are *illustrative V0 development defaults* and must not be used as post hoc confirmatory choices.
+> **Current-status reconciliation — 2026-10-28:** This is a **version-specific V0 source/design record**, not the final V3 model or evidence status. Subsequent Rust V0–V3 implementations and [V2 matched-parent results](results/v2-36-paired-20261021/README.md) and [V3 factorial results](results/v3-stage-b-20261022/README.md) were executed and analyzed. V3's original raw evidence is replay-verified and [released](../../docs/experiment-002-evidence-custody-20261022.md); conclusions are **exploratory, negative for active post-correction regeneration at the tested settings**, and cannot be relabeled confirmatory or novel. Keep the initial causal assumptions, V0 defaults and amendments historically distinct; the [current status ledger](../../docs/current-research-status.md) is the current-facing summary.
+
+**Historical status at initial drafting:** falsifiable V0 design proposal. At that time it had not been implemented, run, preregistered or demonstrated to be novel. All numeric parameters below are *illustrative V0 development defaults* and must not be used as post hoc confirmatory choices.
 
 ## Question and causal claim
 
