@@ -1,0 +1,96 @@
+{
+  "N_three_type_T1_moment_audit": {
+    "A0_T1_exact_S_alias": "one S atom, delta=omega=eta=epsilon=0",
+    "A0_T1_exact_S_alias_beta": 0.7426742121603953,
+    "latent_E_p_powers_unobserved": [
+      1,
+      0.32241964419769775,
+      0.1551798568683029,
+      0.08702142798128244,
+      0.05179550846590188
+    ],
+    "latent_hankel_determinant": 0.000051557199972991435,
+    "observable_first_k_cooperators_no_fines": [
+      1,
+      0.32241964419769775,
+      0.10395442696457001,
+      0.03351694935469222,
+      0.01080652288553212
+    ],
+    "observable_hankel_determinant": -1.398272314764589e-19,
+    "sampling": "independent actor draws from deterministic G, NOT a common latent type",
+    "scope": "the proposed cross-actor moment witness is invalid, no global N subset S claim",
+    "truth": "N three equal iid actor atoms with eta=0, nu=-1.5,0,1.5; beta=1 eps=0"
+  },
+  "R_vs_L_A_only": {
+    "P_first_public_H": 0.001610677178873038,
+    "R_t2_half_fine": 0.3775406687981454,
+    "R_t2_zero_fine": 0.5,
+    "TV_lower_bound_vs_any_L_H4": 0.000049310612526720535,
+    "signed_fine_reversal_contrast": 0.00009862122505344107
+  },
+  "families": "R not subset N/S by temporal instability; N/S/L not subset R by T1 ceiling; L not subset N/S by learning nonstationarity; R not subset L under A by fine reversal",
+  "frozen_family_classes": [
+    "M",
+    "N",
+    "C",
+    "S",
+    "L",
+    "R"
+  ],
+  "model": "Experiment003-A2-v0.2.2 J/H4",
+  "policies": [
+    {
+      "policy": "A",
+      "selected_L_vs_any_N_or_S_T2_TV_lower_bound": 0.015140221223373607,
+      "selected_L_zero_fine_t1_cooperation": 0.622459331201855,
+      "selected_L_zero_fine_t2_cooperation": 0.6830202160953495,
+      "selected_N_vs_any_R_T1_TV_lower_bound": 0.0674744624706623,
+      "selected_R_vs_any_N_or_S_T2_TV_lower_bound": 0.007035078411326799,
+      "selected_R_zero_fine_t1_cooperation": 0.2689414213699951,
+      "selected_R_zero_fine_t2_cooperation": 0.2408011077246879,
+      "t1_and_t2_zero_fine_event_base_all_regimes": 0.5
+    },
+    {
+      "policy": "A0",
+      "selected_L_vs_any_N_or_S_T2_TV_lower_bound": 0.013668676486178921,
+      "selected_L_zero_fine_t1_cooperation": 0.6224593312018545,
+      "selected_L_zero_fine_t2_cooperation": 0.6497966841742123,
+      "selected_N_vs_any_R_T1_TV_lower_bound": 0.1349489249413246,
+      "selected_R_vs_any_N_or_S_T2_TV_lower_bound": 0.028140313645307266,
+      "selected_R_zero_fine_t1_cooperation": 0.2689414213699951,
+      "selected_R_zero_fine_t2_cooperation": 0.21266079407938057,
+      "t1_and_t2_zero_fine_event_base_all_regimes": 1
+    }
+  ],
+  "status": "AUTHOR_SIDE_H4_LAW_INVARIANT_NOT_INDEPENDENT_P0",
+  "universal_R_t1_zero_fine_cooperation_ceiling": 0.48751040626053,
+  "unknown": [
+    "R not subset L under A0",
+    "N not subset S: the proposed T1 Hankel argument is INVALID for actor-iid H4",
+    "full all-15 inclusion map",
+    "statistical H4 coverage"
+  ],
+  "provenance": {
+    "old_v01_raw_result_sha256": "3c35fe9ec6edb90cfeedc0a1131e3bb5fb8090fa29fb716dccc8f4b256c4f50a",
+    "review_v02_execution_url": "https://github.com/davletovb/social-emergence-lab/actions/runs/40615796404",
+    "checkout_sha": "2b6d0e3cae24615c7696decf1cf3658985d93fa6",
+    "executed_raw_json_sha256": "467e67cd76dde9c30a4a5a14aab783d0d1c420def4b063cc324eb6d6501e71de",
+    "artifact_id": 12785490110,
+    "artifact_zip_sha256": "4ec119f753dd7eb8f40d4baeec84af59b1d9a9e481e92b15363beb318fef8d23",
+    "artifact_expiry_utc": "2026-11-27T01:34:00Z",
+    "tests": "8 passed, 0 failed",
+    "independence": "author-side deterministic checks, NOT P0",
+    "code_introduction_commits": [
+      "7797a73b9200da13913fdc8a1c74ceb067ac0db9",
+      "431f07348bd11348a8f18f4f9caaa35ab3b3251c",
+      "54a63d86be47878c351aebc7324caac51d5cf92c",
+      "cd15af5ba4da2bd2b2c1e8bca410b00481093f1d"
+    ]
+  },
+  "data_access_policy": {
+    "audit_only": true,
+    "truth_labelled": true,
+    "usable_for_model_classifier_training": false
+  }
+}
