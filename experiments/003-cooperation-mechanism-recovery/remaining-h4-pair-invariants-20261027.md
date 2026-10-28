@@ -6,11 +6,11 @@ This new work complements merged [PR #63](https://github.com/davletovb/social-em
 
 ## 1. Universal H4 invariant: N/S/M have constant fine-conditioned marginal cooperation
 
-For actor 0 and period `t≥1`, define the **public** event
+For actor 0 and period `t≥1`, define the **public** event *without conditioning on the current matching regime*
 
-`A_t={z_t=random, f_{actor0,t}=0, a_{0,t}=1}`.
+`A_t={f_{actor0,t}=0, a_{0,t}=1}`.
 
-Its allocation base rate is `r_A=1/4` and `r_A0=1`. At *every* period a random matching is uniformly fresh and independent of the actor's latent tuple and prior history, and the two dyad fines are freshly assigned after matching. N's stable `ν_0`, S's stable `δτ_0`, and M's zero action offset are not updated by the public history. Therefore for every legal H4 population law in each of M/N/S, with arbitrary ≤4-atom correlations of η with actor action coefficients,
+Its allocation base rate is `r_A=1/2` and `r_A0=1`. Both current matching regimes are integrated: M/N/S actor offsets do not inspect the newly assigned partner, and the dyad fines are independently randomized **after** matching. N's stable `ν_0`, S's stable `δτ_0`, and M's zero action offset are not updated by the public history. Therefore for every legal H4 population law in each of M/N/S, with arbitrary ≤4-atom correlations of η with actor action coefficients,
 
 `P_m(A_1)=P_m(A_2)=r_d E_G[ε/2+(1−ε)σ(β(−1+H_0^m))]`,
 
@@ -20,7 +20,7 @@ Take the bounded, observable `h=1_{A_1}−1_{A_2}`, so `h∈[-1,1]`, and hence
 
 `TV(P,P_m)≥|E_P h|/2=r_d |p_{P,t1}(0)−p_{P,t2}(0)|/2`
 
-for every `m∈{M,N,S}`, where `p_{P,t}(0)` is the target marginal actor0 cooperation conditional on `z_t=random,f_{actor0,t}=0`. This is a **valid but possibly conservative** TV lower bound, not a test statistic with calibrated type-I error.
+for every `m∈{M,N,S}`, where `p_{P,t}(0)` is the target marginal actor0 cooperation conditional on the actor's **current zero fine**, marginalizing both matching regimes. This is a **valid but possibly conservative** TV lower bound, not a test statistic with calibrated type-I error.
 
 ### Selected homogeneous R law is not representable by N or S (and therefore not M) for T≥2
 
@@ -35,7 +35,7 @@ Choose one-atom R with `β=1, ε=0, α_R=1, λ_A=0, η=0`, initial Q and aspirat
 
 Thus `p^{R}_{2|f_{1}=0,f_2=0}=q²/2+q(1−q)σ(−2)+(1−q)qσ(−3)+(1−q)²q=0.21266079407938066`. If the first fine was 1/2, the zero-fine Q context remains at zero, leaving period-2 p=q. Therefore
 
-- A: `p^R_1(0)=q=0.2689414213699951`; `p^R_2(0)=(q+0.21266079407938066)/2=0.24080110772468788`; **TV versus any N/S/M H4 ≥ 0.003517539205663403**.
+- A: `p^R_1(0)=q=0.2689414213699951`; `p^R_2(0)=(q+0.21266079407938066)/2=0.24080110772468788`; **TV versus any N/S/M H4 ≥ 0.007035078411326806**.
 - A0: `p^R_1(0)=q`; `p^R_2(0)=0.21266079407938066`; **TV versus any N/S/M H4 ≥ 0.028140313645307224**.
 
 The gaps are strict and involve **entire lawful public histories**, not a fixed-vector alternative-fit grid. The attached enumeration script independently sums *all 3 matching × fine × 16 first action cells*, updating all four actors' Q/aspirations; numerical agreement is an implementation check and does not replace the universal proof.
@@ -48,7 +48,7 @@ Choose legal one-atom L: `β=1, ε=0, κ=3, α=1, ζ=0, η=0`, with initial beli
 
 which evaluates to `0.6830202160953489` (A) and `0.6497966841742122` (A0). Both differ strictly from `p^L_1(0)`. The same time-invariant random-regime equality proves **L⊄N** and therefore **L⊄S** (since `S⊆N`) at T≥2:
 
-- **A:** TV versus any N/S H4 ≥ **0.0075701106116867894**.
+- **A:** TV versus any N/S H4 ≥ **0.015140221223373607**.
 - **A0:** TV versus any N/S H4 ≥ **0.01366867648617881**.
 
 These are `r_d/2` times the marginal time difference, using the same bounded public indicator `h`; they are not likelihood-based composite-null tests.
@@ -59,7 +59,7 @@ Every R legal truth starts with `Q_{i,1}(a,f)=0`, so its T1 zero-fine cooperatio
 
 `TV(P_N,P_R)≥r_d[σ(1/2)−c*]`.
 
-Numerically **0.03373723123533115 (A)** and **0.1349489249413246 (A0)**. The same *entire full-history N law* embeds in S (`τ=+1,δ=1.5,ω=0`) and L (`κ=3,α=0`) by the already-defined legal H4 mappings, establishing **N⊄R, S⊄R and L⊄R**, already at **T≥1**, in both policies. These claims are *one-direction noninclusions*, not disjointness.
+Numerically **0.0674744624706623 (A)** and **0.1349489249413246 (A0)**. The same *entire full-history N law* embeds in S (`τ=+1,δ=1.5,ω=0`) and L (`κ=3,α=0`) by the already-defined legal H4 mappings, establishing **N⊄R, S⊄R and L⊄R**, already at **T≥1**, in both policies. These claims are *one-direction noninclusions*, not disjointness.
 
 Together, the selected R time-instability witness and N T1 witness yield **candidate two-way N/R and S/R noninclusion at T≥2**, while `L⊄R` holds at T1 and above.
 
@@ -74,13 +74,13 @@ Under t2 random μ1, actor0 receives fine zero with probability 1/2 and fine hal
 - **At current fine 0:** `p_R=σ(−1+1)=0.5`.
 - **At current fine 1/2:** `p_R=σ(−1/2+0)=0.3775406687981454`.
 
-Let `B_0` and `B_{1/2}` denote the disjoint public events `H,z_2=random,μ_2=1`, respective actor0 fine value and actor0 cooperation; marginalize the other fine and actors' actions. Every L H4 law has `P_L(B_0)≤P_L(B_{1/2})`, while this selected R has
+Let `B_0` and `B_{1/2}` denote disjoint public events fixing **H, actor0's current fine and actor0's current cooperation**, but *marginalizing both current matching regimes, all current matchings*, the other fine and the other actors' current actions. The fine is drawn independently after matching, and the L/R actor0 contribution offsets do not depend on its newly assigned partner. Every L H4 law has `P_L(B_0)≤P_L(B_{1/2})`, while this selected R has
 
-`P_R(B_0)−P_R(B_{1/2}) = P_R(H) (1/12) [0.5−σ(−1/2)] >0`.
+`P_R(B_0)−P_R(B_{1/2}) = P_R(H) (1/2) [0.5−σ(−1/2)] >0`.
 
 The difference of event indicators lies in [-1,1], yielding
 
-`TV(P_R,P_L)≥(P_R(B_0)−P_R(B_{1/2}))/2 ≥ **0.000008218435421120089**`.
+`TV(P_R,P_L)≥(P_R(B_0)−P_R(B_{1/2}))/2 ≥ **0.000049310612526720535**`.
 
 Thus candidate **R⊄L under intervention A for T≥2**. Combined with `L⊄R` above, this gives **L/R incomparability under A for T≥2**. The same argument cannot run under **A0**, where half fines are absent; **R⊄L under A0 remains UNKNOWN**. Do not transfer the A witness to A0 or infer a different free-H4 result merely because local fits failed.
 
@@ -91,12 +91,12 @@ These are mathematical claims **conditional on the frozen synthetic J/H4 law**, 
 | Family pair | Constructive or candidate H4 law relation | Horizon/policy limitations |
 |---|---|---|
 | M/N | M⊆N; N⊄M (N T1 zero-fine witness) | Both, T≥1 |
-| M/C | M⊆C; C⊄M (prior PR63 or T1 positive response) | Both; T≥2 via prior theorem |
+| M/C | M⊆C; C⊄M (a legal C initial κ/2 offset can exceed the M zero-fine ceiling) | Both, **already T=1** |
 | M/S | M⊆S; S⊄M (embedded positive-offset N truth) | Both, T≥1 |
 | M/L | M⊆L; L⊄M (embedded positive-offset N truth) | Both, T≥1 |
 | M/R | M⊆R; R⊄M (R violates stationarity) | Both, T≥2; equal at T1 |
 | N/C | C⊄N (PR63), N⊄C (PR64) | Both, T≥2; equivalent at T1 |
-| N/S | S⊆N; N⊄S UNKNOWN | Both, all T |
+| N/S | S⊆N; N⊄S **UNKNOWN** (reviewer's T1 cross-actor Hankel proposal is invalid under actor-iid H4; see §4A) | Both, all T |
 | N/L | N⊆L; **L⊄N** (new temporal witness) | Both, T≥2; equivalent at T1 |
 | N/R | **N⊄R** (T1 ceiling), **R⊄N** (new temporal witness) | Both, T≥2; at T1 R⊆N |
 | C/S | C⊄S (PR63), S⊄C (PR64) | Both, T≥2 |
