@@ -1,5 +1,8 @@
 # Scientific Validation and Research Discovery Framework
 
+> **Current-status note (2026-10-28):** This document remains the **dated 2026-10-23 planning framework**. Its original “no new experiment approved” statements are **not a current claim that nothing has since been implemented**. After subsequent owner selection and separate exploratory authorization, [Experiment 003](../experiments/003-cooperation-mechanism-recovery/README.md) has an implemented Rust model, executed bounded pilot and author-derived exact/H4 analyses. These do **not** mean independent P0 scientific verification or a preregistered confirmatory experiment was approved. Current status: [research-status ledger](current-research-status.md); outstanding acceptance: [Issue #65](https://github.com/davletovb/social-emergence-lab/issues/65).
+
+
 **Version:** 0.1 — discussion and planning draft  
 **Date:** 2026-10-23  
 **Status:** Proposed framework; no new experiment authorized  
